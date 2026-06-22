@@ -10,10 +10,10 @@
             theme: {
                 extend: {
                     colors: {
-                        darkbg: '#111827', // Warna gelap untuk Hero dan Footer
-                        gold: '#EAB308',   // Warna aksen emas
+                        darkbg: '#111827',
+                        gold: '#EAB308',
                         goldhover: '#CA8A04',
-                        lightbg: '#F9FAFB', // Warna terang untuk section konten
+                        lightbg: '#F9FAFB',
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
@@ -87,10 +87,10 @@
                 <button class="bg-gold text-darkbg px-6 py-2 rounded-md font-semibold text-sm hover:bg-goldhover transition">Cari Dokumen</button>
             </div>
 
-            <button class="bg-gold text-darkbg px-6 py-2.5 rounded-md font-bold text-sm hover:bg-goldhover transition inline-flex items-center gap-2">
+            <a href="/login" class="bg-gold text-darkbg px-6 py-2.5 rounded-md font-bold text-sm hover:bg-goldhover transition inline-flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 Masuk ke Portal
-            </button>
+            </a>
         </div>
     </section>
 
@@ -358,8 +358,8 @@
             <h3 class="text-2xl font-bold text-gray-900 mb-3">Masuk ke Portal<br>Internal SIGER-Hub</h3>
             <p class="text-gray-500 text-sm mb-8 max-w-sm">Akses dashboard internal untuk mengelola dokumen, melakukan review, berkolaborasi dalam forum pengetahuan, dan berkontribusi pada ekosistem manajemen pengetahuan Pemprov Lampung.</p>
             <div class="flex gap-4">
-                <button class="bg-darkbg text-white px-6 py-2 rounded-md font-medium text-sm hover:bg-gray-800 transition shadow-md">Portal Pegawai →</button>
-                <button class="border border-gray-300 text-gray-700 px-6 py-2 rounded-md font-medium text-sm hover:bg-gray-50 transition">Portal Admin ⚙</button>
+                <a href="/login" class="bg-darkbg text-white px-6 py-2 rounded-md font-medium text-sm hover:bg-gray-800 transition shadow-md">Portal Pegawai →</a>
+                <a href="/login" class="border border-gray-300 text-gray-700 px-6 py-2 rounded-md font-medium text-sm hover:bg-gray-50 transition">Portal Admin ⚙</a>
             </div>
         </div>
     </section>
