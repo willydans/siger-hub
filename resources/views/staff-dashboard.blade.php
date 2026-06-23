@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Penulis - SIGER-Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <script>
         tailwind.config = { theme: { extend: { colors: { darkbg: '#0F172A', gold: '#EAB308', goldhover: '#CA8A04', lightbg: '#F8FAFC', cardborder: '#E2E8F0', textmain: '#334155' } } } }
     </script>
@@ -67,29 +70,69 @@
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="bg-white border border-cardborder rounded-xl p-5 shadow-sm">
-                <p class="text-xs font-bold text-gray-500 uppercase mb-2">Total Artikel Saya</p>
+                <p class="text-[11px] font-bold text-gray-500 uppercase mb-2">Total Artikel Saya</p>
                 <p class="text-3xl font-bold text-gray-900">14</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-5 shadow-sm">
-                <p class="text-xs font-bold text-blue-500 uppercase mb-2">Menunggu Verifikasi</p>
+                <p class="text-[11px] font-bold text-blue-500 uppercase mb-2">Menunggu Verifikasi</p>
                 <p class="text-3xl font-bold text-gray-900">2</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-5 shadow-sm">
-                <p class="text-xs font-bold text-green-500 uppercase mb-2">Berhasil Terbit</p>
+                <p class="text-[11px] font-bold text-green-500 uppercase mb-2">Berhasil Terbit</p>
                 <p class="text-3xl font-bold text-gray-900">11</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-5 shadow-sm">
-                <p class="text-xs font-bold text-gold uppercase mb-2">Total Tayangan</p>
+                <p class="text-[11px] font-bold text-gold uppercase mb-2">Total Tayangan</p>
                 <p class="text-3xl font-bold text-gray-900">24.5K</p>
             </div>
         </div>
 
         <div class="bg-white border border-cardborder rounded-xl shadow-sm overflow-hidden p-6">
             <h3 class="font-bold text-gray-800 mb-4">Grafik Pembaca (Bulan Ini)</h3>
-            <div class="w-full h-64 bg-gray-50 rounded flex items-center justify-center border border-dashed border-gray-200">
-                <span class="text-gray-400 text-sm">[ Integrasi Chart.js / ApexCharts di sini ]</span>
+            <div class="w-full h-72">
+                <canvas id="readersChart"></canvas>
             </div>
         </div>
     </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const ctx = document.getElementById('readersChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
+                    datasets: [{
+                        label: 'Tayangan Artikel',
+                        data: [5200, 7100, 4800, 8400],
+                        backgroundColor: '#EAB308', // Gold
+                        borderRadius: 4,
+                        barThickness: 30
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#F1F5F9', drawBorder: false },
+                            ticks: {
+                                font: { family: "'Inter', sans-serif" }
+                            }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { font: { family: "'Inter', sans-serif" } }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>

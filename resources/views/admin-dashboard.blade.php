@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Admin - SIGER-Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = { theme: { extend: { colors: { darkbg: '#0F172A', gold: '#EAB308', lightbg: '#F8FAFC', cardborder: '#E2E8F0', textmain: '#334155' } } } }
     </script>
@@ -12,7 +13,6 @@
 </head>
 <body class="font-sans antialiased text-textmain bg-lightbg flex h-screen overflow-hidden">
 
-    <!-- SIDEBAR ADMIN -->
     <aside class="w-64 bg-darkbg text-gray-300 flex flex-col border-r border-gray-800 shadow-2xl z-20">
         <div class="h-16 flex items-center gap-3 px-6 border-b border-gray-800">
             <div class="w-8 h-8 bg-gold rounded text-darkbg flex items-center justify-center font-bold text-lg">S</div>
@@ -69,7 +69,6 @@
             </div>
         </div>
 
-        <!-- STATS -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="bg-white border border-cardborder rounded-xl p-5 shadow-sm">
                 <p class="text-[11px] font-bold text-gray-500 uppercase mb-2">Total Dokumen Publik</p>
@@ -92,12 +91,11 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 bg-white border border-cardborder rounded-xl shadow-sm p-6">
                 <h3 class="font-bold text-gray-800 mb-4">Grafik Pengunjung Portal & API Request</h3>
-                <div class="w-full h-72 bg-gray-50 rounded flex items-center justify-center border border-dashed border-gray-200">
-                    <span class="text-gray-400 text-sm">[ Integrasi Chart.js - Line Chart ]</span>
+                <div class="w-full h-72">
+                    <canvas id="trafficChart"></canvas>
                 </div>
             </div>
 
-            <!-- Kesehatan Sistem & Eksternal API -->
             <div class="bg-white border border-cardborder rounded-xl shadow-sm p-6">
                 <h3 class="font-bold text-gray-800 mb-4 border-b border-gray-100 pb-3">Status Integrasi API</h3>
                 <ul class="space-y-4">
@@ -126,5 +124,84 @@
             </div>
         </div>
     </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const ctx = document.getElementById('trafficChart').getContext('2d');
+            
+            // Konfigurasi Chart
+            new Chart(ctx, {
+                type: 'line', // Jenis grafik
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul'], // Sumbu X
+                    datasets: [
+                        {
+                            label: 'Pengunjung Portal',
+                            data: [65000, 78000, 90000, 81000, 105000, 120000, 142500], // Sumbu Y Data 1
+                            borderColor: '#EAB308', // Warna garis (Gold Siger)
+                            backgroundColor: 'rgba(234, 179, 8, 0.1)', // Warna area bawah garis
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4 // Membuat garis melengkung
+                        },
+                        {
+                            label: 'API Request',
+                            data: [40000, 55000, 60000, 50000, 75000, 85000, 110000], // Sumbu Y Data 2
+                            borderColor: '#3B82F6', // Warna garis (Biru)
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [5, 5], // Garis putus-putus
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                    family: "'Inter', sans-serif",
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#F1F5F9', // Warna garis grid tipis
+                                drawBorder: false
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value / 1000 + 'k'; // Format angka jadi 'k' (contoh: 50k)
+                                },
+                                font: {
+                                    family: "'Inter', sans-serif"
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false, // Hilangkan garis vertikal
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: {
+                                    family: "'Inter', sans-serif"
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>
