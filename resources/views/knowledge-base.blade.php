@@ -180,7 +180,10 @@
                 <p class="text-sm text-gray-600">Showing <span class="font-bold text-gray-900">6</span> of <span class="font-bold text-gray-900">9</span> articles</p>
             </div>
 
+            <!-- Grid Kartu Artikel -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Kartu Artikel 1 -->
                 <div class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element" style="transition-delay: 100ms;">
                     <div class="relative h-40 bg-gray-200 overflow-hidden group">
                         <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Code" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
@@ -189,20 +192,56 @@
                     <div class="p-5 flex flex-col flex-grow">
                         <h3 class="font-bold text-gray-900 text-[15px] leading-snug mb-2 hover:text-gold transition-colors duration-300">Building Scalable REST APIs with Node.js and Express</h3>
                         <p class="text-xs text-gray-500 mb-6 line-clamp-2">A comprehensive guide to designing and implementing production-ready RESTful AP...</p>
-                        <div class="mt-auto flex items-center justify-between text-[11px] text-gray-400 font-medium">
-                            <div class="flex items-center gap-2">
-                                <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold overflow-hidden">
-                                    <img src="https://ui-avatars.com/api/?name=Rizky+Pratama&background=bfdbfe&color=1e3a8a" alt="Avatar">
+                        
+                        <div class="mt-auto flex flex-col gap-3">
+                            <!-- Informasi Penulis & Waktu -->
+                            <div class="flex items-center justify-between text-[11px] text-gray-400 font-medium">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold overflow-hidden">
+                                        <img src="https://ui-avatars.com/api/?name=Rizky+Pratama&background=bfdbfe&color=1e3a8a" alt="Avatar">
+                                    </div>
+                                    <span>Rizky Pratama</span>
                                 </div>
-                                <span>Rizky Pratama</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 12 min</span>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 12 min</span>
+
+                            <!-- Action Bar (Bookmark, Like, Rating, Share, Download) -->
+                            <div class="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-[11px] text-gray-400 gap-2">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <!-- Like -->
+                                    <button class="flex items-center gap-1 hover:text-red-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+                                        <span>45</span>
+                                    </button>
+                                    <!-- Bookmark -->
+                                    <button class="flex items-center gap-1 hover:text-gold transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                                        <span>12</span>
+                                    </button>
+                                    <!-- Rating Static (⭐⭐⭐⭐⭐) -->
+                                    <div class="flex items-center gap-0.5 text-[10px] text-yellow-400">
+                                        <span>★</span><span>★</span><span>★</span><span>★</span><span class="text-gray-300">★</span>
+                                        <span class="text-gray-400 ml-1">(4.2)</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <!-- Share -->
+                                    <button class="hover:text-blue-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                    </button>
+                                    <!-- Download -->
+                                    <button class="hover:text-green-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Kartu Artikel 2 -->
                 <div class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element" style="transition-delay: 200ms;">
                     <div class="relative h-40 bg-gray-200 overflow-hidden group">
                         <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Server" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
@@ -211,20 +250,49 @@
                     <div class="p-5 flex flex-col flex-grow">
                         <h3 class="font-bold text-gray-900 text-[15px] leading-snug mb-2 hover:text-gold transition-colors duration-300">Docker Container Orchestration for Government Systems</h3>
                         <p class="text-xs text-gray-500 mb-6 line-clamp-2">Learn how to orchestrate Docker containers for scalable government applications,...</p>
-                        <div class="mt-auto flex items-center justify-between text-[11px] text-gray-400 font-medium">
-                            <div class="flex items-center gap-2">
-                                <div class="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center overflow-hidden">
-                                    <img src="https://ui-avatars.com/api/?name=Andi+Kusuma&background=bbf7d0&color=166534" alt="Avatar">
+                        
+                        <div class="mt-auto flex flex-col gap-3">
+                            <div class="flex items-center justify-between text-[11px] text-gray-400 font-medium">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center overflow-hidden">
+                                        <img src="https://ui-avatars.com/api/?name=Andi+Kusuma&background=bbf7d0&color=166534" alt="Avatar">
+                                    </div>
+                                    <span>Andi Kusuma</span>
                                 </div>
-                                <span>Andi Kusuma</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 15 min</span>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 15 min</span>
+
+                            <div class="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-[11px] text-gray-400 gap-2">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <button class="flex items-center gap-1 hover:text-red-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+                                        <span>28</span>
+                                    </button>
+                                    <button class="flex items-center gap-1 hover:text-gold transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                                        <span>9</span>
+                                    </button>
+                                    <div class="flex items-center gap-0.5 text-[10px] text-yellow-400">
+                                        <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                                        <span class="text-gray-400 ml-1">(5.0)</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="hover:text-blue-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                    </button>
+                                    <button class="hover:text-green-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Kartu Artikel 3 -->
                 <div class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element" style="transition-delay: 300ms;">
                     <div class="relative h-40 bg-gray-200 overflow-hidden group">
                         <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Security" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
@@ -233,20 +301,49 @@
                     <div class="p-5 flex flex-col flex-grow">
                         <h3 class="font-bold text-gray-900 text-[15px] leading-snug mb-2 hover:text-gold transition-colors duration-300">OWASP Top 10: Web Application Security Guide</h3>
                         <p class="text-xs text-gray-500 mb-6 line-clamp-2">An in-depth walkthrough of the OWASP Top 10 vulnerabilities with practical examples an...</p>
-                        <div class="mt-auto flex items-center justify-between text-[11px] text-gray-400 font-medium">
-                            <div class="flex items-center gap-2">
-                                <div class="w-5 h-5 bg-pink-100 rounded-full flex items-center justify-center overflow-hidden">
-                                    <img src="https://ui-avatars.com/api/?name=Dian+Permata&background=fbcfe8&color=9d174d" alt="Avatar">
+                        
+                        <div class="mt-auto flex flex-col gap-3">
+                            <div class="flex items-center justify-between text-[11px] text-gray-400 font-medium">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-5 h-5 bg-pink-100 rounded-full flex items-center justify-center overflow-hidden">
+                                        <img src="https://ui-avatars.com/api/?name=Dian+Permata&background=fbcfe8&color=9d174d" alt="Avatar">
+                                    </div>
+                                    <span>Dian Permata</span>
                                 </div>
-                                <span>Dian Permata</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 18 min</span>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 18 min</span>
+
+                            <div class="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-[11px] text-gray-400 gap-2">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <button class="flex items-center gap-1 hover:text-red-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+                                        <span>62</span>
+                                    </button>
+                                    <button class="flex items-center gap-1 hover:text-gold transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                                        <span>18</span>
+                                    </button>
+                                    <div class="flex items-center gap-0.5 text-[10px] text-yellow-400">
+                                        <span>★</span><span>★</span><span>★</span><span>★</span><span class="text-gray-300">★</span>
+                                        <span class="text-gray-400 ml-1">(4.8)</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="hover:text-blue-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                    </button>
+                                    <button class="hover:text-green-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Kartu Artikel 4 -->
                 <div class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element" style="transition-delay: 100ms;">
                     <div class="relative h-40 bg-gray-200 overflow-hidden group">
                         <img src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Network" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
@@ -255,20 +352,49 @@
                     <div class="p-5 flex flex-col flex-grow">
                         <h3 class="font-bold text-gray-900 text-[15px] leading-snug mb-2 hover:text-gold transition-colors duration-300">Configuring VLANs and Network Segmentation</h3>
                         <p class="text-xs text-gray-500 mb-6 line-clamp-2">Step-by-step guide to configuring VLANs, implementing network segmentation, and...</p>
-                        <div class="mt-auto flex items-center justify-between text-[11px] text-gray-400 font-medium">
-                            <div class="flex items-center gap-2">
-                                <div class="w-5 h-5 bg-purple-100 rounded-full flex items-center justify-center overflow-hidden">
-                                    <img src="https://ui-avatars.com/api/?name=Budi+Santoso&background=e9d5ff&color=6b21a8" alt="Avatar">
+                        
+                        <div class="mt-auto flex flex-col gap-3">
+                            <div class="flex items-center justify-between text-[11px] text-gray-400 font-medium">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-5 h-5 bg-purple-100 rounded-full flex items-center justify-center overflow-hidden">
+                                        <img src="https://ui-avatars.com/api/?name=Budi+Santoso&background=e9d5ff&color=6b21a8" alt="Avatar">
+                                    </div>
+                                    <span>Budi Santoso</span>
                                 </div>
-                                <span>Budi Santoso</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 10 min</span>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 10 min</span>
+
+                            <div class="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-[11px] text-gray-400 gap-2">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <button class="flex items-center gap-1 hover:text-red-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+                                        <span>91</span>
+                                    </button>
+                                    <button class="flex items-center gap-1 hover:text-gold transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                                        <span>32</span>
+                                    </button>
+                                    <div class="flex items-center gap-0.5 text-[10px] text-yellow-400">
+                                        <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                                        <span class="text-gray-400 ml-1">(4.9)</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="hover:text-blue-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                    </button>
+                                    <button class="hover:text-green-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Kartu Artikel 5 -->
                 <div class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element" style="transition-delay: 200ms;">
                     <div class="relative h-40 bg-gray-200 overflow-hidden group">
                         <img src="https://images.unsplash.com/photo-1507721999472-8ed4421c4af2?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="CSS" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
@@ -277,20 +403,49 @@
                     <div class="p-5 flex flex-col flex-grow">
                         <h3 class="font-bold text-gray-900 text-[15px] leading-snug mb-2 hover:text-gold transition-colors duration-300">Modern CSS Grid and Flexbox Layout Patterns</h3>
                         <p class="text-xs text-gray-500 mb-6 line-clamp-2">Master modern CSS layout techniques with real-world examples. Covers Grid, Flexbox,...</p>
-                        <div class="mt-auto flex items-center justify-between text-[11px] text-gray-400 font-medium">
-                            <div class="flex items-center gap-2">
-                                <div class="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center overflow-hidden">
-                                    <img src="https://ui-avatars.com/api/?name=Siti+Nuraini&background=fecaca&color=b91c1c" alt="Avatar">
+                        
+                        <div class="mt-auto flex flex-col gap-3">
+                            <div class="flex items-center justify-between text-[11px] text-gray-400 font-medium">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center overflow-hidden">
+                                        <img src="https://ui-avatars.com/api/?name=Siti+Nuraini&background=fecaca&color=b91c1c" alt="Avatar">
+                                    </div>
+                                    <span>Siti Nuraini</span>
                                 </div>
-                                <span>Siti Nuraini</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 8 min</span>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 8 min</span>
+
+                            <div class="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-[11px] text-gray-400 gap-2">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <button class="flex items-center gap-1 hover:text-red-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+                                        <span>120</span>
+                                    </button>
+                                    <button class="flex items-center gap-1 hover:text-gold transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                                        <span>45</span>
+                                    </button>
+                                    <div class="flex items-center gap-0.5 text-[10px] text-yellow-400">
+                                        <span>★</span><span>★</span><span>★</span><span>★</span><span class="text-gray-300">★</span>
+                                        <span class="text-gray-400 ml-1">(4.6)</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="hover:text-blue-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                    </button>
+                                    <button class="hover:text-green-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Kartu Artikel 6 -->
                 <div class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element" style="transition-delay: 300ms;">
                     <div class="relative h-40 bg-gray-200 overflow-hidden group">
                         <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Cloud" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
@@ -299,15 +454,43 @@
                     <div class="p-5 flex flex-col flex-grow">
                         <h3 class="font-bold text-gray-900 text-[15px] leading-snug mb-2 hover:text-gold transition-colors duration-300">Kubernetes Cluster Setup and Management Guide</h3>
                         <p class="text-xs text-gray-500 mb-6 line-clamp-2">Complete walkthrough for setting up a production-ready Kubernetes cluster,...</p>
-                        <div class="mt-auto flex items-center justify-between text-[11px] text-gray-400 font-medium">
-                            <div class="flex items-center gap-2">
-                                <div class="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center overflow-hidden">
-                                    <img src="https://ui-avatars.com/api/?name=Andi+Kusuma&background=bbf7d0&color=166534" alt="Avatar">
+                        
+                        <div class="mt-auto flex flex-col gap-3">
+                            <div class="flex items-center justify-between text-[11px] text-gray-400 font-medium">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center overflow-hidden">
+                                        <img src="https://ui-avatars.com/api/?name=Andi+Kusuma&background=bbf7d0&color=166534" alt="Avatar">
+                                    </div>
+                                    <span>Andi Kusuma</span>
                                 </div>
-                                <span>Andi Kusuma</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 20 min</span>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 20 min</span>
+
+                            <div class="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-[11px] text-gray-400 gap-2">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <button class="flex items-center gap-1 hover:text-red-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+                                        <span>77</span>
+                                    </button>
+                                    <button class="flex items-center gap-1 hover:text-gold transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                                        <span>23</span>
+                                    </button>
+                                    <div class="flex items-center gap-0.5 text-[10px] text-yellow-400">
+                                        <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                                        <span class="text-gray-400 ml-1">(5.0)</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="hover:text-blue-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                    </button>
+                                    <button class="hover:text-green-500 transition-colors duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

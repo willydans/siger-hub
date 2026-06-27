@@ -24,16 +24,18 @@ Route::get('/login', function () {
 
 // Route untuk Halaman Staf (Author CMS)
 Route::get('/staff/dashboard', function () { return view('staff-dashboard'); });
-Route::get('/staff/articles', function () { return view('staff-articles'); }); // Manajemen Edit/Hapus
-Route::get('/staff/editor', function () { return view('staff-editor'); }); // Tulis/Edit Artikel
+Route::get('/staff/articles', function () { return view('staff-articles'); });
+Route::get('/staff/draft', function () { return view('staff-draft'); }); // Route baru untuk Draft
+Route::get('/staff/revision', function () { return view('staff-revision'); }); // Route baru untuk Revision
+Route::get('/staff/notification', function () { return view('staff-notification'); }); // Route baru untuk Notification
+Route::get('/staff/editor', function () { return view('staff-editor'); });
 Route::get('/staff/profile', function () { return view('staff-profile'); });
 
 // Route untuk Admin Dashboard & Manajemen
 Route::get('/admin/dashboard', function () { return view('admin-dashboard'); });
-Route::get('/admin/articles', function () { return view('admin-articles'); }); // Verifikasi & CMS
-Route::get('/admin/users', function () { return view('admin-users'); }); // Manajemen Role
-Route::get('/admin/reports', function () { return view('admin-reports'); }); // Audit Trail & Laporan
-// Tambahkan di bawah route admin lainnya
+Route::get('/admin/articles', function () { return view('admin-articles'); });
+Route::get('/admin/users', function () { return view('admin-users'); });
+Route::get('/admin/reports', function () { return view('admin-reports'); });
 Route::get('/admin/editor', function () { 
     return view('admin-editor'); 
 });
