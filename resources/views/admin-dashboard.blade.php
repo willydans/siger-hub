@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Admin - SIGER-Hub</title>
+    <title>Super Admin - AKSARA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -15,9 +15,9 @@
 
     <aside class="w-64 bg-darkbg text-gray-300 flex flex-col border-r border-gray-800 shadow-2xl z-20">
         <div class="h-16 flex items-center gap-3 px-6 border-b border-gray-800">
-            <div class="w-8 h-8 bg-gold rounded text-darkbg flex items-center justify-center font-bold text-lg">S</div>
+            <div class="w-8 h-8 bg-gold rounded text-darkbg flex items-center justify-center font-bold text-lg">A</div>
             <div class="flex flex-col">
-                <span class="font-bold text-white text-sm leading-tight">SIGER-Hub</span>
+                <span class="font-bold text-white text-sm leading-tight">AKSARA</span>
                 <span class="text-[10px] text-red-400 font-bold uppercase tracking-widest">Super Admin</span>
             </div>
         </div>
@@ -97,7 +97,7 @@
             </div>
 
             <div class="bg-white border border-cardborder rounded-xl shadow-sm p-6">
-                <h3 class="font-bold text-gray-800 mb-4 border-b border-gray-100 pb-3">Status Integrasi API</h3>
+                <h3 class="font-bold text-gray-800 mb-4 border-b border-gray-100 pb-3">Status Integrasi API & Database</h3>
                 <ul class="space-y-4">
                     <li class="flex justify-between items-center">
                         <div class="flex items-center gap-3">
@@ -109,7 +109,7 @@
                     <li class="flex justify-between items-center">
                         <div class="flex items-center gap-3">
                             <div class="bg-purple-100 p-2 rounded"><svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg></div>
-                            <span class="text-sm font-medium text-gray-700">PostgreSQL Database</span>
+                            <span class="text-sm font-medium text-gray-700">MySQL Database</span>
                         </div>
                         <span class="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">Normal</span>
                     </li>
@@ -129,28 +129,27 @@
         document.addEventListener("DOMContentLoaded", function() {
             const ctx = document.getElementById('trafficChart').getContext('2d');
             
-            // Konfigurasi Chart
             new Chart(ctx, {
-                type: 'line', // Jenis grafik
+                type: 'line',
                 data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul'], // Sumbu X
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul'],
                     datasets: [
                         {
                             label: 'Pengunjung Portal',
-                            data: [65000, 78000, 90000, 81000, 105000, 120000, 142500], // Sumbu Y Data 1
-                            borderColor: '#EAB308', // Warna garis (Gold Siger)
-                            backgroundColor: 'rgba(234, 179, 8, 0.1)', // Warna area bawah garis
+                            data: [65000, 78000, 90000, 81000, 105000, 120000, 142500],
+                            borderColor: '#EAB308',
+                            backgroundColor: 'rgba(234, 179, 8, 0.1)',
                             borderWidth: 3,
                             fill: true,
-                            tension: 0.4 // Membuat garis melengkung
+                            tension: 0.4
                         },
                         {
                             label: 'API Request',
-                            data: [40000, 55000, 60000, 50000, 75000, 85000, 110000], // Sumbu Y Data 2
-                            borderColor: '#3B82F6', // Warna garis (Biru)
+                            data: [40000, 55000, 60000, 50000, 75000, 85000, 110000],
+                            borderColor: '#3B82F6',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
-                            borderDash: [5, 5], // Garis putus-putus
+                            borderDash: [5, 5],
                             tension: 0.4
                         }
                     ]
@@ -164,39 +163,22 @@
                             labels: {
                                 usePointStyle: true,
                                 padding: 20,
-                                font: {
-                                    family: "'Inter', sans-serif",
-                                    size: 12
-                                }
+                                font: { family: "'Inter', sans-serif", size: 12 }
                             }
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
-                            grid: {
-                                color: '#F1F5F9', // Warna garis grid tipis
-                                drawBorder: false
-                            },
+                            grid: { color: '#F1F5F9', drawBorder: false },
                             ticks: {
-                                callback: function(value) {
-                                    return value / 1000 + 'k'; // Format angka jadi 'k' (contoh: 50k)
-                                },
-                                font: {
-                                    family: "'Inter', sans-serif"
-                                }
+                                callback: function(value) { return value / 1000 + 'k'; },
+                                font: { family: "'Inter', sans-serif" }
                             }
                         },
                         x: {
-                            grid: {
-                                display: false, // Hilangkan garis vertikal
-                                drawBorder: false
-                            },
-                            ticks: {
-                                font: {
-                                    family: "'Inter', sans-serif"
-                                }
-                            }
+                            grid: { display: false, drawBorder: false },
+                            ticks: { font: { family: "'Inter', sans-serif" } }
                         }
                     }
                 }
