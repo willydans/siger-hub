@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management - AKSARA</title>
+    <title>Feedback - AKSARA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { 
@@ -31,7 +31,7 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Sidebar Mobile & Dropdown */
+        /* Sidebar Mobile */
         #sidebar-mobile {
             transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
         }
@@ -73,7 +73,7 @@
     <!-- Mobile Overlay -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden opacity-0" onclick="toggleSidebar()"></div>
 
-    <    <!-- SIDEBAR -->
+        <!-- SIDEBAR (Dipertahankan persis, dengan Feedback sebagai menu aktif) -->
     <aside id="sidebar-mobile" class="w-64 bg-darkbg text-gray-300 flex flex-col border-r border-gray-800 shadow-2xl z-40 fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 flex-shrink-0 sidebar-scroll">
         <div class="h-16 flex items-center gap-3 px-6 border-b border-gray-800">
             <div class="w-8 h-8 bg-gold rounded text-darkbg flex items-center justify-center font-bold text-lg">A</div>
@@ -102,7 +102,7 @@
                 <div id="submenu-knowledge" class="submenu hidden pl-9 space-y-1 mt-1">
                     <a href="/admin/all-articles" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• All Articles</a>
                     <a href="/admin/pending-approval" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors flex items-center justify-between">• Pending Approval <span class="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">23</span></a>
-                    <!-- Draft sudah disesuaikan routenya -->
+                    <!-- Draft sudah diperbaiki routenya -->
                     <a href="/admin/draft" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Draft</a>
                     <a href="/admin/revision" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Revision</a>
                     <a href="/admin/published" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Published</a>
@@ -111,25 +111,29 @@
                 </div>
             </div>
 
-            <!-- Menu Utama 2: User Management -->
-            <a href="/admin/users" class="flex items-center gap-3 bg-gray-800/50 text-white px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border border-gray-700">
-                <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> User Management
+            <!-- Menu Utama 2: User Management (Menu Tunggal) -->
+            <a href="/admin/users" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> User Management
             </a>
 
-            <!-- Menu Utama 3: Category -->
+            <!-- Menu Utama 3: Category (Menu Tunggal) -->
             <a href="/admin/category" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg> Category
             </a>
 
-            <!-- Menu Utama 4: Single Links (Rute sudah disesuaikan) -->
+            <!-- Menu Utama 4: Analytics -->
             <a href="/admin/analytics" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Analytics
             </a>
+
+            <!-- Menu Utama 5: Feedback (Sedang Aktif) -->
+            <a href="/admin/feedback" class="flex items-center gap-3 bg-gray-800/50 text-white px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border border-gray-700">
+                <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> Feedback
+            </a>
+
+            <!-- Menu Utama 6: Single Links Lainnya (Rute sudah diperbaiki) -->
             <a href="/admin/searchlog" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg> Search Log
-            </a>
-            <a href="/admin/feedback" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> Feedback
             </a>
             <a href="/admin/notification" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg> Notification
@@ -160,7 +164,7 @@
         </div>
     </aside>
 
-    <!-- MAIN CONTENT (User Management & Roles Page) -->
+    <!-- MAIN CONTENT (Feedback Page) -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#F8FAFC] p-4 md:p-8 relative w-full">
         
         <!-- Mobile Toggle Sidebar -->
@@ -168,52 +172,43 @@
             <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-900 p-2 -ml-2 rounded-lg hover:bg-gray-100">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
             </button>
-            <h2 class="text-xl font-bold text-gray-900">User Management</h2>
+            <h2 class="text-xl font-bold text-gray-900">Feedback</h2>
         </div>
 
         <!-- Header Section -->
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 fade-in-up" style="animation-delay: 0.1s;">
             <div>
-                <h1 class="text-2xl md:text-3xl font-bold text-gray-900">User Management</h1>
-                <p class="text-sm text-gray-500 mt-1">Kelola pengguna, reset password, dan pantau aktivitas login.</p>
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Feedback</h1>
+                <p class="text-sm text-gray-500 mt-1">Setelah user memberi 👎, masuk sini. Kelola keluhan dan masukan pengguna.</p>
             </div>
-            <button class="w-full md:w-auto bg-darkbg text-white hover:bg-gray-800 font-bold py-2 px-6 rounded-lg text-sm transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105">
-                + Tambah Pengguna Baru
-            </button>
         </div>
 
-        <!-- Table User Container -->
+        <!-- Table Feedback Container -->
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden fade-in-up" style="animation-delay: 0.3s;">
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-gray-50 text-[11px] uppercase text-gray-500 font-bold border-b border-gray-200 whitespace-nowrap">
                         <tr>
                             <th class="px-4 py-4 w-10"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></th>
-                            <th class="px-4 py-4 min-w-[160px]">Nama</th>
-                            <th class="px-4 py-4 min-w-[140px]">NIP</th>
-                            <th class="px-4 py-4 min-w-[180px]">Email</th>
-                            <th class="px-4 py-4 min-w-[120px]">Jabatan</th>
-                            <th class="px-4 py-4 min-w-[120px]">Bidang</th>
-                            <th class="px-4 py-4 min-w-[120px]">Role</th>
-                            <th class="px-4 py-4 min-w-[100px]">Status</th>
-                            <th class="px-4 py-4 min-w-[140px]">Login Terakhir</th>
+                            <th class="px-4 py-4 min-w-[180px]">Artikel</th>
+                            <th class="px-4 py-4 min-w-[120px]">Penulis</th>
+                            <th class="px-4 py-4 min-w-[180px]">Feedback</th>
+                            <th class="px-4 py-4 min-w-[120px]">Tanggal</th>
+                            <th class="px-4 py-4 min-w-[120px]">Status</th>
                             <th class="px-4 py-4 text-center min-w-[60px]">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
-                        <!-- Row 1 -->
+                        <!-- Row 1: Kurang Lengkap -->
                         <tr class="hover:bg-gray-50/80 transition-colors duration-200">
                             <td class="px-4 py-4"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
-                            <td class="px-4 py-4 font-medium text-gray-900">Wildan</td>
-                            <td class="px-4 py-4 text-gray-600">198012012005011002</td>
-                            <td class="px-4 py-4 text-gray-600">wildan@lampungprov.go.id</td>
-                            <td class="px-4 py-4 text-gray-600">Staf IT</td>
-                            <td class="px-4 py-4 text-gray-600">E-Government</td>
-                            <td class="px-4 py-4"><span class="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Staff</span></td>
-                            <td class="px-4 py-4"><span class="bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Active</span></td>
-                            <td class="px-4 py-4 text-gray-600">20 Jun 2026 10:30</td>
+                            <td class="px-4 py-4 font-bold text-gray-900">Panduan VPN</td>
+                            <td class="px-4 py-4 text-gray-600">Wildan</td>
+                            <td class="px-4 py-4"><span class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-[10px] font-medium">Kurang Lengkap</span></td>
+                            <td class="px-4 py-4 text-gray-600">20 Jun 2026</td>
+                            <td class="px-4 py-4"><span class="bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Open</span></td>
                             <td class="px-4 py-4 text-center relative">
-                                <!-- Action Dropdown -->
+                                <!-- Dropdown Menu Action -->
                                 <div class="relative inline-block">
                                     <button onclick="toggleDropdown(this)" class="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
                                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
@@ -221,29 +216,24 @@
                                     <!-- Dropdown Content -->
                                     <div class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-20 origin-top-right scale-95 opacity-0">
                                         <div class="py-1">
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-yellow-600 hover:bg-yellow-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> Reset Password</button>
-                                            <div class="border-t border-gray-100 my-1"></div>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-green-600 hover:bg-green-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Enable</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Disable</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Delete</button>
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> Assign ke Penulis</button>
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-green-600 hover:bg-green-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Close</button>
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-purple-600 hover:bg-purple-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> Reply</button>
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-yellow-600 hover:bg-yellow-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Request Revision</button>
                                         </div>
                                     </div>
                                 </div>
                             </td>
                         </tr>
                         
-                        <!-- Row 2 -->
+                        <!-- Row 2: Sudah Kadaluarsa -->
                         <tr class="hover:bg-gray-50/80 transition-colors duration-200">
                             <td class="px-4 py-4"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
-                            <td class="px-4 py-4 font-medium text-gray-900">Rina</td>
-                            <td class="px-4 py-4 text-gray-600">198512122010011003</td>
-                            <td class="px-4 py-4 text-gray-600">rina@lampungprov.go.id</td>
-                            <td class="px-4 py-4 text-gray-600">Kabid Infrastruktur</td>
-                            <td class="px-4 py-4 text-gray-600">Infrastruktur TI</td>
-                            <td class="px-4 py-4"><span class="bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Admin</span></td>
-                            <td class="px-4 py-4"><span class="bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Active</span></td>
-                            <td class="px-4 py-4 text-gray-600">19 Jun 2026 08:15</td>
+                            <td class="px-4 py-4 font-bold text-gray-900">SOP Backup Server</td>
+                            <td class="px-4 py-4 text-gray-600">Rina</td>
+                            <td class="px-4 py-4"><span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-[10px] font-medium">Sudah Kadaluarsa</span></td>
+                            <td class="px-4 py-4 text-gray-600">19 Jun 2026</td>
+                            <td class="px-4 py-4"><span class="bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded-full text-[10px] font-bold">In Progress</span></td>
                             <td class="px-4 py-4 text-center relative">
                                 <div class="relative inline-block">
                                     <button onclick="toggleDropdown(this)" class="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
@@ -251,12 +241,60 @@
                                     </button>
                                     <div class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-20 origin-top-right scale-95 opacity-0">
                                         <div class="py-1">
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-yellow-600 hover:bg-yellow-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> Reset Password</button>
-                                            <div class="border-t border-gray-100 my-1"></div>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-green-600 hover:bg-green-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Enable</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Disable</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Delete</button>
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> Assign ke Penulis</button>
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-green-600 hover:bg-green-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Close</button>
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-purple-600 hover:bg-purple-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> Reply</button>
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-yellow-600 hover:bg-yellow-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Request Revision</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <!-- Row 3: Sulit Dipahami -->
+                        <tr class="hover:bg-gray-50/80 transition-colors duration-200">
+                            <td class="px-4 py-4"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
+                            <td class="px-4 py-4 font-bold text-gray-900">Panduan Email Dinas</td>
+                            <td class="px-4 py-4 text-gray-600">Andi</td>
+                            <td class="px-4 py-4"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-[10px] font-medium">Sulit Dipahami</span></td>
+                            <td class="px-4 py-4 text-gray-600">18 Jun 2026</td>
+                            <td class="px-4 py-4"><span class="bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Resolved</span></td>
+                            <td class="px-4 py-4 text-center relative">
+                                <div class="relative inline-block">
+                                    <button onclick="toggleDropdown(this)" class="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+                                    </button>
+                                    <div class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-20 origin-top-right scale-95 opacity-0">
+                                        <div class="py-1">
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> Assign ke Penulis</button>
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-green-600 hover:bg-green-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Close</button>
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-purple-600 hover:bg-purple-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> Reply</button>
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-yellow-600 hover:bg-yellow-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Request Revision</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <!-- Row 4: Informasi Tidak Sesuai -->
+                        <tr class="hover:bg-gray-50/80 transition-colors duration-200">
+                            <td class="px-4 py-4"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
+                            <td class="px-4 py-4 font-bold text-gray-900">Instalasi Server</td>
+                            <td class="px-4 py-4 text-gray-600">Budi</td>
+                            <td class="px-4 py-4"><span class="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-[10px] font-medium">Informasi Tidak Sesuai</span></td>
+                            <td class="px-4 py-4 text-gray-600">17 Jun 2026</td>
+                            <td class="px-4 py-4"><span class="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Assigned</span></td>
+                            <td class="px-4 py-4 text-center relative">
+                                <div class="relative inline-block">
+                                    <button onclick="toggleDropdown(this)" class="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+                                    </button>
+                                    <div class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-20 origin-top-right scale-95 opacity-0">
+                                        <div class="py-1">
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> Assign ke Penulis</button>
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-green-600 hover:bg-green-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Close</button>
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-purple-600 hover:bg-purple-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> Reply</button>
+                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-yellow-600 hover:bg-yellow-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Request Revision</button>
                                         </div>
                                     </div>
                                 </div>
@@ -266,114 +304,6 @@
                 </table>
             </div>
         </div>
-
-        <!-- ============================================== -->
-        <!-- ROLE & PERMISSION MANAGEMENT SECTION (Role)    -->
-        <!-- ============================================== -->
-        <div class="mt-8 bg-white border border-gray-200 rounded-xl shadow-sm p-6 overflow-hidden fade-in-up" style="animation-delay: 0.5s;">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 border-b border-gray-100 pb-4 gap-4">
-                <div>
-                    <h2 class="text-xl font-bold text-gray-900">Manajemen Role & Permission</h2>
-                    <p class="text-xs text-gray-500 mt-1">Kelola akses dan hak istimewa untuk setiap level pengguna.</p>
-                </div>
-                <button class="bg-darkbg text-white hover:bg-gray-800 py-2 px-4 rounded-lg text-xs font-bold transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105">
-                    + Tambah Role Baru
-                </button>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-gray-50 text-[10px] uppercase text-gray-500 font-bold border-b border-gray-200">
-                        <tr>
-                            <th class="px-4 py-3 min-w-[120px]">Role</th>
-                            <th class="px-4 py-3 text-center min-w-[60px]">Create</th>
-                            <th class="px-4 py-3 text-center min-w-[60px]">Read</th>
-                            <th class="px-4 py-3 text-center min-w-[60px]">Update</th>
-                            <th class="px-4 py-3 text-center min-w-[60px]">Delete</th>
-                            <th class="px-4 py-3 text-center min-w-[70px]">Approve</th>
-                            <th class="px-4 py-3 text-center min-w-[60px]">Export</th>
-                            <th class="px-4 py-3 text-center min-w-[60px]">Backup</th>
-                            <th class="px-4 py-3 text-center min-w-[70px]">Restore</th>
-                            <th class="px-4 py-3 text-center min-w-[70px]">Analytics</th>
-                            <th class="px-4 py-3 text-center min-w-[60px]">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <!-- Super Admin -->
-                        <tr class="hover:bg-gray-50/50 transition-colors duration-200">
-                            <td class="px-4 py-3 font-bold text-gray-900">Super Admin</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center"><button class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1 rounded text-[10px] font-medium transition-colors">Edit</button></td>
-                        </tr>
-                        <!-- Admin -->
-                        <tr class="hover:bg-gray-50/50 transition-colors duration-200">
-                            <td class="px-4 py-3 font-bold text-gray-900">Admin</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center"><button class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1 rounded text-[10px] font-medium transition-colors">Edit</button></td>
-                        </tr>
-                        <!-- Reviewer -->
-                        <tr class="hover:bg-gray-50/50 transition-colors duration-200">
-                            <td class="px-4 py-3 font-bold text-gray-900">Reviewer</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center"><button class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1 rounded text-[10px] font-medium transition-colors">Edit</button></td>
-                        </tr>
-                        <!-- Staff -->
-                        <tr class="hover:bg-gray-50/50 transition-colors duration-200">
-                            <td class="px-4 py-3 font-bold text-gray-900">Staff</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center"><button class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1 rounded text-[10px] font-medium transition-colors">Edit</button></td>
-                        </tr>
-                        <!-- User -->
-                        <tr class="hover:bg-gray-50/50 transition-colors duration-200">
-                            <td class="px-4 py-3 font-bold text-gray-900">User</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">✓</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center text-gray-300">✕</td>
-                            <td class="px-4 py-3 text-center"><button class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1 rounded text-[10px] font-medium transition-colors">Edit</button></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
     </main>
 
     <script>
