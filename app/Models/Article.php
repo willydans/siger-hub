@@ -71,7 +71,7 @@ class Article extends Model
 
     public function tags()
     {
-        return $this->belongsToMany(Tag::class, 'article_tag')->withTimestamps();
+    return $this->belongsToMany(Tag::class, 'article_tag');
     }
 
     public function attachments()

@@ -13,7 +13,7 @@ return new class extends Migration
         Schema::create('article_versions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('article_id')->constrained('articles')->cascadeOnDelete();
-            $table->foreignId('created_by')->constrained('user');
+            $table->foreignId('created_by')->constrained('users');
 
             $table->unsignedInteger('version_number');
 

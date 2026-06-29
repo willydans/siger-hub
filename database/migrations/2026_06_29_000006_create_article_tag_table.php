@@ -12,10 +12,13 @@ return new class extends Migration
     {
         // Pivot: artikel bisa punya banyak tag
         Schema::create('article_tag', function (Blueprint $table) {
-            $table->foreignId('article_id')->constrained('articles')->cascadeOnDelete();
-            $table->foreignId('tag_id')->constrained('tags')->cascadeOnDelete();
-            $table->primary(['article_id', 'tag_id']);
-        });
+        $table->foreignId('article_id')->constrained('articles')->cascadeOnDelete();
+        $table->foreignId('tag_id')->constrained('tags')->cascadeOnDelete();
+
+        $table->primary(['article_id', 'tag_id']);
+
+        $table->timestamps();
+    });
     }
 
     public function down(): void
