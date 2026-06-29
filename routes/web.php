@@ -49,7 +49,7 @@ Route::get('/admin/published', function () { return view('admin-published'); });
 Route::get('/admin/archive', function () { return view('admin-archive'); });
 Route::get('/admin/delete', function () { return view('admin-delete'); });
 Route::get('/admin/analytics', function () { return view('admin-analytics'); });
-Route::get('/admin/searchlog', function () { return view('admin-searchlog'); }); // <-- Route Search Log ditambahkan disini
+Route::get('/admin/searchlog', function () { return view('admin-searchlog'); });
 Route::get('/admin/feedback', function () { return view('admin-feedback'); });
 Route::get('/admin/notification', function () { return view('admin-notification'); });
 Route::get('/admin/activity', function () { return view('admin-activity'); });
@@ -57,3 +57,10 @@ Route::get('/admin/storage', function () { return view('admin-storage'); });
 Route::get('/admin/settings', function () { return view('admin-settings'); });
 Route::get('/admin/backup', function () { return view('admin-backup'); });
 Route::get('/admin/category', function () { return view('admin-category'); });
+
+// -------------------------------------------------------------
+// PENAMBAHAN ROUTE USER (Consumer Knowledge)
+// -------------------------------------------------------------
+Route::get('/user/profil', function () {
+    return view('user-profil');
+});
