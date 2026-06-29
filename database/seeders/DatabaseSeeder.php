@@ -1,25 +1,23 @@
 <?php
 
+// FILE: database/seeders/DatabaseSeeder.php
+// Ganti isi file DatabaseSeeder.php yang sudah ada dengan ini
+
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            RoleAndPermissionSeeder::class,   // 1. Roles & permissions dulu
+            OpdAndUserSeeder::class,           // 2. OPD & users
+            CategoryAndArticleSeeder::class,  // 3. Kategori, tag, & artikel dummy
         ]);
+
+        $this->command->info('');
+        $this->command->info('🎉 AKSARA Database seeded successfully!');
     }
 }
