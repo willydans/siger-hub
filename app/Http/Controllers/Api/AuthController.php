@@ -7,17 +7,95 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
+use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 class AuthController extends Controller
 {
     use ApiResponse;
+
+    // ── POST /api/v1/auth/register ─────────────────────────────────
+    public function register(RegisterRequest $request): JsonResponse
+    {
+        $user = User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'phone'    => $request->phone,
+            'nip'      => $request->nip, // opsional, untuk identifikasi admin nanti
+            'is_active'=> true,
+        ]);
+ 
+        // Role default untuk pendaftar publik
+        $user->assignRole('user');
+ 
+        // Trigger event Registered → otomatis kirim email verifikasi
+        // (lihat EventServiceProvider / Laravel listener default SendEmailVerificationNotification)
+        event(new Registered($user));
+ 
+        activity()
+            ->causedBy($user)
+            ->log('register');
+ 
+        return $this->created([
+            'user' => new UserResource($user),
+        ], 'Registrasi berhasil. Silakan cek email Anda untuk verifikasi sebelum login.');
+    }
+ 
+    // ── GET /api/v1/auth/verify-email/{id}/{hash} ─────────────────
+    // Link ini yang diklik user dari email verifikasi
+    public function verifyEmail(Request $request, int $id, string $hash): JsonResponse
+    {
+        $user = User::findOrFail($id);
+ 
+        // Validasi hash sesuai signed URL Laravel
+        if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            return $this->error('Link verifikasi tidak valid.', 403);
+        }
+ 
+        // Validasi signature URL (expired atau tidak)
+        if (!URL::hasValidSignature($request)) {
+            return $this->error('Link verifikasi sudah tidak berlaku atau kedaluwarsa.', 403);
+        }
+ 
+        if ($user->hasVerifiedEmail()) {
+            return $this->success(null, 'Email sudah terverifikasi sebelumnya.');
+        }
+ 
+        $user->markEmailAsVerified();
+ 
+        activity()->causedBy($user)->log('verify_email');
+ 
+        return $this->success(null, 'Email berhasil diverifikasi. Silakan login.');
+    }
+ 
+    // ── POST /api/v1/auth/resend-verification ─────────────────────
+    // Kirim ulang email verifikasi (misal link expired/hilang)
+    public function resendVerification(LoginRequest $request): JsonResponse
+    {
+        $user = User::where('email', $request->email)->first();
+ 
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return $this->error('Email atau password salah.', 401);
+        }
+ 
+        if ($user->hasVerifiedEmail()) {
+            return $this->success(null, 'Email sudah terverifikasi. Silakan login.');
+        }
+ 
+        $user->sendEmailVerificationNotification();
+ 
+        return $this->success(null, 'Email verifikasi telah dikirim ulang.');
+    }
 
     // ── POST /api/v1/auth/login ────────────────────────────────────
     public function login(LoginRequest $request): JsonResponse
@@ -35,25 +113,27 @@ class AuthController extends Controller
             return $this->error('Akun Anda telah dinonaktifkan. Hubungi administrator.', 403);
         }
 
+        if (!$user->hasVerifiedEmail()) {
+            Auth::logout();
+            return $this->error(
+                'Email Anda belum diverifikasi. Silakan cek inbox atau gunakan endpoint resend-verification.',
+                403
+            );
+        }
+
         // Update last_login_at
         $user->update(['last_login_at' => now()]);
-
-        // Hapus semua token lama (opsional — satu akun satu sesi aktif)
-        // $user->tokens()->delete();
-
-        // Buat token baru dengan nama device/browser
-        $tokenName  = $request->header('User-Agent', 'web-client');
-        $token      = $user->createToken($tokenName)->plainTextToken;
-
-        // Load relasi OPD supaya muncul di UserResource
+ 
+        $tokenName = $request->header('User-Agent', 'web-client');
+        $token     = $user->createToken($tokenName)->plainTextToken;
+ 
         $user->load('opd');
-
-        // Catat activity login
+ 
         activity()
             ->causedBy($user)
             ->withProperties(['ip' => $request->ip()])
             ->log('login');
-
+ 
         return $this->success([
             'token' => $token,
             'user'  => new UserResource($user),
