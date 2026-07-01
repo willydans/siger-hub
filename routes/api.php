@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\StaffArticleController;
+use App\Http\Controllers\Api\AdminArticleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,15 +44,15 @@ Route::prefix('v1')->group(function () {
     });
 
     // ── PROTECTED ROUTES (butuh token Sanctum) ────────────────────
-    Route::middleware('auth:sanctum')->group(function () {
-
+    Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
+ 
         // Auth
         Route::prefix('auth')->group(function () {
-            Route::post('logout',      [AuthController::class, 'logout']);
-            Route::post('logout-all',  [AuthController::class, 'logoutAll']);
-            Route::get('me',           [AuthController::class, 'me']);
-            Route::put('profile',      [AuthController::class, 'updateProfile']);
-            Route::put('password',     [AuthController::class, 'changePassword']);
+            Route::post('logout',     [AuthController::class, 'logout']);
+            Route::post('logout-all', [AuthController::class, 'logoutAll']);
+            Route::get('me',          [AuthController::class, 'me']);
+            Route::put('profile',     [AuthController::class, 'updateProfile']);
+            Route::put('password',    [AuthController::class, 'changePassword']);
         });
 
         Route::prefix('staff/articles')->middleware('permission:create-article')->group(function () {
@@ -62,6 +63,21 @@ Route::prefix('v1')->group(function () {
             Route::delete('{id}',     [StaffArticleController::class, 'destroy']);
             Route::post('{id}/submit',[StaffArticleController::class, 'submit']);
         });
+
+         Route::prefix('admin/articles')
+            ->middleware(['permission:approve-article', 'throttle:admin-api'])
+            ->group(function () {
+                Route::get('/',              [AdminArticleController::class, 'index']);
+                Route::get('pending',        [AdminArticleController::class, 'pending']);
+                Route::get('{id}',           [AdminArticleController::class, 'show']);
+                Route::post('{id}/approve',  [AdminArticleController::class, 'approve']);
+                Route::post('{id}/revision', [AdminArticleController::class, 'revision']);
+                Route::post('{id}/reject',   [AdminArticleController::class, 'reject']);
+                Route::put('{id}/archive',   [AdminArticleController::class, 'archive']);
+                Route::post('{id}/restore',  [AdminArticleController::class, 'restore']);
+                Route::delete('{id}',        [AdminArticleController::class, 'destroy']);
+                Route::post('{id}/rollback', [AdminArticleController::class, 'rollback']);
+            });
 
         /*
         |--------------------------------------------------------------

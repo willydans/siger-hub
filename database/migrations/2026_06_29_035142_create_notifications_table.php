@@ -9,15 +9,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('notifications', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('article_id')->nullable()->constrained()->onDelete('set null');
+            // Laravel menggunakan UUID untuk ID notifikasi
+            $table->uuid('id')->primary();
             
-            // type: system, knowledge, comment, update, announcement
+            // Kolom type akan berisi nama class notification (contoh: App\Notifications\ArticleApprovedNotification)
             $table->string('type');
-            $table->string('title');
-            $table->text('message')->nullable();
-            $table->boolean('is_read')->default(false);
+            
+            // Membuat kolom notifiable_type dan notifiable_id secara otomatis (pengganti user_id)
+            $table->morphs('notifiable');
+            
+            // Kolom data ini akan menyimpan JSON berisi article_id, title, message, dll
+            $table->text('data');
+            
+            // Untuk menandai apakah notifikasi sudah dibaca atau belum
+            $table->timestamp('read_at')->nullable();
+            
             $table->timestamps();
         });
     }

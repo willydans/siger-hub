@@ -16,6 +16,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Models\User;
+use App\Notifications\ArticlePendingNotification;
 
 class StaffArticleController extends Controller
 {
@@ -175,44 +177,51 @@ class StaffArticleController extends Controller
     {
         $user    = $request->user();
         $article = Article::where('id', $id)->where('user_id', $user->id)->first();
-
+ 
         if (!$article) {
             return $this->notFound('Artikel tidak ditemukan atau bukan milik Anda.');
         }
-
+ 
         if (!in_array($article->status, ['draft', 'revision'])) {
             return $this->forbidden('Artikel dengan status "' . $article->status . '" tidak bisa disubmit.');
         }
-
+ 
         // Validasi kelengkapan sebelum submit
         $missing = [];
         if (empty($article->title))       $missing[] = 'judul';
         if (empty($article->category_id)) $missing[] = 'kategori';
         if (empty($article->thumbnail))   $missing[] = 'thumbnail';
         if (empty($article->content))     $missing[] = 'isi artikel';
-
+ 
         if (!empty($missing)) {
             return $this->error('Artikel belum lengkap. Mohon lengkapi: ' . implode(', ', $missing), 422);
         }
-
+ 
         $wasRevision = $article->status === 'revision';
-
+ 
         $article->update(['status' => 'pending']);
-
-        // Tandai revision lama sebagai resolved (kalau ini submit ulang setelah revisi)
+ 
+        // Tandai revision lama sebagai resolved
         if ($wasRevision) {
             $article->revisions()->where('status', 'open')->update(['status' => 'resolved']);
         }
-
+ 
         // Simpan snapshot versi baru
         $article->increment('version');
         $this->saveVersionSnapshot($article, $user->id, $wasRevision ? 'Submit ulang setelah revisi' : 'Submit untuk approval');
-
+ 
         activity()->causedBy($user)->performedOn($article)->log('submit_article');
-
-        // TODO Step 4: trigger notifikasi ke semua admin
-
-        return $this->success(new ArticleResource($article->fresh()), 'Artikel berhasil disubmit, menunggu persetujuan admin.');
+ 
+        // ── KIRIM NOTIFIKASI KE SEMUA ADMIN ───────────────────────
+        $admins = User::role('admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new ArticlePendingNotification($article->load('author', 'opd')));
+        }
+ 
+        return $this->success(
+            new ArticleResource($article->fresh()),
+            'Artikel berhasil disubmit, menunggu persetujuan admin.'
+        );
     }
 
     // ── HELPERS ──────────────────────────────────────────────────────
