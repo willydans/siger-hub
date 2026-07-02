@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\StaffArticleController;
 use App\Http\Controllers\Api\AdminArticleController;
+use App\Http\Controllers\Api\InteractionController;
+use App\Http\Controllers\Api\AttachmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,7 +43,18 @@ Route::prefix('v1')->group(function () {
         Route::get('popular',   [ArticleController::class, 'popular']);
         Route::get('recent',    [ArticleController::class, 'recent']);
         Route::get('{slug}',    [ArticleController::class, 'show']);
+
+        // Komentar bisa dibaca tanpa login
+        Route::get('{slug}/comments', [InteractionController::class, 'getComments']);
+        Route::get('{slug}/attachments',  [AttachmentController::class, 'listByArticle']);
     });
+
+    // ── ATTACHMENT — download & preview (publik dengan cek visibility) ──
+    // Route ini di luar auth middleware karena guest bisa download artikel public
+    Route::get('attachments/{id}/download', [AttachmentController::class, 'download'])
+        ->name('attachments.download');
+    Route::get('attachments/{id}/preview',  [AttachmentController::class, 'preview'])
+        ->name('attachments.preview');
 
     // ── PROTECTED ROUTES (butuh token Sanctum) ────────────────────
     Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
@@ -55,6 +68,37 @@ Route::prefix('v1')->group(function () {
             Route::put('password',    [AuthController::class, 'changePassword']);
         });
 
+        // ── INTERAKSI ARTIKEL (butuh login) ───────────────────────
+        Route::prefix('articles')->group(function () {
+            // Bookmark (toggle)
+            Route::post('{slug}/bookmark', [InteractionController::class, 'toggleBookmark'])
+                ->middleware('permission:bookmark-article');
+ 
+            // Komentar
+            Route::post('{slug}/comments', [InteractionController::class, 'storeComment'])
+                ->middleware('permission:comment-article');
+ 
+            // Rating
+            Route::post('{slug}/rating',   [InteractionController::class, 'storeRating'])
+                ->middleware('permission:rate-article');
+            Route::delete('{slug}/rating', [InteractionController::class, 'destroyRating'])
+                ->middleware('permission:rate-article');
+        });
+
+        // Hapus komentar (user = milik sendiri, admin = semua)
+        Route::delete('comments/{id}', [InteractionController::class, 'destroyComment']);
+ 
+        // ── USER PERSONAL DATA ─────────────────────────────────────
+        Route::prefix('user')->group(function () {
+            Route::get('bookmarks',    [InteractionController::class, 'myBookmarks']);
+            Route::get('history',      [InteractionController::class, 'myHistory']);
+ 
+            // Notifikasi
+            Route::get('notifications',              [InteractionController::class, 'myNotifications']);
+            Route::put('notifications/read-all',     [InteractionController::class, 'markAllNotificationsRead']);
+            Route::put('notifications/{id}/read',    [InteractionController::class, 'markNotificationRead']);
+        });
+
         Route::prefix('staff/articles')->middleware('permission:create-article')->group(function () {
             Route::get('/',           [StaffArticleController::class, 'index']);
             Route::post('/',          [StaffArticleController::class, 'store']);
@@ -62,6 +106,12 @@ Route::prefix('v1')->group(function () {
             Route::put('{id}',        [StaffArticleController::class, 'update']);
             Route::delete('{id}',     [StaffArticleController::class, 'destroy']);
             Route::post('{id}/submit',[StaffArticleController::class, 'submit']);
+
+            // Attachment upload & delete (khusus staff/admin)
+            Route::post('{id}/attachments',              [AttachmentController::class, 'upload'])
+                ->middleware('permission:upload-attachment');
+            Route::delete('{id}/attachments/{attachmentId}', [AttachmentController::class, 'destroy'])
+                ->middleware('permission:upload-attachment');
         });
 
          Route::prefix('admin/articles')
@@ -77,20 +127,18 @@ Route::prefix('v1')->group(function () {
                 Route::post('{id}/restore',  [AdminArticleController::class, 'restore']);
                 Route::delete('{id}',        [AdminArticleController::class, 'destroy']);
                 Route::post('{id}/rollback', [AdminArticleController::class, 'rollback']);
+
+                Route::post('{id}/attachments',              [AttachmentController::class, 'upload']);
+                Route::delete('{id}/attachments/{attachmentId}', [AttachmentController::class, 'destroy']);
             });
 
         /*
         |--------------------------------------------------------------
-        | PLACEHOLDER — step berikutnya akan ditambahkan di sini:
+        | PLACEHOLDER — step berikutnya:
         |--------------------------------------------------------------
-        | STEP 3 — Articles (public + staff CRUD)
-        | STEP 4 — Approval workflow (admin)
-        | STEP 5 — Bookmarks, comments, ratings
-        | STEP 6 — Attachments
-        | STEP 7 — Categories & Tags
+        | STEP 7 — Categories & Tags (admin CRUD)
         | STEP 8 — User management (admin)
-        | STEP 9 — Analytics & Search
-        | STEP 10 — Notifications
+        | STEP 9 — Analytics & Search logs
         |--------------------------------------------------------------
         */
 
