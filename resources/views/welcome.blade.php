@@ -186,18 +186,46 @@
 
         </div>
 
+        <!-- ============================================ -->
+        <!-- PERUBAHAN DINAMIS: AUTH HEADER DROPDOWN -->
+        <!-- ============================================ -->
         <div>
+            @auth
+                <div class="relative group">
+                    <!-- Tombol Avatar / Profil -->
+                    <button class="flex items-center gap-2 text-gray-300 hover:text-white transition-colors duration-300 focus:outline-none">
+                        <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=EAB308&color=0f172a' }}" 
+                             alt="Avatar" 
+                             class="w-8 h-8 rounded-full border-2 border-transparent group-hover:border-gold transition-all duration-300">
+                        <span class="hidden sm:block text-sm font-medium">{{ Auth::user()->name }}</span>
+                        <svg class="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
 
-            <a href="/login" id="login-btn" class="border border-gray-600 text-gray-300 hover:text-white hover:border-gray-400 px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)]">
-
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-
-                <span class="hidden sm:inline">Login Portal</span>
-
-            </a>
-
+                    <!-- Dropdown Menu (Muncul saat hover) -->
+                    <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right group-hover:scale-100 scale-95 z-50 overflow-hidden">
+                        <div class="py-1">
+                            <a href="{{ route('user.profil') }}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors duration-200">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                Profil Saya
+                            </a>
+                            <form method="POST" action="{{ route('logout') }}" class="block border-t border-gray-100">
+                                @csrf
+                                <button type="submit" class="block w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors duration-200">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                    Keluar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @else
+                <!-- Tampilan Guest (Belum Login) -->
+                <a href="/login" id="login-btn" class="bg-white/10 border border-gray-600 text-white hover:bg-white/20 px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                    <span class="hidden sm:inline">Login Portal</span>
+                </a>
+            @endauth
         </div>
-
     </nav>
 
 
@@ -312,7 +340,7 @@
 
                     <div class="scroll-hidden obs-element" style="transition-delay: 100ms;">
 
-                        <div class="text-2xl sm:text-3xl font-bold text-gold">12.487 <span class="text-xl">+</span></div>
+                        <div class="text-2xl sm:text-3xl font-bold text-gold"><span class="cnt" id="stat-docs">0</span><span class="text-xl">+</span></div>
 
                         <div class="text-xs sm:text-sm text-gray-800 font-medium mt-1">Total Public Documents</div>
 
@@ -322,7 +350,7 @@
 
                     <div class="scroll-hidden obs-element" style="transition-delay: 200ms;">
 
-                        <div class="text-2xl sm:text-3xl font-bold text-gold">342</div>
+                        <div class="text-2xl sm:text-3xl font-bold text-gold"><span class="cnt" id="stat-opd">0</span></div>
 
                         <div class="text-xs sm:text-sm text-gray-800 font-medium mt-1">Active Regional IT Assets</div>
 
@@ -332,9 +360,9 @@
 
                     <div class="scroll-hidden obs-element" style="transition-delay: 300ms;">
 
-                        <div class="text-2xl sm:text-3xl font-bold text-gold">8.956 <span class="text-xl">+</span></div>
+                        <div class="text-2xl sm:text-3xl font-bold text-gold"><span class="cnt" id="stat-downloads">0</span><span class="text-xl">+</span></div>
 
-                        <div class="text-xs sm:text-sm text-gray-800 font-medium mt-1">Resolved Support Tickets</div>
+                        <div class="text-xs sm:text-sm text-gray-800 font-medium mt-1">Total Downloads</div>
 
                         <div class="text-[10px] sm:text-xs text-green-500 mt-1 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Live Data</div>
 
@@ -342,7 +370,7 @@
 
                     <div class="scroll-hidden obs-element" style="transition-delay: 400ms;">
 
-                        <div class="text-2xl sm:text-3xl font-bold text-gold">156</div>
+                        <div class="text-2xl sm:text-3xl font-bold text-gold"><span class="cnt" id="stat-views">0</span></div>
 
                         <div class="text-xs sm:text-sm text-gray-800 font-medium mt-1">Gov Agencies Connected</div>
 
@@ -386,77 +414,23 @@
 
         <div class="flex flex-wrap justify-center items-center gap-6 sm:gap-8">
 
+            @foreach($categories as $category)
+
             <a href="#" class="flex flex-col items-center gap-3 group">
 
                 <div class="w-20 h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-md group-hover:shadow-xl group-hover:scale-110">
 
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    <!-- Icon SVG Dinamis (Pastikan tabel Category punya kolom icon_svg atau fallback icon) -->
+
+                    {!! $category->icon ?? '<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>' !!}
 
                 </div>
 
-                <span class="text-sm font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">SOP</span>
+                <span class="text-sm font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">{{ $category->name }}</span>
 
             </a>
 
-            <a href="#" class="flex flex-col items-center gap-3 group">
-
-                <div class="w-20 h-20 rounded-full bg-green-50 text-green-600 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-all duration-300 shadow-md group-hover:shadow-xl group-hover:scale-110">
-
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-
-                </div>
-
-                <span class="text-sm font-semibold text-gray-700 group-hover:text-green-600 transition-colors">Keamanan</span>
-
-            </a>
-
-            <a href="#" class="flex flex-col items-center gap-3 group">
-
-                <div class="w-20 h-20 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-300 shadow-md group-hover:shadow-xl group-hover:scale-110">
-
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path></svg>
-
-                </div>
-
-                <span class="text-sm font-semibold text-gray-700 group-hover:text-purple-600 transition-colors">Infrastruktur</span>
-
-            </a>
-
-            <a href="#" class="flex flex-col items-center gap-3 group">
-
-                <div class="w-20 h-20 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white transition-all duration-300 shadow-md group-hover:shadow-xl group-hover:scale-110">
-
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-
-                </div>
-
-                <span class="text-sm font-semibold text-gray-700 group-hover:text-orange-600 transition-colors">Software</span>
-
-            </a>
-
-            <a href="#" class="flex flex-col items-center gap-3 group">
-
-                <div class="w-20 h-20 rounded-full bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-all duration-300 shadow-md group-hover:shadow-xl group-hover:scale-110">
-
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-
-                </div>
-
-                <span class="text-sm font-semibold text-gray-700 group-hover:text-red-600 transition-colors">Regulasi</span>
-
-            </a>
-
-            <a href="#" class="flex flex-col items-center gap-3 group">
-
-                <div class="w-20 h-20 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-all duration-300 shadow-md group-hover:shadow-xl group-hover:scale-110">
-
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
-
-                </div>
-
-                <span class="text-sm font-semibold text-gray-700 group-hover:text-teal-600 transition-colors">Jaringan</span>
-
-            </a>
+            @endforeach
 
         </div>
 
@@ -464,7 +438,7 @@
 
 
 
-    <!-- FOTO 3: PUBLIC SOPs & GUIDELINES (Expanded to 8 articles) -->
+    <!-- FOTO 3: Public SOPs & GUIDELINES -->
 
     <section id="dokumen-publik" class="py-8 px-4 sm:px-8 max-w-7xl mx-auto scroll-mt-20">
 
@@ -486,25 +460,33 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-            <!-- Row 1 -->
+            @foreach($latestArticles as $article)
 
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 scroll-hidden obs-element flex flex-col" style="transition-delay: 100ms;">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 scroll-hidden obs-element flex flex-col" style="transition-delay: {{ $loop->iteration * 100 }}ms;">
 
                 <div class="h-32 bg-gray-200 relative overflow-hidden group">
 
-                    <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Code" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    <img src="{{ $article->featured_image ?? 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80' }}" alt="{{ $article->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
 
-                    <span class="absolute top-3 right-3 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Published</span>
+                    <span class="absolute top-3 right-3 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
+
+                        {{ ucfirst($article->status) }}
+
+                    </span>
 
                 </div>
 
                 <div class="p-5 flex flex-col flex-grow">
 
-                    <span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">SOP</span>
+                    <span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">
 
-                    <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug hover:text-gold transition-colors">Standar Operasional Pengelolaan Arsip</h3>
+                        {{ $article->category->name ?? 'Umum' }}
 
-                    <p class="text-xs text-gray-500 mt-2 line-clamp-2">Pedoman teknis pengelolaan arsip digital untuk seluruh OPD...</p>
+                    </span>
+
+                    <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug hover:text-gold transition-colors">{{ $article->title }}</h3>
+
+                    <p class="text-xs text-gray-500 mt-2 line-clamp-2">{{ $article->excerpt ?? 'Deskripsi tidak tersedia' }}</p>
 
                     
 
@@ -514,7 +496,23 @@
 
                         <div class="flex items-center text-yellow-400 text-[10px]">
 
-                            ⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(4.8)</span>
+                            {{-- Logic Rating Bintang Dinamis --}}
+
+                            @for($i=1; $i<=5; $i++)
+
+                                @if($i <= round($article->rating_avg))
+
+                                    ⭐
+
+                                @else
+
+                                    ☆
+
+                                @endif
+
+                            @endfor
+
+                            <span class="text-gray-400 ml-1 font-medium">({{ number_format($article->rating_avg, 1) }})</span>
 
                         </div>
 
@@ -522,15 +520,21 @@
 
                             <div class="flex items-center gap-2">
 
-                                <img src="https://ui-avatars.com/api/?name=Biro+Organisasi&background=f3f4f6" alt="Author" class="w-6 h-6 rounded-full">
+                                <img src="https://ui-avatars.com/api/?name={{ urlencode($article->user->name ?? 'Admin') }}&background=f3f4f6" alt="Author" class="w-6 h-6 rounded-full">
 
-                                <span class="text-[10px] font-medium text-gray-600 truncate max-w-[80px]">Biro Org</span>
+                                <span class="text-[10px] font-medium text-gray-600 truncate max-w-[80px]">{{ $article->user->name ?? 'Admin' }}</span>
 
                             </div>
 
                             <div class="flex items-center gap-2 text-gray-400">
 
-                                <button class="hover:text-blue-500 transition-colors" title="Like"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
+                                <button class="hover:text-blue-500 transition-colors" title="Like">
+
+                                    <span class="text-[10px] mr-1">{{ $article->likes_count ?? 0 }}</span>
+
+                                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+
+                                </button>
 
                                 <button class="hover:text-gold transition-colors" title="Bookmark"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
 
@@ -548,427 +552,7 @@
 
             </div>
 
-
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 scroll-hidden obs-element flex flex-col" style="transition-delay: 200ms;">
-
-                <div class="h-32 bg-gray-300 relative overflow-hidden group">
-
-                    <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Server" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-
-                    <span class="absolute top-3 right-3 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Published</span>
-
-                </div>
-
-                <div class="p-5 flex flex-col flex-grow">
-
-                    <span class="bg-orange-100 text-orange-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">PEDOMAN TI</span>
-
-                    <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug hover:text-gold transition-colors">Panduan Implementasi SPBE Pemda Lampung</h3>
-
-                    <p class="text-xs text-gray-500 mt-2 line-clamp-2">Dokumen panduan lengkap implementasi SPBE untuk OPD...</p>
-
-                    
-
-                    <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                        <div class="flex items-center text-yellow-400 text-[10px]">
-
-                            ⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(4.9)</span>
-
-                        </div>
-
-                        <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                            <div class="flex items-center gap-2">
-
-                                <img src="https://ui-avatars.com/api/?name=Dinas+Kominfo&background=ffedd5&color=9a3412" alt="Author" class="w-6 h-6 rounded-full">
-
-                                <span class="text-[10px] font-medium text-gray-600 truncate max-w-[80px]">Diskominfo</span>
-
-                            </div>
-
-                            <div class="flex items-center gap-2 text-gray-400">
-
-                                <button class="hover:text-blue-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                <button class="hover:text-gold transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                <button class="hover:text-green-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                <button class="hover:text-purple-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 scroll-hidden obs-element flex flex-col" style="transition-delay: 300ms;">
-
-                <div class="h-32 bg-gray-800 relative overflow-hidden group">
-
-                    <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Security" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-60">
-
-                    <span class="absolute top-3 right-3 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Published</span>
-
-                </div>
-
-                <div class="p-5 flex flex-col flex-grow">
-
-                    <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">KEBIJAKAN</span>
-
-                    <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug hover:text-gold transition-colors">Kebijakan Keamanan Data Pribadi</h3>
-
-                    <p class="text-xs text-gray-500 mt-2 line-clamp-2">Kerangka kebijakan perlindungan data pribadi sesuai UU No. 27...</p>
-
-                    
-
-                    <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                        <div class="flex items-center text-yellow-400 text-[10px]">
-
-                            ⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(5.0)</span>
-
-                        </div>
-
-                        <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                            <div class="flex items-center gap-2">
-
-                                <img src="https://ui-avatars.com/api/?name=Biro+Hukum&background=e0e7ff&color=4338ca" alt="Author" class="w-6 h-6 rounded-full">
-
-                                <span class="text-[10px] font-medium text-gray-600 truncate max-w-[80px]">Biro Hukum</span>
-
-                            </div>
-
-                            <div class="flex items-center gap-2 text-gray-400">
-
-                                <button class="hover:text-blue-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                <button class="hover:text-gold transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                <button class="hover:text-green-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                <button class="hover:text-purple-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 scroll-hidden obs-element flex flex-col" style="transition-delay: 400ms;">
-
-                <div class="h-32 bg-gray-900 relative overflow-hidden group">
-
-                    <img src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Cyber" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-70">
-
-                    <span class="absolute top-3 right-3 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Published</span>
-
-                </div>
-
-                <div class="p-5 flex flex-col flex-grow">
-
-                    <span class="bg-teal-100 text-teal-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">SOP</span>
-
-                    <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug hover:text-gold transition-colors">SOP Penanganan Insiden Keamanan Siber</h3>
-
-                    <p class="text-xs text-gray-500 mt-2 line-clamp-2">Prosedur penanganan insiden keamanan siber CSIRT...</p>
-
-                    
-
-                    <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                        <div class="flex items-center text-yellow-400 text-[10px]">
-
-                            ⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(4.9)</span>
-
-                        </div>
-
-                        <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                            <div class="flex items-center gap-2">
-
-                                <img src="https://ui-avatars.com/api/?name=CSIRT&background=d1fae5&color=065f46" alt="Author" class="w-6 h-6 rounded-full">
-
-                                <span class="text-[10px] font-medium text-gray-600 truncate max-w-[80px]">CSIRT Lpg</span>
-
-                            </div>
-
-                            <div class="flex items-center gap-2 text-gray-400">
-
-                                <button class="hover:text-blue-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                <button class="hover:text-gold transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                <button class="hover:text-green-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                <button class="hover:text-purple-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- Row 2 -->
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 scroll-hidden obs-element flex flex-col" style="transition-delay: 100ms;">
-
-                <div class="h-32 bg-gray-200 relative overflow-hidden group">
-
-                    <img src="https://images.unsplash.com/photo-1507721999472-8ed4421c4af2?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Code" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-
-                    <span class="absolute top-3 right-3 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Published</span>
-
-                </div>
-
-                <div class="p-5 flex flex-col flex-grow">
-
-                    <span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">PANDUAN</span>
-
-                    <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug hover:text-gold transition-colors">Panduan Akses API Data Regional</h3>
-
-                    <p class="text-xs text-gray-500 mt-2 line-clamp-2">Dokumentasi teknis untuk integrasi API Satu Data daerah...</p>
-
-                    
-
-                    <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                        <div class="flex items-center text-yellow-400 text-[10px]">
-
-                            ⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(4.7)</span>
-
-                        </div>
-
-                        <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                            <div class="flex items-center gap-2">
-
-                                <img src="https://ui-avatars.com/api/?name=Bappeda&background=f3e8ff&color=7e22ce" alt="Author" class="w-6 h-6 rounded-full">
-
-                                <span class="text-[10px] font-medium text-gray-600 truncate max-w-[80px]">Bappeda</span>
-
-                            </div>
-
-                            <div class="flex items-center gap-2 text-gray-400">
-
-                                <button class="hover:text-blue-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                <button class="hover:text-gold transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                <button class="hover:text-green-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                <button class="hover:text-purple-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 scroll-hidden obs-element flex flex-col" style="transition-delay: 200ms;">
-
-                <div class="h-32 bg-gray-300 relative overflow-hidden group">
-
-                    <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Server" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-
-                    <span class="absolute top-3 right-3 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Published</span>
-
-                </div>
-
-                <div class="p-5 flex flex-col flex-grow">
-
-                    <span class="bg-pink-100 text-pink-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">INFRASTRUKTUR</span>
-
-                    <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug hover:text-gold transition-colors">Pedoman Migrasi Server ke Cloud Daerah</h3>
-
-                    <p class="text-xs text-gray-500 mt-2 line-clamp-2">Langkah-langkah teknis migrasi aplikasi ke infrastruktur cloud Pemprov...</p>
-
-                    
-
-                    <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                        <div class="flex items-center text-yellow-400 text-[10px]">
-
-                            ⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(4.9)</span>
-
-                        </div>
-
-                        <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                            <div class="flex items-center gap-2">
-
-                                <img src="https://ui-avatars.com/api/?name=Tim+Infrastruktur&background=fce7f3&color=be185d" alt="Author" class="w-6 h-6 rounded-full">
-
-                                <span class="text-[10px] font-medium text-gray-600 truncate max-w-[80px]">Tim Infra</span>
-
-                            </div>
-
-                            <div class="flex items-center gap-2 text-gray-400">
-
-                                <button class="hover:text-blue-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                <button class="hover:text-gold transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                <button class="hover:text-green-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                <button class="hover:text-purple-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 scroll-hidden obs-element flex flex-col" style="transition-delay: 300ms;">
-
-                <div class="h-32 bg-gray-800 relative overflow-hidden group">
-
-                    <img src="https://images.unsplash.com/photo-1614064641913-6b71f301682b?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Hardware" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80">
-
-                    <span class="absolute top-3 right-3 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Published</span>
-
-                </div>
-
-                <div class="p-5 flex flex-col flex-grow">
-
-                    <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">MANUAL</span>
-
-                    <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug hover:text-gold transition-colors">Manual Pemeliharaan Perangkat Jaringan</h3>
-
-                    <p class="text-xs text-gray-500 mt-2 line-clamp-2">SOP perawatan rutin perangkat keras jaringan di lingkungan Pemda...</p>
-
-                    
-
-                    <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                        <div class="flex items-center text-yellow-400 text-[10px]">
-
-                            ⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(4.6)</span>
-
-                        </div>
-
-                        <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                            <div class="flex items-center gap-2">
-
-                                <img src="https://ui-avatars.com/api/?name=Bagian+Umum&background=fee2e2&color=991b1b" alt="Author" class="w-6 h-6 rounded-full">
-
-                                <span class="text-[10px] font-medium text-gray-600 truncate max-w-[80px]">Bag. Umum</span>
-
-                            </div>
-
-                            <div class="flex items-center gap-2 text-gray-400">
-
-                                <button class="hover:text-blue-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                <button class="hover:text-gold transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                <button class="hover:text-green-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                <button class="hover:text-purple-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 scroll-hidden obs-element flex flex-col" style="transition-delay: 400ms;">
-
-                <div class="h-32 bg-gray-900 relative overflow-hidden group">
-
-                    <img src="https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Code" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90">
-
-                    <span class="absolute top-3 right-3 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Published</span>
-
-                </div>
-
-                <div class="p-5 flex flex-col flex-grow">
-
-                    <span class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">PANDUAN</span>
-
-                    <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug hover:text-gold transition-colors">Standar Pembuatan Website OPD</h3>
-
-                    <p class="text-xs text-gray-500 mt-2 line-clamp-2">Pedoman UI/UX dan struktur untuk website masing-masing Organisasi...</p>
-
-                    
-
-                    <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                        <div class="flex items-center text-yellow-400 text-[10px]">
-
-                            ⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(4.8)</span>
-
-                        </div>
-
-                        <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                            <div class="flex items-center gap-2">
-
-                                <img src="https://ui-avatars.com/api/?name=Tim+Aptika&background=e0e7ff&color=3730a3" alt="Author" class="w-6 h-6 rounded-full">
-
-                                <span class="text-[10px] font-medium text-gray-600 truncate max-w-[80px]">Tim Aptika</span>
-
-                            </div>
-
-                            <div class="flex items-center gap-2 text-gray-400">
-
-                                <button class="hover:text-blue-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                <button class="hover:text-gold transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                <button class="hover:text-green-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                <button class="hover:text-purple-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
+            @endforeach
 
         </div>
 
@@ -976,7 +560,7 @@
 
 
 
-    <!-- REVISED SECTION: KNOWLEDGE TRENDING (CAROUSEL - LENGKAP TOMBOL) -->
+    <!-- REVISED SECTION: KNOWLEDGE TRENDING (CAROUSEL) -->
 
     <section class="py-8 px-4 sm:px-8 max-w-7xl mx-auto border-t border-gray-100 scroll-hidden obs-element relative group section-carousel">
 
@@ -989,8 +573,6 @@
         </div>
 
         <div class="relative px-4 sm:px-8">
-
-            <!-- Carousel Controls -->
 
             <button data-scroll-prev class="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 hidden sm:block transition-all duration-300 hover:scale-110 border border-gray-200">
 
@@ -1008,13 +590,13 @@
 
             <div data-scroll-container class="flex overflow-x-auto gap-6 scroll-smooth no-scrollbar py-2">
 
-                <!-- Card 1 -->
+                @foreach($trendingArticles as $article)
 
                 <div class="min-w-[280px] sm:min-w-[260px] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group flex-shrink-0">
 
                     <div class="h-32 bg-gray-200 relative overflow-hidden">
 
-                        <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="TTE" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <img src="{{ $article->featured_image ?? 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80' }}" alt="{{ $article->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
 
                         <span class="absolute top-3 right-3 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Trending</span>
 
@@ -1024,21 +606,31 @@
 
                         <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">HOT TREND</span>
 
-                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">Panduan Tanda Tangan Elektronik (TTE)</h3>
+                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">{{ $article->title }}</h3>
 
-                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">SOP penggunaan TTE BSrE untuk surat menyurat dinas...</p>
+                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">{{ $article->excerpt ?? 'Deskripsi tidak tersedia' }}</p>
 
                         <div class="mt-auto pt-4 flex flex-col gap-3">
 
-                            <div class="flex items-center text-yellow-400 text-[10px]">⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(4.9)</span></div>
+                            <div class="flex items-center text-yellow-400 text-[10px]">
+
+                                @for($i=1; $i<=5; $i++)
+
+                                    @if($i <= round($article->rating_avg)) ⭐ @else ☆ @endif
+
+                                @endfor
+
+                                <span class="text-gray-400 ml-1 font-medium">({{ number_format($article->rating_avg, 1) }})</span>
+
+                            </div>
 
                             <div class="flex items-center justify-between border-t border-gray-100 pt-3">
 
                                 <div class="flex items-center gap-2">
 
-                                    <img src="https://ui-avatars.com/api/?name=Kominfo" class="w-6 h-6 rounded-full">
+                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($article->user->name ?? 'Admin') }}" class="w-6 h-6 rounded-full">
 
-                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">Kominfo</span>
+                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">{{ $article->user->name ?? 'Admin' }}</span>
 
                                 </div>
 
@@ -1062,221 +654,7 @@
 
                 </div>
 
-                <!-- Card 2 -->
-
-                <div class="min-w-[280px] sm:min-w-[260px] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group flex-shrink-0">
-
-                    <div class="h-32 bg-gray-200 relative overflow-hidden">
-
-                        <img src="https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="SSO" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-
-                        <span class="absolute top-3 right-3 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Trending</span>
-
-                    </div>
-
-                    <div class="p-5 flex flex-col flex-grow">
-
-                        <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">HOT TREND</span>
-
-                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">Integrasi SSO (Single Sign-On) Pemprov</h3>
-
-                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">Teknis penggabungan aplikasi ke dalam satu pintu masuk...</p>
-
-                        <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                            <div class="flex items-center text-yellow-400 text-[10px]">⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(4.8)</span></div>
-
-                            <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                                <div class="flex items-center gap-2">
-
-                                    <img src="https://ui-avatars.com/api/?name=Aptika" class="w-6 h-6 rounded-full">
-
-                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">Aptika</span>
-
-                                </div>
-
-                                <div class="flex items-center gap-2 text-gray-400">
-
-                                    <button class="hover:text-blue-500 transition-colors" title="Like"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                    <button class="hover:text-gold transition-colors" title="Bookmark"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                    <button class="hover:text-green-500 transition-colors" title="Download"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                    <button class="hover:text-purple-500 transition-colors" title="Share"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- Card 3 -->
-
-                <div class="min-w-[280px] sm:min-w-[260px] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group flex-shrink-0">
-
-                    <div class="h-32 bg-gray-200 relative overflow-hidden">
-
-                        <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Backup" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-
-                        <span class="absolute top-3 right-3 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Trending</span>
-
-                    </div>
-
-                    <div class="p-5 flex flex-col flex-grow">
-
-                        <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">HOT TREND</span>
-
-                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">Pedoman Backup Database Server</h3>
-
-                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">SOP penjadwalan dan restorasi database regional...</p>
-
-                        <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                            <div class="flex items-center text-yellow-400 text-[10px]">⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(5.0)</span></div>
-
-                            <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                                <div class="flex items-center gap-2">
-
-                                    <img src="https://ui-avatars.com/api/?name=Infra" class="w-6 h-6 rounded-full">
-
-                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">Infra</span>
-
-                                </div>
-
-                                <div class="flex items-center gap-2 text-gray-400">
-
-                                    <button class="hover:text-blue-500 transition-colors" title="Like"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                    <button class="hover:text-gold transition-colors" title="Bookmark"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                    <button class="hover:text-green-500 transition-colors" title="Download"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                    <button class="hover:text-purple-500 transition-colors" title="Share"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- Card 4 -->
-
-                <div class="min-w-[280px] sm:min-w-[260px] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group flex-shrink-0">
-
-                    <div class="h-32 bg-gray-200 relative overflow-hidden">
-
-                        <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Kinerja" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-
-                        <span class="absolute top-3 right-3 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Trending</span>
-
-                    </div>
-
-                    <div class="p-5 flex flex-col flex-grow">
-
-                        <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">HOT TREND</span>
-
-                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">Format Laporan Kinerja OPD</h3>
-
-                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">Template penyusunan laporan digital akhir tahun...</p>
-
-                        <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                            <div class="flex items-center text-yellow-400 text-[10px]">⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(4.5)</span></div>
-
-                            <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                                <div class="flex items-center gap-2">
-
-                                    <img src="https://ui-avatars.com/api/?name=Biro+Org" class="w-6 h-6 rounded-full">
-
-                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">Biro Org</span>
-
-                                </div>
-
-                                <div class="flex items-center gap-2 text-gray-400">
-
-                                    <button class="hover:text-blue-500 transition-colors" title="Like"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                    <button class="hover:text-gold transition-colors" title="Bookmark"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                    <button class="hover:text-green-500 transition-colors" title="Download"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                    <button class="hover:text-purple-500 transition-colors" title="Share"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- Card 5 -->
-
-                <div class="min-w-[280px] sm:min-w-[260px] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group flex-shrink-0">
-
-                    <div class="h-32 bg-gray-200 relative overflow-hidden">
-
-                        <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Jaringan" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-
-                        <span class="absolute top-3 right-3 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Trending</span>
-
-                    </div>
-
-                    <div class="p-5 flex flex-col flex-grow">
-
-                        <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">JARINGAN</span>
-
-                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">Keamanan Jaringan Wifi Pemerintah</h3>
-
-                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">Panduan pengamanan akses point publik...</p>
-
-                        <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                            <div class="flex items-center text-yellow-400 text-[10px]">⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(4.7)</span></div>
-
-                            <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                                <div class="flex items-center gap-2">
-
-                                    <img src="https://ui-avatars.com/api/?name=CSIRT" class="w-6 h-6 rounded-full">
-
-                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">CSIRT</span>
-
-                                </div>
-
-                                <div class="flex items-center gap-2 text-gray-400">
-
-                                    <button class="hover:text-blue-500 transition-colors" title="Like"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                    <button class="hover:text-gold transition-colors" title="Bookmark"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                    <button class="hover:text-green-500 transition-colors" title="Download"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                    <button class="hover:text-purple-500 transition-colors" title="Share"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
+                @endforeach
 
             </div>
 
@@ -1286,7 +664,7 @@
 
 
 
-    <!-- REVISED SECTION: KNOWLEDGE TERPOPULER (CAROUSEL - LENGKAP TOMBOL) -->
+    <!-- REVISED SECTION: KNOWLEDGE TERPOPULER (CAROUSEL) -->
 
     <section class="py-8 px-4 sm:px-8 max-w-7xl mx-auto border-t border-gray-100 scroll-hidden obs-element relative group section-carousel">
 
@@ -1316,11 +694,13 @@
 
             <div data-scroll-container class="flex overflow-x-auto gap-6 scroll-smooth no-scrollbar py-2">
 
+                @foreach($popularArticles as $article)
+
                 <div class="min-w-[280px] sm:min-w-[260px] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group flex-shrink-0">
 
                     <div class="h-32 bg-gray-200 relative overflow-hidden">
 
-                        <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Kinerja" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <img src="{{ $article->featured_image ?? 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80' }}" alt="{{ $article->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
 
                         <span class="absolute top-3 right-3 bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Populer</span>
 
@@ -1328,23 +708,33 @@
 
                     <div class="p-5 flex flex-col flex-grow">
 
-                        <span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">E-KINERJA</span>
+                        <span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">{{ $article->category->name ?? 'Umum' }}</span>
 
-                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">Cara Setup E-Kinerja Pegawai</h3>
+                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">{{ $article->title }}</h3>
 
-                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">Panduan konfigurasi awal aplikasi E-Kinerja di OPD...</p>
+                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">{{ $article->excerpt ?? 'Deskripsi tidak tersedia' }}</p>
 
                         <div class="mt-auto pt-4 flex flex-col gap-3">
 
-                            <div class="flex items-center text-yellow-400 text-[10px]">⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(5.0)</span></div>
+                            <div class="flex items-center text-yellow-400 text-[10px]">
+
+                                @for($i=1; $i<=5; $i++)
+
+                                    @if($i <= round($article->rating_avg)) ⭐ @else ☆ @endif
+
+                                @endfor
+
+                                <span class="text-gray-400 ml-1 font-medium">({{ number_format($article->rating_avg, 1) }})</span>
+
+                            </div>
 
                             <div class="flex items-center justify-between border-t border-gray-100 pt-3">
 
                                 <div class="flex items-center gap-2">
 
-                                    <img src="https://ui-avatars.com/api/?name=BKPSDM" class="w-6 h-6 rounded-full">
+                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($article->user->name ?? 'Admin') }}" class="w-6 h-6 rounded-full">
 
-                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">BKPSDM</span>
+                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">{{ $article->user->name ?? 'Admin' }}</span>
 
                                 </div>
 
@@ -1368,161 +758,7 @@
 
                 </div>
 
-                <div class="min-w-[280px] sm:min-w-[260px] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group flex-shrink-0">
-
-                    <div class="h-32 bg-gray-200 relative overflow-hidden">
-
-                        <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Absensi" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-
-                        <span class="absolute top-3 right-3 bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Populer</span>
-
-                    </div>
-
-                    <div class="p-5 flex flex-col flex-grow">
-
-                        <span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">ABSENSI</span>
-
-                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">Modul Penggunaan E-Absensi</h3>
-
-                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">Panduan lengkap pengisian e-absensi oleh ASN...</p>
-
-                        <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                            <div class="flex items-center text-yellow-400 text-[10px]">⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(4.8)</span></div>
-
-                            <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                                <div class="flex items-center gap-2">
-
-                                    <img src="https://ui-avatars.com/api/?name=BKPSDM" class="w-6 h-6 rounded-full">
-
-                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">BKPSDM</span>
-
-                                </div>
-
-                                <div class="flex items-center gap-2 text-gray-400">
-
-                                    <button class="hover:text-blue-500 transition-colors" title="Like"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                    <button class="hover:text-gold transition-colors" title="Bookmark"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                    <button class="hover:text-green-500 transition-colors" title="Download"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                    <button class="hover:text-purple-500 transition-colors" title="Share"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="min-w-[280px] sm:min-w-[260px] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group flex-shrink-0">
-
-                    <div class="h-32 bg-gray-200 relative overflow-hidden">
-
-                        <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Pengadaan" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-
-                        <span class="absolute top-3 right-3 bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Populer</span>
-
-                    </div>
-
-                    <div class="p-5 flex flex-col flex-grow">
-
-                        <span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">PENGADAAN</span>
-
-                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">SOP Pengadaan Barang & Jasa IT</h3>
-
-                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">Standar prosedur pengadaan barang dan jasa IT...</p>
-
-                        <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                            <div class="flex items-center text-yellow-400 text-[10px]">⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(5.0)</span></div>
-
-                            <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                                <div class="flex items-center gap-2">
-
-                                    <img src="https://ui-avatars.com/api/?name=Biro+PBJ" class="w-6 h-6 rounded-full">
-
-                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">Biro PBJ</span>
-
-                                </div>
-
-                                <div class="flex items-center gap-2 text-gray-400">
-
-                                    <button class="hover:text-blue-500 transition-colors" title="Like"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                    <button class="hover:text-gold transition-colors" title="Bookmark"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                    <button class="hover:text-green-500 transition-colors" title="Download"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                    <button class="hover:text-purple-500 transition-colors" title="Share"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="min-w-[280px] sm:min-w-[260px] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group flex-shrink-0">
-
-                    <div class="h-32 bg-gray-200 relative overflow-hidden">
-
-                        <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Fiber" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-
-                        <span class="absolute top-3 right-3 bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Populer</span>
-
-                    </div>
-
-                    <div class="p-5 flex flex-col flex-grow">
-
-                        <span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">FIBER</span>
-
-                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">Panduan Jaringan Fiber Optic</h3>
-
-                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">Tata cara pengelolaan infrastruktur FO di Pemda...</p>
-
-                        <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                            <div class="flex items-center text-yellow-400 text-[10px]">⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(4.7)</span></div>
-
-                            <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                                <div class="flex items-center gap-2">
-
-                                    <img src="https://ui-avatars.com/api/?name=Diskominfo" class="w-6 h-6 rounded-full">
-
-                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">Diskominfo</span>
-
-                                </div>
-
-                                <div class="flex items-center gap-2 text-gray-400">
-
-                                    <button class="hover:text-blue-500 transition-colors" title="Like"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                    <button class="hover:text-gold transition-colors" title="Bookmark"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                    <button class="hover:text-green-500 transition-colors" title="Download"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                    <button class="hover:text-purple-500 transition-colors" title="Share"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
+                @endforeach
 
             </div>
 
@@ -1532,7 +768,7 @@
 
 
 
-    <!-- REVISED SECTION: KNOWLEDGE TERBARU (CAROUSEL - LENGKAP TOMBOL) -->
+    <!-- REVISED SECTION: KNOWLEDGE TERBARU (CAROUSEL) -->
 
     <section class="py-8 px-4 sm:px-8 max-w-7xl mx-auto border-t border-gray-100 scroll-hidden obs-element relative group section-carousel mb-10">
 
@@ -1562,11 +798,13 @@
 
             <div data-scroll-container class="flex overflow-x-auto gap-6 scroll-smooth no-scrollbar py-2">
 
+                @foreach($latestArticles as $article)
+
                 <div class="min-w-[280px] sm:min-w-[260px] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group flex-shrink-0">
 
                     <div class="h-32 bg-gray-200 relative overflow-hidden">
 
-                        <img src="https://images.unsplash.com/photo-1508614589041-895b8e6e1c7b?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Patch" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <img src="{{ $article->featured_image ?? 'https://images.unsplash.com/photo-1508614589041-895b8e6e1c7b?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80' }}" alt="{{ $article->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
 
                         <span class="absolute top-3 right-3 bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Baru</span>
 
@@ -1574,23 +812,33 @@
 
                     <div class="p-5 flex flex-col flex-grow">
 
-                        <span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">NEW</span>
+                        <span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">{{ $article->category->name ?? 'Umum' }}</span>
 
-                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">Update Patch Keamanan 2026</h3>
+                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">{{ $article->title }}</h3>
 
-                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">Rilis patch terbaru untuk kerentanan keamanan...</p>
+                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">{{ $article->excerpt ?? 'Deskripsi tidak tersedia' }}</p>
 
                         <div class="mt-auto pt-4 flex flex-col gap-3">
 
-                            <div class="flex items-center text-yellow-400 text-[10px]">⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(5.0)</span></div>
+                            <div class="flex items-center text-yellow-400 text-[10px]">
+
+                                @for($i=1; $i<=5; $i++)
+
+                                    @if($i <= round($article->rating_avg)) ⭐ @else ☆ @endif
+
+                                @endfor
+
+                                <span class="text-gray-400 ml-1 font-medium">({{ number_format($article->rating_avg, 1) }})</span>
+
+                            </div>
 
                             <div class="flex items-center justify-between border-t border-gray-100 pt-3">
 
                                 <div class="flex items-center gap-2">
 
-                                    <img src="https://ui-avatars.com/api/?name=Tim+Keamanan" class="w-6 h-6 rounded-full">
+                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($article->user->name ?? 'Admin') }}" class="w-6 h-6 rounded-full">
 
-                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">Tim Keamanan</span>
+                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">{{ $article->user->name ?? 'Admin' }}</span>
 
                                 </div>
 
@@ -1614,161 +862,7 @@
 
                 </div>
 
-                <div class="min-w-[280px] sm:min-w-[260px] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group flex-shrink-0">
-
-                    <div class="h-32 bg-gray-200 relative overflow-hidden">
-
-                        <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Cloud" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-
-                        <span class="absolute top-3 right-3 bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Baru</span>
-
-                    </div>
-
-                    <div class="p-5 flex flex-col flex-grow">
-
-                        <span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">NEW</span>
-
-                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">SOP Pengelolaan Cloud Regional</h3>
-
-                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">Standar operasional pengelolaan layanan cloud Pemprov...</p>
-
-                        <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                            <div class="flex items-center text-yellow-400 text-[10px]">⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(4.9)</span></div>
-
-                            <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                                <div class="flex items-center gap-2">
-
-                                    <img src="https://ui-avatars.com/api/?name=Infra" class="w-6 h-6 rounded-full">
-
-                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">Infra</span>
-
-                                </div>
-
-                                <div class="flex items-center gap-2 text-gray-400">
-
-                                    <button class="hover:text-blue-500 transition-colors" title="Like"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                    <button class="hover:text-gold transition-colors" title="Bookmark"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                    <button class="hover:text-green-500 transition-colors" title="Download"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                    <button class="hover:text-purple-500 transition-colors" title="Share"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="min-w-[280px] sm:min-w-[260px] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group flex-shrink-0">
-
-                    <div class="h-32 bg-gray-200 relative overflow-hidden">
-
-                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Audit" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-
-                        <span class="absolute top-3 right-3 bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Baru</span>
-
-                    </div>
-
-                    <div class="p-5 flex flex-col flex-grow">
-
-                        <span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">NEW</span>
-
-                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">Buku Panduan Audit Sistem</h3>
-
-                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">Panduan lengkap untuk audit TI di lingkungan OPD...</p>
-
-                        <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                            <div class="flex items-center text-yellow-400 text-[10px]">⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(4.9)</span></div>
-
-                            <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                                <div class="flex items-center gap-2">
-
-                                    <img src="https://ui-avatars.com/api/?name=Aptika" class="w-6 h-6 rounded-full">
-
-                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">Aptika</span>
-
-                                </div>
-
-                                <div class="flex items-center gap-2 text-gray-400">
-
-                                    <button class="hover:text-blue-500 transition-colors" title="Like"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                    <button class="hover:text-gold transition-colors" title="Bookmark"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                    <button class="hover:text-green-500 transition-colors" title="Download"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                    <button class="hover:text-purple-500 transition-colors" title="Share"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="min-w-[280px] sm:min-w-[260px] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group flex-shrink-0">
-
-                    <div class="h-32 bg-gray-200 relative overflow-hidden">
-
-                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Framework" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-
-                        <span class="absolute top-3 right-3 bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Baru</span>
-
-                    </div>
-
-                    <div class="p-5 flex flex-col flex-grow">
-
-                        <span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded self-start">NEW</span>
-
-                        <h3 class="font-bold text-sm text-gray-900 mt-3 leading-snug group-hover:text-gold transition-colors">Rilis Framework AKSARA v2.0</h3>
-
-                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">Pembaruan besar pada core framework AKSARA...</p>
-
-                        <div class="mt-auto pt-4 flex flex-col gap-3">
-
-                            <div class="flex items-center text-yellow-400 text-[10px]">⭐⭐⭐⭐⭐ <span class="text-gray-400 ml-1 font-medium">(5.0)</span></div>
-
-                            <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-
-                                <div class="flex items-center gap-2">
-
-                                    <img src="https://ui-avatars.com/api/?name=Dev+Team" class="w-6 h-6 rounded-full">
-
-                                    <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">Dev Team</span>
-
-                                </div>
-
-                                <div class="flex items-center gap-2 text-gray-400">
-
-                                    <button class="hover:text-blue-500 transition-colors" title="Like"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg></button>
-
-                                    <button class="hover:text-gold transition-colors" title="Bookmark"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>
-
-                                    <button class="hover:text-green-500 transition-colors" title="Download"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
-
-                                    <button class="hover:text-purple-500 transition-colors" title="Share"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
+                @endforeach
 
             </div>
 
@@ -1794,107 +888,202 @@
 
 
         <!-- Layout Grid: 4 Kolom pada layar lg, 2 Kolom pada sm, 1 Kolom pada mobile -->
+
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
             <!-- Testimonial 1 -->
+
             <div class="bg-white hover:bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 scroll-hidden obs-element" style="transition-delay: 100ms;">
+
                 <div class="flex items-center gap-4 mb-4">
+
                     <img src="https://ui-avatars.com/api/?name=Ratna+Dewi&background=f3f4f6" class="w-12 h-12 rounded-full">
+
                     <div>
+
                         <h4 class="font-bold text-gray-900 text-sm">Dr. Hj. Ratna Dewi, M.Si.</h4>
+
                         <p class="text-[11px] text-gray-500">Kepala Dinas Kominfotik</p>
+
                     </div>
+
                 </div>
+
                 <p class="text-gray-700 italic text-sm leading-relaxed">"AKSARA telah mentransformasi cara kami mengelola pengetahuan organisasi. SOP kini terpusat."</p>
+
             </div>
+
+
 
             <!-- Testimonial 2 -->
+
             <div class="bg-white hover:bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 scroll-hidden obs-element" style="transition-delay: 200ms;">
+
                 <div class="flex items-center gap-4 mb-4">
+
                     <img src="https://ui-avatars.com/api/?name=Ahmad+Fauzi&background=f3f4f6" class="w-12 h-12 rounded-full">
+
                     <div>
+
                         <h4 class="font-bold text-gray-900 text-sm">Ahmad Fauzi, S.E., M.M.</h4>
+
                         <p class="text-[11px] text-gray-500">Sekretaris Daerah Lampung</p>
+
                     </div>
+
                 </div>
+
                 <p class="text-gray-700 italic text-sm leading-relaxed">"AKSARA menjadi tulang punggung manajemen pengetahuan yang transparan dan akuntabel."</p>
+
             </div>
+
+
 
             <!-- Testimonial 3 -->
+
             <div class="bg-white hover:bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 scroll-hidden obs-element" style="transition-delay: 300ms;">
+
                 <div class="flex items-center gap-4 mb-4">
+
                     <img src="https://ui-avatars.com/api/?name=Hendra+Gunawan&background=f3f4f6" class="w-12 h-12 rounded-full">
+
                     <div>
+
                         <h4 class="font-bold text-gray-900 text-sm">Ir. Hendra Gunawan</h4>
+
                         <p class="text-[11px] text-gray-500">Kepala Bappeda Lampung</p>
+
                     </div>
+
                 </div>
+
                 <p class="text-gray-700 italic text-sm leading-relaxed">"Integrasi data sektoral melalui AKSARA memungkinkan perencanaan yang lebih evidence-based."</p>
+
             </div>
+
+
 
             <!-- Testimonial 4 -->
+
             <div class="bg-white hover:bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 scroll-hidden obs-element" style="transition-delay: 400ms;">
+
                 <div class="flex items-center gap-4 mb-4">
+
                     <img src="https://ui-avatars.com/api/?name=Lukman+Hakim&background=f3f4f6" class="w-12 h-12 rounded-full">
+
                     <div>
+
                         <h4 class="font-bold text-gray-900 text-sm">Drs. Lukman Hakim, M.Pd.</h4>
+
                         <p class="text-[11px] text-gray-500">Kepala Dinas Pendidikan</p>
+
                     </div>
+
                 </div>
+
                 <p class="text-gray-700 italic text-sm leading-relaxed">"Platform ini sangat membantu dalam menyediakan referensi ajar dan administrasi pendidikan terpadu."</p>
+
             </div>
+
+
 
             <!-- Testimonial 5 -->
+
             <div class="bg-white hover:bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 scroll-hidden obs-element" style="transition-delay: 500ms;">
+
                 <div class="flex items-center gap-4 mb-4">
+
                     <img src="https://ui-avatars.com/api/?name=Siti+Aisyah&background=f3f4f6" class="w-12 h-12 rounded-full">
+
                     <div>
+
                         <h4 class="font-bold text-gray-900 text-sm">Dra. Siti Aisyah, M.M.</h4>
+
                         <p class="text-[11px] text-gray-500">Kepala Biro Hukum</p>
+
                     </div>
+
                 </div>
+
                 <p class="text-gray-700 italic text-sm leading-relaxed">"Sangat membantu dalam proses harmonisasi regulasi daerah dan dokumentasi kebijakan hukum."</p>
+
             </div>
+
+
 
             <!-- Testimonial 6 -->
+
             <div class="bg-white hover:bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 scroll-hidden obs-element" style="transition-delay: 600ms;">
+
                 <div class="flex items-center gap-4 mb-4">
+
                     <img src="https://ui-avatars.com/api/?name=Irwan+Setiawan&background=f3f4f6" class="w-12 h-12 rounded-full">
+
                     <div>
+
                         <h4 class="font-bold text-gray-900 text-sm">Irwan Setiawan, S.Kom., M.T.I.</h4>
+
                         <p class="text-[11px] text-gray-500">Ketua Bidang Aptika</p>
+
                     </div>
+
                 </div>
+
                 <p class="text-gray-700 italic text-sm leading-relaxed">"Infrastruktur digital dan tata kelola IT di Lampung semakin mantap berkat ekosistem AKSARA."</p>
+
             </div>
+
+
 
             <!-- Testimonial 7 -->
+
             <div class="bg-white hover:bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 scroll-hidden obs-element" style="transition-delay: 700ms;">
+
                 <div class="flex items-center gap-4 mb-4">
+
                     <img src="https://ui-avatars.com/api/?name=Agus+Widodo&background=f3f4f6" class="w-12 h-12 rounded-full">
+
                     <div>
+
                         <h4 class="font-bold text-gray-900 text-sm">Dr. H. Agus Widodo, M.M.</h4>
+
                         <p class="text-[11px] text-gray-500">Kepala BPKAD Lampung</p>
+
                     </div>
+
                 </div>
+
                 <p class="text-gray-700 italic text-sm leading-relaxed">"Transparansi pengelolaan keuangan daerah semakin terbuka dengan adanya integrasi data di AKSARA."</p>
+
             </div>
 
+
+
             <!-- Testimonial 8 -->
+
             <div class="bg-white hover:bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 scroll-hidden obs-element" style="transition-delay: 800ms;">
+
                 <div class="flex items-center gap-4 mb-4">
+
                     <img src="https://ui-avatars.com/api/?name=Siti+Nurhayati&background=f3f4f6" class="w-12 h-12 rounded-full">
+
                     <div>
+
                         <h4 class="font-bold text-gray-900 text-sm">dr. Hj. Siti Nurhayati, Sp.PD.</h4>
+
                         <p class="text-[11px] text-gray-500">Kepala Dinas Kesehatan</p>
+
                     </div>
+
                 </div>
+
                 <p class="text-gray-700 italic text-sm leading-relaxed">"Sistem ini mempermudah koordinasi data kesehatan antar puskesmas dan rumah sakit secara digital."</p>
+
             </div>
 
         </div>
+
     </section>
-    <!-- ============================================== -->
 
 
 
@@ -2045,8 +1234,6 @@
             <div class="bg-darkbg text-white p-4 flex items-center gap-3">
 
                 <div class="w-10 h-10 bg-gold rounded-lg flex items-center justify-center text-darkbg relative overflow-hidden">
-
-                    <!-- Icon modified to smaller Siger+Robot for header -->
 
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 
@@ -2226,10 +1413,11 @@
 
                 });
 
-                loginBtn.classList.remove('border-gray-600', 'text-gray-300', 'hover:text-white', 'hover:border-gray-400');
-
-                loginBtn.classList.add('border-gray-300', 'text-gray-700', 'hover:text-gray-900', 'hover:bg-gray-50');
-
+                // Logic untuk Login Button vs Dropdown Avatar
+                if(loginBtn) { // Hanya jalan jika guest
+                    loginBtn.classList.remove('border-gray-600', 'text-gray-300', 'hover:text-white', 'hover:border-gray-400');
+                    loginBtn.classList.add('border-gray-300', 'text-gray-700', 'hover:text-gray-900', 'hover:bg-gray-50');
+                }
             } else {
 
                 nav.classList.add('bg-darkbg', 'border-gray-800');
@@ -2248,10 +1436,10 @@
 
                 });
 
-                loginBtn.classList.add('border-gray-600', 'text-gray-300', 'hover:text-white', 'hover:border-gray-400');
-
-                loginBtn.classList.remove('border-gray-300', 'text-gray-700', 'hover:text-gray-900', 'hover:bg-gray-50');
-
+                if(loginBtn) {
+                    loginBtn.classList.add('border-gray-600', 'text-gray-300', 'hover:text-white', 'hover:border-gray-400');
+                    loginBtn.classList.remove('border-gray-300', 'text-gray-700', 'hover:text-gray-900', 'hover:bg-gray-50');
+                }
             }
 
         });
@@ -2483,6 +1671,122 @@
                 }
 
             });
+
+
+
+            // --- 6. ANIMASI COUNTER YANG DINAMIS ---
+
+            function animCounter(elId, target, suffix, duration) {
+
+                const el = document.getElementById(elId);
+
+                const suffixEl = document.getElementById(elId + '-suffix'); // Kita tidak pakai suffix di template baru
+
+                let startTime = null;
+
+                function step(ts) {
+
+                    if (!startTime) startTime = ts;
+
+                    const progress = Math.min((ts - startTime) / duration, 1);
+
+                    const ease = 1 - Math.pow(1 - progress, 3);
+
+                    el.textContent = Math.floor(ease * target);
+
+                    if (progress < 1) {
+
+                        requestAnimationFrame(step);
+
+                    } else {
+
+                        el.textContent = target;
+
+                        if (suffixEl) suffixEl.textContent = suffix || '';
+
+                    }
+
+                }
+
+                requestAnimationFrame(step);
+
+            }
+
+            
+
+            // Jalankan animasi counter dengan data dari Database!
+
+            setTimeout(() => {
+
+                animCounter('stat-docs', {{ $stats['total_articles'] }}, '+', 1500);
+
+                animCounter('stat-opd', {{ $stats['total_opds'] }}, '', 1500);
+
+                animCounter('stat-downloads', {{ $stats['total_downloads'] }}, '+', 1500);
+
+                animCounter('stat-views', {{ $stats['total_views'] }}, '', 1500);
+
+            }, 400);
+
+
+
+            // --- 7. UPDATE STROKE DASHLENGTH SVG BACKGROUND ---
+
+            window.addEventListener('load', () => {
+
+                document.querySelectorAll('.flow-path').forEach(path => {
+
+                    const len = path.getTotalLength();
+
+                    path.style.strokeDasharray  = len;
+
+                    path.style.strokeDashoffset = len;
+
+                });
+
+            });
+
+
+
+            // --- 8. CREATE PARTICLES ---
+
+            function createParticles() {
+
+                const container = document.getElementById('particles');
+
+                if (!container) return;
+
+                const count = 18;
+
+                for (let i = 0; i < count; i++) {
+
+                    const dot = document.createElement('div');
+
+                    dot.className = 'dot-particle';
+
+                    const size = Math.random() * 3 + 1;
+
+                    dot.style.cssText = `
+
+                        width:${size}px; height:${size}px;
+
+                        left:${Math.random() * 100}%;
+
+                        opacity:${Math.random() * .5 + .1};
+
+                        animation-duration:${Math.random() * 12 + 8}s;
+
+                        animation-delay:${Math.random() * -15}s;
+
+                    `;
+
+                    container.appendChild(dot);
+
+                }
+
+            }
+
+            createParticles();
 
         });
 

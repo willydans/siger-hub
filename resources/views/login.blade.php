@@ -34,7 +34,6 @@
             overflow: hidden;
         }
 
-        /* Garis SVG mengalir dengan animasi stroke-dashoffset */
         .flow-path {
             fill: none;
             stroke: #EAB308;
@@ -60,7 +59,6 @@
             100% { stroke-dashoffset: 0; opacity: 0; }
         }
 
-        /* Partikel titik emas bergerak */
         .dot-particle {
             position: absolute;
             border-radius: 50%;
@@ -75,14 +73,12 @@
             100% { transform: translateY(-10vh) scale(1); opacity: 0; }
         }
 
-        /* ===== LOGO PULSE ===== */
         @keyframes logoPulse {
             0%, 100% { box-shadow: 0 0 0 0 rgba(234,179,8,.4); }
             50%       { box-shadow: 0 0 0 8px rgba(234,179,8,0); }
         }
         .logo-mark { animation: logoPulse 2.8s ease-in-out infinite; }
 
-        /* ===== CARD ENTRANCE ===== */
         .auth-card-wrap {
             animation: cardIn .65s cubic-bezier(.22,1,.36,1) both;
         }
@@ -91,7 +87,6 @@
             to   { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        /* ===== TAB SWITCHER ===== */
         .tab-pill {
             position: absolute;
             top: 4px;
@@ -110,11 +105,7 @@
         .tab-btn.active { color: #0F172A; font-weight: 700; }
         .tab-btn:not(.active) { color: #94A3B8; }
 
-        /* ===== FORM TRANSITION (không ngebug) ===== */
-        .form-container {
-            position: relative;
-            /* tinggi menyesuaikan form aktif */
-        }
+        .form-container { position: relative; }
         .form-pane {
             width: 100%;
             transition: opacity .35s ease, transform .35s ease;
@@ -134,7 +125,6 @@
             position: relative;
         }
 
-        /* ===== INPUT FOCUS GLOW ===== */
         .inp {
             width: 100%;
             background: #1E293B;
@@ -163,7 +153,6 @@
         }
         .inp-wrap:focus-within .inp-icon { color: #EAB308; }
 
-        /* ===== SUBMIT BUTTON SHINE ===== */
         .btn-gold {
             position: relative;
             overflow: hidden;
@@ -198,7 +187,6 @@
         .btn-gold svg { transition: transform .2s; }
         .btn-gold:hover svg { transform: translateX(3px); }
 
-        /* ===== STAT BAR ===== */
         .stat-bar-inner {
             height: 2px;
             background: linear-gradient(90deg, #EAB308, transparent);
@@ -211,7 +199,6 @@
             100% { width: 90%; opacity: 1; }
         }
 
-        /* ===== PASSWORD STRENGTH ===== */
         .str-bar {
             flex: 1;
             height: 3px;
@@ -223,7 +210,6 @@
         .str-bar.medium { background: #EAB308; }
         .str-bar.strong { background: #22c55e; }
 
-        /* ===== BACK BUTTON ===== */
         .back-btn {
             position: fixed;
             top: 1.5rem;
@@ -247,10 +233,7 @@
             background: rgba(234,179,8,.06);
         }
 
-        /* ===== COUNTER ===== */
         .cnt { display: inline-block; }
-
-        /* ===== CHECKBOX ===== */
         .chk { accent-color: #EAB308; }
 
         @media (max-width: 640px) {
@@ -260,32 +243,23 @@
 </head>
 <body class="font-sans antialiased text-gray-300 bg-darkbg min-h-screen flex items-center justify-center relative overflow-hidden">
 
-    <!-- ===== BACKGROUND FLOWING LINES ===== -->
     <div class="bg-canvas">
         <svg width="100%" height="100%" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <!-- Panjang path harus diset di JS, ini default -->
-            </defs>
             <!-- Baris atas -->
             <path class="flow-path" id="p1"  d="M-100,120 C200,40  400,200 700,100 S1100,20  1560,140" stroke-dasharray="1000" stroke-dashoffset="1000"/>
             <path class="flow-path" id="p2"  d="M-100,200 C150,120 450,280 750,180 S1150,80  1560,240" stroke-dasharray="1000" stroke-dashoffset="1000"/>
             <path class="flow-path" id="p3"  d="M-100,60  C250,0   500,150 800,50  S1200,-30 1560,80"  stroke-dasharray="1000" stroke-dashoffset="1000"/>
-            <!-- Baris tengah -->
             <path class="flow-path" id="p4"  d="M-100,400 C300,320 600,480 900,380 S1300,260 1560,420" stroke-dasharray="1000" stroke-dashoffset="1000"/>
             <path class="flow-path" id="p5"  d="M-100,480 C250,400 550,540 850,440 S1250,320 1560,500" stroke-dasharray="1000" stroke-dashoffset="1000"/>
             <path class="flow-path" id="p6"  d="M-100,330 C350,260 650,400 950,310 S1350,200 1560,360" stroke-dasharray="1000" stroke-dashoffset="1000"/>
-            <!-- Baris bawah -->
             <path class="flow-path" id="p7"  d="M-100,680 C200,600 500,740 800,640 S1200,520 1560,700" stroke-dasharray="1000" stroke-dashoffset="1000"/>
             <path class="flow-path" id="p8"  d="M-100,760 C300,680 600,820 900,720 S1300,600 1560,780" stroke-dasharray="1000" stroke-dashoffset="1000"/>
             <path class="flow-path" id="p9"  d="M-100,840 C250,760 550,880 850,780 S1250,680 1560,860" stroke-dasharray="1000" stroke-dashoffset="1000"/>
             <path class="flow-path" id="p10" d="M-100,580 C350,500 650,640 950,540 S1350,420 1560,600" stroke-dasharray="1000" stroke-dashoffset="1000"/>
         </svg>
-
-        <!-- Titik partikel emas -->
         <div id="particles"></div>
     </div>
 
-    <!-- ===== TOMBOL KEMBALI ===== -->
     <a href="/" class="back-btn">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
@@ -293,23 +267,14 @@
         Kembali ke Beranda
     </a>
 
-    <!-- ===== MAIN AUTH CONTAINER ===== -->
     <div class="w-full max-w-5xl mx-auto px-4 py-8 relative z-10 flex items-center justify-center min-h-screen">
         <div class="auth-card-wrap w-full">
-            <div class="w-full bg-[#111827]/85 backdrop-blur-xl border border-cardborder rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden"
-                 style="box-shadow: 0 25px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.03);">
+            <div class="w-full bg-[#111827]/85 backdrop-blur-xl border border-cardborder rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden" style="box-shadow: 0 25px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.03);">
 
-                <!-- ===== LEFT PANEL (Branding) ===== -->
-                <div class="left-side flex-col justify-between w-full md:w-[44%] p-10 border-b md:border-b-0 md:border-r border-cardborder relative overflow-hidden"
-                     style="background: linear-gradient(145deg,#0F172A 0%,#1E293B 100%); display:flex;">
-
-                    <!-- Inner ambient glow -->
-                    <div class="absolute -top-16 -left-16 w-72 h-72 rounded-full pointer-events-none"
-                         style="background:radial-gradient(circle,rgba(234,179,8,.1),transparent 70%);"></div>
-                    <div class="absolute -bottom-16 -right-16 w-56 h-56 rounded-full pointer-events-none"
-                         style="background:radial-gradient(circle,rgba(234,179,8,.06),transparent 70%);"></div>
-
-                    <!-- Dekorasi garis sudut -->
+                <!-- LEFT PANEL -->
+                <div class="left-side flex-col justify-between w-full md:w-[44%] p-10 border-b md:border-b-0 md:border-r border-cardborder relative overflow-hidden" style="background: linear-gradient(145deg,#0F172A 0%,#1E293B 100%); display:flex;">
+                    <div class="absolute -top-16 -left-16 w-72 h-72 rounded-full pointer-events-none" style="background:radial-gradient(circle,rgba(234,179,8,.1),transparent 70%);"></div>
+                    <div class="absolute -bottom-16 -right-16 w-56 h-56 rounded-full pointer-events-none" style="background:radial-gradient(circle,rgba(234,179,8,.06),transparent 70%);"></div>
                     <svg class="absolute bottom-0 right-0 opacity-20 pointer-events-none" width="200" height="200" viewBox="0 0 200 200" fill="none">
                         <path d="M20,180 Q80,100 150,140 T220,80"  stroke="#EAB308" stroke-width="1.2"/>
                         <path d="M40,200 Q100,120 170,160 T240,100" stroke="#EAB308" stroke-width=".7"/>
@@ -318,7 +283,6 @@
                     </svg>
 
                     <div class="relative z-10">
-                        <!-- Logo -->
                         <div class="flex items-center gap-3 mb-10">
                             <div class="logo-mark w-10 h-10 bg-gold rounded-lg text-darkbg flex items-center justify-center font-extrabold text-xl select-none">S</div>
                             <div class="flex flex-col">
@@ -326,8 +290,6 @@
                                 <span class="text-xs text-gray-500">Pemprov Lampung</span>
                             </div>
                         </div>
-
-                        <!-- Headline -->
                         <h2 class="text-3xl font-bold text-white leading-tight mb-4">
                             Gerbang Pengetahuan<br>
                             <span class="text-gold">Pemerintah Daerah</span>
@@ -335,8 +297,6 @@
                         <p class="text-gray-400 text-sm leading-relaxed max-w-xs">
                             Platform manajemen pengetahuan terintegrasi untuk mendukung tata kelola pemerintahan yang transparan, cerdas, dan kolaboratif di Provinsi Lampung.
                         </p>
-
-                        <!-- Stats -->
                         <div class="flex gap-5 mt-9">
                             <div class="stat-item">
                                 <div class="text-xl font-bold text-white mb-0.5">
@@ -358,13 +318,12 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="relative z-10 text-[10px] text-gray-600 mt-10">
                         &copy; 2026 Pemerintah Provinsi Lampung. Hak Cipta Dilindungi.
                     </div>
                 </div>
 
-                <!-- ===== RIGHT PANEL (Forms) ===== -->
+                <!-- RIGHT PANEL -->
                 <div class="flex-1 p-8 md:p-11 flex items-start justify-center">
                     <div class="w-full max-w-sm">
 
@@ -389,18 +348,21 @@
                                     <p class="text-sm text-gray-400">Masukkan kredensial Anda untuk mengakses sistem.</p>
                                 </div>
 
-                                <form action="#" method="POST" class="space-y-4">
+                                <!-- ✨ PERBAIKAN: Action form menggunakan secure_url() untuk memaksa HTTPS -->
+                                <form action="{{ secure_url('/login') }}" method="POST" class="space-y-4">
+                                    @csrf
                                     <!-- Email -->
                                     <div>
                                         <label class="block text-[11px] font-medium text-gray-500 mb-1.5 uppercase tracking-wider">Alamat Email</label>
                                         <div class="inp-wrap relative">
                                             <div class="inp-icon">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
-                                                </svg>
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/></svg>
                                             </div>
-                                            <input type="email" class="inp" placeholder="email@lampungprov.go.id" required>
+                                            <input type="email" name="email" class="inp" placeholder="email@lampungprov.go.id" value="{{ old('email') }}" required>
                                         </div>
+                                        @error('email')
+                                            <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
 
                                     <!-- Password -->
@@ -411,28 +373,45 @@
                                         </div>
                                         <div class="inp-wrap relative">
                                             <div class="inp-icon">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                                                </svg>
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                             </div>
-                                            <input type="password" class="inp" placeholder="••••••••" required>
+                                            <input type="password" name="password" class="inp" placeholder="••••••••" required>
                                         </div>
+                                        @error('password')
+                                            <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
 
                                     <!-- Remember -->
                                     <div class="flex items-center gap-2">
-                                        <input type="checkbox" id="remember" class="chk w-4 h-4 rounded border-gray-600 bg-inputbg cursor-pointer">
+                                        <input type="checkbox" name="remember" id="remember" class="chk w-4 h-4 rounded border-gray-600 bg-inputbg cursor-pointer">
                                         <label for="remember" class="text-sm text-gray-400 cursor-pointer">Ingat saya selama 30 hari</label>
                                     </div>
 
                                     <!-- Submit -->
                                     <button type="submit" class="btn-gold mt-1">
                                         Masuk
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                                        </svg>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                     </button>
                                 </form>
+
+                                <!-- ========================================== -->
+                                <!-- TAMBAHAN: LOGIN DENGAN GOOGLE -->
+                                <!-- ========================================== -->
+                                <div class="relative flex items-center gap-2 my-4">
+                                    <div class="flex-1 h-px bg-cardborder"></div>
+                                    <span class="text-xs text-gray-500 uppercase">atau</span>
+                                    <div class="flex-1 h-px bg-cardborder"></div>
+                                </div>
+                                <a href="{{ route('google.login') }}" class="w-full flex items-center justify-center gap-2 bg-white text-darkbg py-2.5 rounded-xl text-sm font-medium hover:bg-gray-100 transition-colors border border-gray-200">
+                                    <svg class="w-5 h-5" viewBox="0 0 48 48">
+                                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                                        <path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.56l7.97-5.97z"/>
+                                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.97C6.51 42.62 14.62 48 24 48z"/>
+                                    </svg>
+                                    Masuk dengan Google
+                                </a>
 
                                 <p class="mt-6 text-center text-sm text-gray-400">
                                     Belum memiliki akses?
@@ -447,18 +426,21 @@
                                     <p class="text-sm text-gray-400">Daftar untuk berkontribusi pada ekosistem pengetahuan.</p>
                                 </div>
 
-                                <form action="#" method="POST" class="space-y-3.5">
+                                <!-- ✨ PERBAIKAN: Action form menggunakan secure_url() untuk memaksa HTTPS -->
+                                <form action="{{ secure_url('/register') }}" method="POST" class="space-y-3.5">
+                                    @csrf
                                     <!-- Nama -->
                                     <div>
                                         <label class="block text-[11px] font-medium text-gray-500 mb-1.5 uppercase tracking-wider">Nama Lengkap</label>
                                         <div class="inp-wrap relative">
                                             <div class="inp-icon">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                                </svg>
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                             </div>
-                                            <input type="text" class="inp" placeholder="Nama sesuai identitas" required>
+                                            <input type="text" name="name" class="inp" placeholder="Nama sesuai identitas" value="{{ old('name') }}" required>
                                         </div>
+                                        @error('name')
+                                            <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
 
                                     <!-- NIP -->
@@ -466,12 +448,13 @@
                                         <label class="block text-[11px] font-medium text-gray-500 mb-1.5 uppercase tracking-wider">NIP / Nomor Pegawai</label>
                                         <div class="inp-wrap relative">
                                             <div class="inp-icon">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0"/>
-                                                </svg>
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0"/></svg>
                                             </div>
-                                            <input type="text" class="inp" placeholder="Masukkan NIP Anda" required>
+                                            <input type="text" name="nip" class="inp" placeholder="Masukkan NIP Anda" value="{{ old('nip') }}">
                                         </div>
+                                        @error('nip')
+                                            <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
 
                                     <!-- Email -->
@@ -479,12 +462,13 @@
                                         <label class="block text-[11px] font-medium text-gray-500 mb-1.5 uppercase tracking-wider">Alamat Email Instansi</label>
                                         <div class="inp-wrap relative">
                                             <div class="inp-icon">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
-                                                </svg>
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/></svg>
                                             </div>
-                                            <input type="email" class="inp" placeholder="email@lampungprov.go.id" required>
+                                            <input type="email" name="email" class="inp" placeholder="email@lampungprov.go.id" value="{{ old('email') }}" required>
                                         </div>
+                                        @error('email')
+                                            <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
 
                                     <!-- Password -->
@@ -492,13 +476,10 @@
                                         <label class="block text-[11px] font-medium text-gray-500 mb-1.5 uppercase tracking-wider">Kata Sandi</label>
                                         <div class="inp-wrap relative">
                                             <div class="inp-icon">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                                                </svg>
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                             </div>
-                                            <input type="password" class="inp" placeholder="Minimal 8 karakter" id="reg-pass" oninput="updateStrength(this.value)" required>
+                                            <input type="password" name="password" class="inp" placeholder="Minimal 8 karakter" id="reg-pass" oninput="updateStrength(this.value)" required>
                                         </div>
-                                        <!-- Password strength -->
                                         <div class="flex gap-1 mt-2" id="str-bars">
                                             <div class="str-bar"></div>
                                             <div class="str-bar"></div>
@@ -506,14 +487,15 @@
                                             <div class="str-bar"></div>
                                         </div>
                                         <p class="text-[10px] text-gray-600 mt-1" id="str-label"></p>
+                                        @error('password')
+                                            <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
 
                                     <!-- Submit -->
                                     <button type="submit" class="btn-gold mt-1">
                                         Daftar Akun
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                                        </svg>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                     </button>
                                 </form>
 
@@ -536,9 +518,6 @@
     </div>
 
     <script>
-    /* ============================================================
-       TAB + FORM SWITCH — tidak ada position:absolute di luar waktu transisi
-       ============================================================ */
     let currentForm = 'login';
 
     function initIndicator() {
@@ -561,28 +540,23 @@
 
         const goRight = (target === 'register');
 
-        /* Siapkan pane tujuan: hidden tapi dengan posisi awal */
         toEl.classList.remove('is-visible');
         toEl.classList.add('is-hidden', goRight ? 'slide-from-right' : 'slide-from-left');
-        toEl.style.display = 'block';  /* pastikan visible untuk ukur tinggi */
+        toEl.style.display = 'block';
 
-        /* Slide keluar pane asal */
         fromEl.style.transform = goRight ? 'translateX(-24px)' : 'translateX(24px)';
         fromEl.style.opacity   = '0';
 
         setTimeout(() => {
-            /* Sembunyikan pane asal */
             fromEl.classList.remove('is-visible');
             fromEl.classList.add('is-hidden');
             fromEl.style.transform = '';
             fromEl.style.opacity   = '';
 
-            /* Munculkan pane tujuan */
             toEl.classList.remove('is-hidden', 'slide-from-right', 'slide-from-left');
             toEl.classList.add('is-visible');
         }, 280);
 
-        /* Update tab indicator */
         const btnTarget = document.getElementById('btn-tab-' + target);
         const btnFrom   = document.getElementById('btn-tab-' + currentForm);
         const ind = document.getElementById('tab-indicator');
@@ -598,10 +572,6 @@
     window.addEventListener('load', initIndicator);
     window.addEventListener('resize', initIndicator);
 
-
-    /* ============================================================
-       COUNTER ANIMASI
-       ============================================================ */
     function animCounter(elId, target, suffix, duration) {
         const el = document.getElementById(elId);
         const suffixEl = document.getElementById(elId + '-suffix');
@@ -626,10 +596,6 @@
         animCounter('stat-inst', 156, '', 1700);
     }, 400);
 
-
-    /* ============================================================
-       FLOWING LINES — update stroke-dasharray sesuai panjang path
-       ============================================================ */
     window.addEventListener('load', () => {
         document.querySelectorAll('.flow-path').forEach(path => {
             const len = path.getTotalLength();
@@ -638,10 +604,6 @@
         });
     });
 
-
-    /* ============================================================
-       PARTIKEL EMAS MENGAMBANG
-       ============================================================ */
     function createParticles() {
         const container = document.getElementById('particles');
         const count = 18;
@@ -661,10 +623,6 @@
     }
     createParticles();
 
-
-    /* ============================================================
-       PASSWORD STRENGTH
-       ============================================================ */
     function updateStrength(val) {
         const bars  = document.querySelectorAll('.str-bar');
         const label = document.getElementById('str-label');

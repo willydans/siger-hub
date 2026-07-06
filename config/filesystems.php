@@ -38,6 +38,14 @@ return [
             'report' => false,
         ],
 
+        // ⭐ Disk baru khusus untuk backup (mengarah ke storage/app agar file mudah diakses)
+        'backup' => [
+            'driver' => 'local',
+            'root' => storage_path('app'),
+            'throw' => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

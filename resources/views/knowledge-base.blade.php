@@ -65,11 +65,44 @@
             <a href="/#tentang" class="nav-link text-gray-300 hover:text-white transition-colors duration-300 relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-gold after:transition-all after:duration-300 hover:after:w-full">Tentang</a>
             <a href="/#kontak" class="nav-link text-gray-300 hover:text-white transition-colors duration-300 relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-gold after:transition-all after:duration-300 hover:after:w-full">Kontak</a>
         </div>
+        
+        <!-- AUTH HEADER DROPDOWN -->
         <div>
-            <a href="/login" id="login-btn" class="bg-white/10 border border-gray-600 text-white hover:bg-white/20 px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)]">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                Login Portal
-            </a>
+            @auth
+                <div class="relative group">
+                    <!-- Tombol Avatar / Profil -->
+                    <button class="flex items-center gap-2 text-white hover:text-gold transition-colors duration-300 focus:outline-none">
+                        <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=EAB308&color=0f172a' }}" 
+                             alt="Avatar" 
+                             class="w-8 h-8 rounded-full border-2 border-transparent group-hover:border-gold transition-all duration-300">
+                        <span class="hidden sm:block text-sm font-medium">{{ Auth::user()->name }}</span>
+                        <svg class="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+
+                    <!-- Dropdown Menu (Muncul saat hover) -->
+                    <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right group-hover:scale-100 scale-95 z-50 overflow-hidden">
+                        <div class="py-1">
+                            <a href="{{ route('user.profil') }}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors duration-200">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                Profil Saya
+                            </a>
+                            <form method="POST" action="{{ route('logout') }}" class="block border-t border-gray-100">
+                                @csrf
+                                <button type="submit" class="block w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors duration-200">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                    Keluar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @else
+                <!-- Tampilan Guest (Belum Login) -->
+                <a href="{{ route('login') }}" id="login-btn" class="bg-white/10 border border-gray-600 text-white hover:bg-white/20 px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                    Login Portal
+                </a>
+            @endauth
         </div>
     </nav>
 
@@ -113,55 +146,35 @@
 
     <div class="max-w-7xl mx-auto px-8 py-12 flex flex-col md:flex-row gap-10">
         
+        <!-- SIDEBAR: KATEGORI -->
         <aside class="w-full md:w-1/4 scroll-hidden obs-element" style="transition-delay: 100ms;">
             <div class="bg-white rounded-xl border border-cardborder p-4 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300">
                 <h3 class="text-xs font-bold text-gray-500 tracking-wider mb-4 px-2">CATEGORIES</h3>
                 <ul class="space-y-1">
+                    <!-- All Topics -->
                     <li>
-                        <a href="#" class="flex justify-between items-center bg-[#0F172A] text-white px-3 py-2.5 rounded-lg text-sm font-medium group">
+                        <a href="/knowledge-base" class="flex justify-between items-center bg-[#0F172A] text-white px-3 py-2.5 rounded-lg text-sm font-medium group">
                             <div class="flex items-center gap-3">
                                 <svg class="w-4 h-4 text-gold group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                                 <span>All Topics</span>
                             </div>
-                            <span class="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">9</span>
+                            <span class="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{{ $totalArticles }}</span>
                         </a>
                     </li>
+
+                    <!-- Loop Kategori Dinamis -->
+                    @foreach($categories as $category)
                     <li>
                         <a href="#" class="flex justify-between items-center hover:bg-gray-50 text-gray-700 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:translate-x-1 group">
                             <div class="flex items-center gap-3">
                                 <svg class="w-4 h-4 text-gray-400 group-hover:text-gold transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                                <span>Web Development</span>
+                                <span>{{ $category->name }}</span>
                             </div>
-                            <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-full group-hover:bg-gold/20 group-hover:text-gold transition-colors">3</span>
+                            <!-- ✅ SEKARANG BERFUNGSI KARENA ADA withCount('articles') DI CONTROLLER -->
+                            <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-full group-hover:bg-gold/20 group-hover:text-gold transition-colors">{{ $category->articles_count ?? 0 }}</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="#" class="flex justify-between items-center hover:bg-gray-50 text-gray-700 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:translate-x-1 group">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-4 h-4 text-gray-400 group-hover:text-gold transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path></svg>
-                                <span>Server Infrastructure</span>
-                            </div>
-                            <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-full group-hover:bg-gold/20 group-hover:text-gold transition-colors">2</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex justify-between items-center hover:bg-gray-50 text-gray-700 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:translate-x-1 group">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-4 h-4 text-gray-400 group-hover:text-gold transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                                <span>Security & Pentest</span>
-                            </div>
-                            <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-full group-hover:bg-gold/20 group-hover:text-gold transition-colors">2</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex justify-between items-center hover:bg-gray-50 text-gray-700 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:translate-x-1 group">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-4 h-4 text-gray-400 group-hover:text-gold transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
-                                <span>Network Configurations</span>
-                            </div>
-                            <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-full group-hover:bg-gold/20 group-hover:text-gold transition-colors">2</span>
-                        </a>
-                    </li>
+                    @endforeach
                 </ul>
             </div>
 
@@ -171,59 +184,73 @@
                 </div>
                 <h3 class="font-bold text-gray-900 mb-2">Contribute</h3>
                 <p class="text-xs text-gray-600 mb-6 leading-relaxed">Share your knowledge with the community. Submit tutorials and guides.</p>
-                <button class="w-full bg-gold hover:bg-goldhover text-darkbg hover:text-white font-bold py-2.5 rounded-lg text-sm transition-colors duration-300 shadow-sm hover:shadow-md">Submit Article</button>
+                @auth
+                    <!-- ✅ PERBAIKAN: Gunakan route helper -->
+                    <a href="{{ route('staff.editor') }}" class="w-full bg-gold hover:bg-goldhover text-darkbg hover:text-white font-bold py-2.5 rounded-lg text-sm transition-colors duration-300 shadow-sm hover:shadow-md text-center">Submit Article</a>
+                @else
+                    <!-- ✅ PERBAIKAN: Gunakan route helper -->
+                    <a href="{{ route('login') }}" class="w-full bg-gold hover:bg-goldhover text-darkbg hover:text-white font-bold py-2.5 rounded-lg text-sm transition-colors duration-300 shadow-sm hover:shadow-md text-center">Login to Submit</a>
+                @endauth
             </div>
         </aside>
 
         <main class="w-full md:w-3/4">
             <div class="flex justify-between items-center mb-6 scroll-hidden obs-element" style="transition-delay: 200ms;">
-                <p class="text-sm text-gray-600">Showing <span class="font-bold text-gray-900">6</span> of <span class="font-bold text-gray-900">9</span> articles</p>
+                <p class="text-sm text-gray-600">Showing <span class="font-bold text-gray-900">{{ $articles->count() }}</span> of <span class="font-bold text-gray-900">{{ $articles->total() }}</span> articles</p>
             </div>
 
             <!-- Grid Kartu Artikel -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
-                <!-- Kartu Artikel 1 -->
-                <div class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element" style="transition-delay: 100ms;">
+                <!-- LOOP ARTIKEL -->
+                @forelse($articles as $article)
+                <div class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element" style="transition-delay: {{ ($loop->index % 3 + 1) * 100 }}ms;">
                     <div class="relative h-40 bg-gray-200 overflow-hidden group">
-                        <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Code" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-                        <span class="absolute top-3 left-3 bg-yellow-100/90 backdrop-blur-sm text-yellow-800 text-[10px] font-bold px-2 py-1 rounded">Web Development</span>
+                        <img src="{{ $article->featured_image ?? 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80' }}" alt="{{ $article->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <span class="absolute top-3 left-3 bg-yellow-100/90 backdrop-blur-sm text-yellow-800 text-[10px] font-bold px-2 py-1 rounded">{{ $article->category->name ?? 'General' }}</span>
                     </div>
                     <div class="p-5 flex flex-col flex-grow">
-                        <h3 class="font-bold text-gray-900 text-[15px] leading-snug mb-2 hover:text-gold transition-colors duration-300">Building Scalable REST APIs with Node.js and Express</h3>
-                        <p class="text-xs text-gray-500 mb-6 line-clamp-2">A comprehensive guide to designing and implementing production-ready RESTful AP...</p>
+                        <h3 class="font-bold text-gray-900 text-[15px] leading-snug mb-2 hover:text-gold transition-colors duration-300">{{ $article->title }}</h3>
+                        <p class="text-xs text-gray-500 mb-6 line-clamp-2">{{ $article->excerpt ?? 'Deskripsi tidak tersedia.' }}</p>
                         
                         <div class="mt-auto flex flex-col gap-3">
                             <!-- Informasi Penulis & Waktu -->
                             <div class="flex items-center justify-between text-[11px] text-gray-400 font-medium">
                                 <div class="flex items-center gap-2">
                                     <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold overflow-hidden">
-                                        <img src="https://ui-avatars.com/api/?name=Rizky+Pratama&background=bfdbfe&color=1e3a8a" alt="Avatar">
+                                        <img src="{{ $article->user->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($article->user->name ?? 'A') . '&background=bfdbfe&color=1e3a8a' }}" alt="Avatar">
                                     </div>
-                                    <span>Rizky Pratama</span>
+                                    <span>{{ $article->user->name ?? 'Admin' }}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 12 min</span>
+                                    <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> {{ $article->read_time ?? 5 }} min</span>
                                 </div>
                             </div>
 
-                            <!-- Action Bar (Bookmark, Like, Rating, Share, Download) -->
+                            <!-- Action Bar -->
                             <div class="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-[11px] text-gray-400 gap-2">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <!-- Like -->
                                     <button class="flex items-center gap-1 hover:text-red-500 transition-colors duration-200">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
-                                        <span>45</span>
+                                        <span>{{ $article->likes_count ?? 0 }}</span>
                                     </button>
                                     <!-- Bookmark -->
                                     <button class="flex items-center gap-1 hover:text-gold transition-colors duration-200">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                                        <span>12</span>
+                                        <span>{{ $article->bookmarks_count ?? 0 }}</span>
                                     </button>
-                                    <!-- Rating Static (⭐⭐⭐⭐⭐) -->
+                                    
+                                    <!-- Rating Dinamis -->
                                     <div class="flex items-center gap-0.5 text-[10px] text-yellow-400">
-                                        <span>★</span><span>★</span><span>★</span><span>★</span><span class="text-gray-300">★</span>
-                                        <span class="text-gray-400 ml-1">(4.2)</span>
+                                        @for($i = 1; $i <= 5; $i++)
+                                            @if($i <= round($article->rating_avg))
+                                                <span>★</span>
+                                            @else
+                                                <span class="text-gray-300">★</span>
+                                            @endif
+                                        @endfor
+                                        <span class="text-gray-400 ml-1">({{ number_format($article->rating_avg, 1) }})</span>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -240,261 +267,11 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Kartu Artikel 2 -->
-                <div class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element" style="transition-delay: 200ms;">
-                    <div class="relative h-40 bg-gray-200 overflow-hidden group">
-                        <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Server" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-                        <span class="absolute top-3 left-3 bg-blue-50/90 backdrop-blur-sm text-blue-700 border border-blue-200 text-[10px] font-bold px-2 py-1 rounded">Server Infrastructure</span>
+                @empty
+                    <div class="col-span-full text-center py-20 text-gray-500">
+                        <p>Belum ada artikel yang dipublikasikan.</p>
                     </div>
-                    <div class="p-5 flex flex-col flex-grow">
-                        <h3 class="font-bold text-gray-900 text-[15px] leading-snug mb-2 hover:text-gold transition-colors duration-300">Docker Container Orchestration for Government Systems</h3>
-                        <p class="text-xs text-gray-500 mb-6 line-clamp-2">Learn how to orchestrate Docker containers for scalable government applications,...</p>
-                        
-                        <div class="mt-auto flex flex-col gap-3">
-                            <div class="flex items-center justify-between text-[11px] text-gray-400 font-medium">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center overflow-hidden">
-                                        <img src="https://ui-avatars.com/api/?name=Andi+Kusuma&background=bbf7d0&color=166534" alt="Avatar">
-                                    </div>
-                                    <span>Andi Kusuma</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 15 min</span>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-[11px] text-gray-400 gap-2">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <button class="flex items-center gap-1 hover:text-red-500 transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
-                                        <span>28</span>
-                                    </button>
-                                    <button class="flex items-center gap-1 hover:text-gold transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                                        <span>9</span>
-                                    </button>
-                                    <div class="flex items-center gap-0.5 text-[10px] text-yellow-400">
-                                        <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-                                        <span class="text-gray-400 ml-1">(5.0)</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <button class="hover:text-blue-500 transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                                    </button>
-                                    <button class="hover:text-green-500 transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Kartu Artikel 3 -->
-                <div class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element" style="transition-delay: 300ms;">
-                    <div class="relative h-40 bg-gray-200 overflow-hidden group">
-                        <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Security" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-                        <span class="absolute top-3 left-3 bg-teal-50/90 backdrop-blur-sm text-teal-700 border border-teal-200 text-[10px] font-bold px-2 py-1 rounded">Security & Pentest</span>
-                    </div>
-                    <div class="p-5 flex flex-col flex-grow">
-                        <h3 class="font-bold text-gray-900 text-[15px] leading-snug mb-2 hover:text-gold transition-colors duration-300">OWASP Top 10: Web Application Security Guide</h3>
-                        <p class="text-xs text-gray-500 mb-6 line-clamp-2">An in-depth walkthrough of the OWASP Top 10 vulnerabilities with practical examples an...</p>
-                        
-                        <div class="mt-auto flex flex-col gap-3">
-                            <div class="flex items-center justify-between text-[11px] text-gray-400 font-medium">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-5 h-5 bg-pink-100 rounded-full flex items-center justify-center overflow-hidden">
-                                        <img src="https://ui-avatars.com/api/?name=Dian+Permata&background=fbcfe8&color=9d174d" alt="Avatar">
-                                    </div>
-                                    <span>Dian Permata</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 18 min</span>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-[11px] text-gray-400 gap-2">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <button class="flex items-center gap-1 hover:text-red-500 transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
-                                        <span>62</span>
-                                    </button>
-                                    <button class="flex items-center gap-1 hover:text-gold transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                                        <span>18</span>
-                                    </button>
-                                    <div class="flex items-center gap-0.5 text-[10px] text-yellow-400">
-                                        <span>★</span><span>★</span><span>★</span><span>★</span><span class="text-gray-300">★</span>
-                                        <span class="text-gray-400 ml-1">(4.8)</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <button class="hover:text-blue-500 transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                                    </button>
-                                    <button class="hover:text-green-500 transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Kartu Artikel 4 -->
-                <div class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element" style="transition-delay: 100ms;">
-                    <div class="relative h-40 bg-gray-200 overflow-hidden group">
-                        <img src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Network" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-                        <span class="absolute top-3 left-3 bg-yellow-100/90 backdrop-blur-sm text-yellow-800 text-[10px] font-bold px-2 py-1 rounded">Network Configurations</span>
-                    </div>
-                    <div class="p-5 flex flex-col flex-grow">
-                        <h3 class="font-bold text-gray-900 text-[15px] leading-snug mb-2 hover:text-gold transition-colors duration-300">Configuring VLANs and Network Segmentation</h3>
-                        <p class="text-xs text-gray-500 mb-6 line-clamp-2">Step-by-step guide to configuring VLANs, implementing network segmentation, and...</p>
-                        
-                        <div class="mt-auto flex flex-col gap-3">
-                            <div class="flex items-center justify-between text-[11px] text-gray-400 font-medium">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-5 h-5 bg-purple-100 rounded-full flex items-center justify-center overflow-hidden">
-                                        <img src="https://ui-avatars.com/api/?name=Budi+Santoso&background=e9d5ff&color=6b21a8" alt="Avatar">
-                                    </div>
-                                    <span>Budi Santoso</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 10 min</span>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-[11px] text-gray-400 gap-2">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <button class="flex items-center gap-1 hover:text-red-500 transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
-                                        <span>91</span>
-                                    </button>
-                                    <button class="flex items-center gap-1 hover:text-gold transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                                        <span>32</span>
-                                    </button>
-                                    <div class="flex items-center gap-0.5 text-[10px] text-yellow-400">
-                                        <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-                                        <span class="text-gray-400 ml-1">(4.9)</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <button class="hover:text-blue-500 transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                                    </button>
-                                    <button class="hover:text-green-500 transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Kartu Artikel 5 -->
-                <div class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element" style="transition-delay: 200ms;">
-                    <div class="relative h-40 bg-gray-200 overflow-hidden group">
-                        <img src="https://images.unsplash.com/photo-1507721999472-8ed4421c4af2?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="CSS" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-                        <span class="absolute top-3 left-3 bg-orange-100/90 backdrop-blur-sm text-orange-800 text-[10px] font-bold px-2 py-1 rounded">Web Development</span>
-                    </div>
-                    <div class="p-5 flex flex-col flex-grow">
-                        <h3 class="font-bold text-gray-900 text-[15px] leading-snug mb-2 hover:text-gold transition-colors duration-300">Modern CSS Grid and Flexbox Layout Patterns</h3>
-                        <p class="text-xs text-gray-500 mb-6 line-clamp-2">Master modern CSS layout techniques with real-world examples. Covers Grid, Flexbox,...</p>
-                        
-                        <div class="mt-auto flex flex-col gap-3">
-                            <div class="flex items-center justify-between text-[11px] text-gray-400 font-medium">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center overflow-hidden">
-                                        <img src="https://ui-avatars.com/api/?name=Siti+Nuraini&background=fecaca&color=b91c1c" alt="Avatar">
-                                    </div>
-                                    <span>Siti Nuraini</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 8 min</span>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-[11px] text-gray-400 gap-2">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <button class="flex items-center gap-1 hover:text-red-500 transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
-                                        <span>120</span>
-                                    </button>
-                                    <button class="flex items-center gap-1 hover:text-gold transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                                        <span>45</span>
-                                    </button>
-                                    <div class="flex items-center gap-0.5 text-[10px] text-yellow-400">
-                                        <span>★</span><span>★</span><span>★</span><span>★</span><span class="text-gray-300">★</span>
-                                        <span class="text-gray-400 ml-1">(4.6)</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <button class="hover:text-blue-500 transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                                    </button>
-                                    <button class="hover:text-green-500 transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Kartu Artikel 6 -->
-                <div class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element" style="transition-delay: 300ms;">
-                    <div class="relative h-40 bg-gray-200 overflow-hidden group">
-                        <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Cloud" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-                        <span class="absolute top-3 left-3 bg-blue-50/90 backdrop-blur-sm text-blue-700 border border-blue-200 text-[10px] font-bold px-2 py-1 rounded">Server Infrastructure</span>
-                    </div>
-                    <div class="p-5 flex flex-col flex-grow">
-                        <h3 class="font-bold text-gray-900 text-[15px] leading-snug mb-2 hover:text-gold transition-colors duration-300">Kubernetes Cluster Setup and Management Guide</h3>
-                        <p class="text-xs text-gray-500 mb-6 line-clamp-2">Complete walkthrough for setting up a production-ready Kubernetes cluster,...</p>
-                        
-                        <div class="mt-auto flex flex-col gap-3">
-                            <div class="flex items-center justify-between text-[11px] text-gray-400 font-medium">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center overflow-hidden">
-                                        <img src="https://ui-avatars.com/api/?name=Andi+Kusuma&background=bbf7d0&color=166534" alt="Avatar">
-                                    </div>
-                                    <span>Andi Kusuma</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 20 min</span>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-[11px] text-gray-400 gap-2">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <button class="flex items-center gap-1 hover:text-red-500 transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
-                                        <span>77</span>
-                                    </button>
-                                    <button class="flex items-center gap-1 hover:text-gold transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                                        <span>23</span>
-                                    </button>
-                                    <div class="flex items-center gap-0.5 text-[10px] text-yellow-400">
-                                        <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-                                        <span class="text-gray-400 ml-1">(5.0)</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <button class="hover:text-blue-500 transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                                    </button>
-                                    <button class="hover:text-green-500 transition-colors duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                @endforelse
 
             </div>
 
@@ -576,7 +353,6 @@
                 logoText.classList.remove('text-white');
                 logoText.classList.add('text-gray-900');
 
-                // Active Link (Knowledge Base)
                 activeLink.classList.remove('text-white', 'hover:text-gray-200');
                 activeLink.classList.add('text-gray-900', 'font-bold');
 
@@ -585,8 +361,11 @@
                     link.classList.add('text-gray-600', 'hover:text-gray-900');
                 });
 
-                loginBtn.classList.remove('bg-white/10', 'border-gray-600', 'text-white', 'hover:bg-white/20');
-                loginBtn.classList.add('border-gray-300', 'text-gray-700', 'hover:text-gray-900', 'hover:bg-gray-50');
+                // Logic untuk Login Button vs Dropdown Avatar
+                if(loginBtn) { // Hanya jalan jika guest
+                    loginBtn.classList.remove('bg-white/10', 'border-gray-600', 'text-white', 'hover:bg-white/20');
+                    loginBtn.classList.add('border-gray-300', 'text-gray-700', 'hover:text-gray-900', 'hover:bg-gray-50');
+                }
             } else {
                 // Tampilan Navbar saat di atas (Gelap)
                 nav.classList.add('bg-darkbg', 'border-gray-800');
@@ -595,7 +374,6 @@
                 logoText.classList.add('text-white');
                 logoText.classList.remove('text-gray-900');
 
-                // Active Link (Knowledge Base)
                 activeLink.classList.add('text-white', 'hover:text-gray-200');
                 activeLink.classList.remove('text-gray-900', 'font-bold');
 
@@ -604,8 +382,10 @@
                     link.classList.remove('text-gray-600', 'hover:text-gray-900');
                 });
 
-                loginBtn.classList.add('bg-white/10', 'border-gray-600', 'text-white', 'hover:bg-white/20');
-                loginBtn.classList.remove('border-gray-300', 'text-gray-700', 'hover:text-gray-900', 'hover:bg-gray-50');
+                if(loginBtn) {
+                    loginBtn.classList.add('bg-white/10', 'border-gray-600', 'text-white', 'hover:bg-white/20');
+                    loginBtn.classList.remove('border-gray-300', 'text-gray-700', 'hover:text-gray-900', 'hover:bg-gray-50');
+                }
             }
         });
 
@@ -614,7 +394,7 @@
             const observerOptions = {
                 root: null,
                 rootMargin: '0px',
-                threshold: 0.1 // Animasi jalan ketika elemen 10% masuk layar
+                threshold: 0.1
             };
 
             const observer = new IntersectionObserver((entries, observer) => {

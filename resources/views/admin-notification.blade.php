@@ -31,36 +31,14 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Sidebar Mobile */
-        #sidebar-mobile {
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-        }
-        #sidebar-overlay {
-            transition: opacity 0.3s ease-in-out;
-        }
-        .submenu {
-            transition: all 0.3s ease-in-out;
-            overflow: hidden;
-        }
-        /* Hover Effects */
-        .hover-lift {
-            transition: all 0.2s ease;
-        }
-        .hover-lift:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-        /* Hide scrollbar for cleaner sidebar */
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 4px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 4px;
-        }
-        .sidebar-scroll {
-            scrollbar-width: thin;
-        }
+        #sidebar-mobile { transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; }
+        #sidebar-overlay { transition: opacity 0.3s ease-in-out; }
+        .submenu { transition: all 0.3s ease-in-out; overflow: hidden; }
+        .hover-lift { transition: all 0.2s ease; }
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        .sidebar-scroll { scrollbar-width: thin; }
     </style>
 </head>
 <body class="font-sans antialiased text-textmain bg-lightbg flex h-screen overflow-hidden">
@@ -68,7 +46,7 @@
     <!-- Mobile Overlay -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden opacity-0" onclick="toggleSidebar()"></div>
 
-        <!-- SIDEBAR (Dipertahankan persis, dengan Notification sebagai menu aktif) -->
+    <!-- SIDEBAR -->
     <aside id="sidebar-mobile" class="w-64 bg-darkbg text-gray-300 flex flex-col border-r border-gray-800 shadow-2xl z-40 fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 flex-shrink-0 sidebar-scroll">
         <div class="h-16 flex items-center gap-3 px-6 border-b border-gray-800">
             <div class="w-8 h-8 bg-gold rounded text-darkbg flex items-center justify-center font-bold text-lg">A</div>
@@ -81,7 +59,7 @@
         <div class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
             
             <!-- Dashboard -->
-            <a href="/admin/dashboard" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg> Dashboard
             </a>
             
@@ -95,56 +73,57 @@
                     <svg class="w-4 h-4 transition-transform duration-200" id="arrow-knowledge" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="submenu-knowledge" class="submenu hidden pl-9 space-y-1 mt-1">
-                    <a href="/admin/all-articles" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• All Articles</a>
-                    <a href="/admin/pending-approval" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors flex items-center justify-between">• Pending Approval <span class="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">23</span></a>
-                    <!-- Draft sudah diperbaiki routenya -->
-                    <a href="/admin/draft" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Draft</a>
-                    <a href="/admin/revision" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Revision</a>
-                    <a href="/admin/published" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Published</a>
-                    <a href="/admin/archive" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Archived</a>
-                    <a href="/admin/delete" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Deleted</a>
+                    <a href="{{ route('admin.all-articles') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• All Articles</a>
+                    <a href="{{ route('admin.pending-approval') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors flex items-center justify-between">• Pending Approval <span class="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">{{ \App\Models\Article::where('status', 'pending')->count() }}</span></a>
+                    <a href="{{ route('admin.draft') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Draft</a>
+                    <a href="{{ route('admin.revision') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Revision</a>
+                    <a href="{{ route('admin.published') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Published</a>
+                    <a href="{{ route('admin.archive') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Archived</a>
+                    <a href="{{ route('admin.delete') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Deleted</a>
                 </div>
             </div>
 
             <!-- Menu Utama 2: User Management -->
-            <a href="/admin/users" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.users') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> User Management
             </a>
 
             <!-- Menu Utama 3: Category -->
-            <a href="/admin/category" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.category') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg> Category
             </a>
 
             <!-- Menu Utama 4: Analytics -->
-            <a href="/admin/analytics" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.analytics') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Analytics
             </a>
 
+             <!-- Menu Utama 7: Single Links Lainnya -->
+            <a href="{{ route('admin.searchlog') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg> Search Log
+            </a>
+
             <!-- Menu Utama 5: Feedback -->
-            <a href="/admin/feedback" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.feedback') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> Feedback
             </a>
 
             <!-- Menu Utama 6: Notification (Sedang Aktif) -->
-            <a href="/admin/notification" class="flex items-center gap-3 bg-gray-800/50 text-white px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border border-gray-700">
+            <a href="{{ route('admin.notification') }}" class="flex items-center gap-3 bg-gray-800/50 text-white px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border border-gray-700">
                 <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg> Notification
             </a>
 
-            <!-- Menu Utama 7: Single Links Lainnya (Rute sudah diperbaiki) -->
-            <a href="/admin/searchlog" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg> Search Log
-            </a>
-            <a href="/admin/activity" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+           
+            <a href="{{ route('admin.activity') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Activity Log
             </a>
-            <a href="/admin/storage" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.storage') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7h-4.586a2 2 0 01-1.414-.586l-1.172-1.172a2 2 0 00-1.414-.586H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7z"></path></svg> Storage
             </a>
-            <a href="/admin/settings" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.settings') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Settings
             </a>
-            <a href="/admin/backup" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.backup') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Backup & Restore
             </a>
         </div>
@@ -157,14 +136,22 @@
                     <span class="text-[10px] text-gray-400">Super Admin</span>
                 </div>
             </div>
-            <a href="/login" class="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 py-2 rounded-lg text-xs font-medium border border-gray-700 transition">Keluar</a>
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 py-2 rounded-lg text-xs font-medium border border-gray-700 transition cursor-pointer">Keluar</button>
+            </form>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT (Notification Page) -->
+    <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#F8FAFC] p-4 md:p-8 relative w-full">
         
-        <!-- Mobile Toggle Sidebar -->
+        @if(session('success'))
+            <script>document.addEventListener('DOMContentLoaded', function() { showToast('{{ session('success') }}'); });</script>
+        @elseif(session('error'))
+            <script>document.addEventListener('DOMContentLoaded', function() { showToast('{{ session('error') }}', 'error'); });</script>
+        @endif
+
         <div class="flex justify-between items-center mb-6 md:hidden">
             <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-900 p-2 -ml-2 rounded-lg hover:bg-gray-100">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -172,106 +159,115 @@
             <h2 class="text-xl font-bold text-gray-900">Notification</h2>
         </div>
 
-        <!-- Header Section -->
+        <!-- Header & Tombol Mark All -->
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 fade-in-up" style="animation-delay: 0.1s;">
             <div>
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Notification</h1>
                 <p class="text-sm text-gray-500 mt-1">Semua notifikasi untuk Admin. Pantau setiap aktivitas dan kejadian penting di sistem.</p>
+            </div>
+            <div class="flex items-center gap-2 mt-2 md:mt-0">
+                <form action="{{ route('admin.notification.readAll') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-xs font-medium transition-colors shadow-sm">Tandai Semua Dibaca</button>
+                </form>
             </div>
         </div>
 
         <!-- Filter Kategori -->
         <div class="flex flex-wrap items-center gap-2 mb-6 bg-white p-2 rounded-xl border border-gray-200 shadow-sm fade-in-up" style="animation-delay: 0.2s;">
             <span class="text-[10px] font-bold text-gray-400 uppercase px-1">Kategori:</span>
-            <button class="px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors duration-200">Semua</button>
-            <button class="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors duration-200">Approval</button>
-            <button class="px-3 py-1.5 text-xs font-medium rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition-colors duration-200">Revision</button>
-            <button class="px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors duration-200">Komentar</button>
-            <button class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors duration-200">Like</button>
-            <button class="px-3 py-1.5 text-xs font-medium rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-200 transition-colors duration-200">Feedback</button>
-            <button class="px-3 py-1.5 text-xs font-medium rounded-lg bg-green-100 text-green-600 hover:bg-green-200 transition-colors duration-200">System</button>
+            <a href="{{ route('admin.notification') }}" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-200 {{ $type == 'Semua' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">Semua</a>
+            <a href="{{ route('admin.notification', ['type' => 'Approval']) }}" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-200 {{ $type == 'Approval' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-600 hover:bg-blue-200' }}">Approval</a>
+            <a href="{{ route('admin.notification', ['type' => 'Revision']) }}" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-200 {{ $type == 'Revision' ? 'bg-yellow-600 text-white' : 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200' }}">Revision</a>
+            <a href="{{ route('admin.notification', ['type' => 'Comment']) }}" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-200 {{ $type == 'Comment' ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-600 hover:bg-purple-200' }}">Komentar</a>
+            <a href="{{ route('admin.notification', ['type' => 'Like']) }}" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-200 {{ $type == 'Like' ? 'bg-red-600 text-white' : 'bg-red-100 text-red-600 hover:bg-red-200' }}">Like</a>
+            <a href="{{ route('admin.notification', ['type' => 'Feedback']) }}" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-200 {{ $type == 'Feedback' ? 'bg-orange-600 text-white' : 'bg-orange-100 text-orange-600 hover:bg-orange-200' }}">Feedback</a>
+            <a href="{{ route('admin.notification', ['type' => 'System']) }}" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-200 {{ $type == 'System' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-600 hover:bg-green-200' }}">System</a>
         </div>
 
         <!-- Daftar Notifikasi -->
         <div class="space-y-4 mb-10 fade-in-up" style="animation-delay: 0.3s;">
-            
-            <!-- Notif: Approval -->
-            <div class="bg-white border-l-4 border-blue-500 border-y border-r border-gray-200 rounded-xl shadow-sm p-4 flex items-center justify-between hover-lift relative">
-                <div class="flex items-start gap-4">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-gray-800 text-sm">Approval Artikel Baru</h4>
-                        <p class="text-xs text-gray-500 mt-0.5">Staff Wildan telah mengirimkan artikel baru berjudul "Panduan VPN".</p>
-                        <span class="text-[10px] text-gray-400 mt-1 block">10 menit lalu</span>
-                    </div>
-                </div>
-                <div class="flex flex-col items-end gap-1">
-                    <span class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse"></span>
-                    <span class="text-[10px] text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded-full">Approval</span>
-                </div>
-            </div>
+            @forelse($notifications as $notification)
+                @php
+                    $borderColor = match($notification->type) {
+                        'Approval' => 'border-blue-500',
+                        'Revision' => 'border-yellow-500',
+                        'Comment'  => 'border-purple-500',
+                        'Like'     => 'border-red-500',
+                        'Feedback' => 'border-orange-500',
+                        'System'   => 'border-green-500',
+                        default    => 'border-gray-500'
+                    };
+                    $iconBg = match($notification->type) {
+                        'Approval' => 'bg-blue-100 text-blue-600',
+                        'Revision' => 'bg-yellow-100 text-yellow-600',
+                        'Comment'  => 'bg-purple-100 text-purple-600',
+                        'Like'     => 'bg-red-100 text-red-600',
+                        'Feedback' => 'bg-orange-100 text-orange-600',
+                        'System'   => 'bg-green-100 text-green-600',
+                        default    => 'bg-gray-100 text-gray-600'
+                    };
+                    $typeColor = match($notification->type) {
+                        'Approval' => 'text-blue-600 bg-blue-50',
+                        'Revision' => 'text-yellow-600 bg-yellow-50',
+                        'Comment'  => 'text-purple-600 bg-purple-50',
+                        'Like'     => 'text-red-600 bg-red-50',
+                        'Feedback' => 'text-orange-600 bg-orange-50',
+                        'System'   => 'text-green-600 bg-green-50',
+                        default    => 'text-gray-600 bg-gray-50'
+                    };
+                @endphp
 
-            <!-- Notif: Revision -->
-            <div class="bg-white border-l-4 border-yellow-500 border-y border-r border-gray-200 rounded-xl shadow-sm p-4 flex items-center justify-between hover-lift relative">
-                <div class="flex items-start gap-4">
-                    <div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div class="bg-white border-l-4 {{ $borderColor }} border-y border-r border-gray-200 rounded-xl shadow-sm p-4 flex items-center justify-between hover-lift relative">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-full {{ $iconBg }} flex items-center justify-center flex-shrink-0">
+                            @if($notification->type == 'Feedback')
+                                <span class="text-lg font-bold">👎</span>
+                            @else
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            @endif
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-800 text-sm">{{ $notification->title }}</h4>
+                            <p class="text-xs text-gray-500 mt-0.5">{{ $notification->message }}</p>
+                            <span class="text-[10px] text-gray-400 mt-1 block">{{ $notification->created_at->diffForHumans() }}</span>
+                        </div>
                     </div>
-                    <div>
-                        <h4 class="font-bold text-gray-800 text-sm">Revisi Dikirim</h4>
-                        <p class="text-xs text-gray-500 mt-0.5">Staff Rina telah mengirimkan revisi untuk artikel "SOP Backup Server".</p>
-                        <span class="text-[10px] text-gray-400 mt-1 block">1 jam lalu</span>
+                    <div class="flex flex-col items-end gap-1">
+                        @if(!$notification->is_read)
+                            <span class="w-2.5 h-2.5 bg-{{ explode('-', $borderColor)[1] }}-500 rounded-full animate-pulse"></span>
+                        @endif
+                        <span class="text-[10px] font-medium {{ $typeColor }} px-2 py-0.5 rounded-full">{{ $notification->type }}</span>
+                        
+                        <!-- Aksi CRUD: Tandai Dibaca & Hapus -->
+                        <div class="flex gap-2 mt-2">
+                            @if(!$notification->is_read)
+                                <form action="{{ route('admin.notification.read', $notification->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="text-[10px] text-blue-600 hover:underline font-medium">Tandai Dibaca</button>
+                                </form>
+                            @endif
+                            <form action="{{ route('admin.notification.destroy', $notification->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus notifikasi ini?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-[10px] text-red-500 hover:underline font-medium">Hapus</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
-                <div class="flex flex-col items-end gap-1">
-                    <span class="w-2.5 h-2.5 bg-yellow-500 rounded-full animate-pulse"></span>
-                    <span class="text-[10px] text-yellow-600 font-medium bg-yellow-50 px-2 py-0.5 rounded-full">Revision</span>
+            @empty
+                <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-8 text-center text-gray-500">
+                    <p class="text-sm">Belum ada notifikasi untuk saat ini.</p>
                 </div>
-            </div>
+            @endforelse
 
-            <!-- Notif: Feedback Negatif -->
-            <div class="bg-white border-l-4 border-orange-500 border-y border-r border-gray-200 rounded-xl shadow-sm p-4 flex items-center justify-between hover-lift relative">
-                <div class="flex items-start gap-4">
-                    <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0">
-                        <span class="text-lg font-bold">👎</span>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-gray-800 text-sm">Feedback Negatif</h4>
-                        <p class="text-xs text-gray-500 mt-0.5">User memberikan feedback negatif (Sulit Dipahami) pada artikel "Panduan Email Dinas".</p>
-                        <span class="text-[10px] text-gray-400 mt-1 block">3 jam lalu</span>
-                    </div>
-                </div>
-                <div class="flex flex-col items-end gap-1">
-                    <span class="w-2.5 h-2.5 bg-orange-500 rounded-full animate-pulse"></span>
-                    <span class="text-[10px] text-orange-600 font-medium bg-orange-50 px-2 py-0.5 rounded-full">Feedback</span>
-                </div>
+            <!-- Pagination -->
+            <div class="mt-4">
+                {{ $notifications->appends(['type' => $type])->links() }}
             </div>
-
-            <!-- Notif: System - Backup Gagal -->
-            <div class="bg-white border-l-4 border-red-500 border-y border-r border-gray-200 rounded-xl shadow-sm p-4 flex items-center justify-between hover-lift relative">
-                <div class="flex items-start gap-4">
-                    <div class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-gray-800 text-sm">System Alert: Backup Gagal</h4>
-                        <p class="text-xs text-gray-500 mt-0.5">Sistem gagal melakukan backup database otomatis. Periksa koneksi server.</p>
-                        <span class="text-[10px] text-gray-400 mt-1 block">5 jam lalu</span>
-                    </div>
-                </div>
-                <div class="flex flex-col items-end gap-1">
-                    <span class="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>
-                    <span class="text-[10px] text-red-600 font-medium bg-red-50 px-2 py-0.5 rounded-full">System</span>
-                </div>
-            </div>
-
         </div>
 
-        <!-- ======================================================== -->
-        <!-- NOTIFIKASI OTOMATIS KHUSUS ADMIN (List System Events)     -->
-        <!-- ======================================================== -->
+        <!-- Sistem Notifikasi Otomatis untuk Admin -->
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 fade-in-up" style="animation-delay: 0.4s;">
             <div class="border-b border-gray-100 pb-4 mb-6 flex items-center gap-2">
                 <div class="p-2 bg-green-100 text-green-600 rounded-lg">
@@ -281,8 +277,6 @@
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                <!-- Item 1 -->
                 <div class="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-xl">
                     <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">1</div>
                     <div>
@@ -290,8 +284,6 @@
                         <p class="text-xs text-gray-600 mt-1">Notifikasi akan muncul setiap kali ada staf yang mengajukan artikel untuk verifikasi.</p>
                     </div>
                 </div>
-
-                <!-- Item 2 -->
                 <div class="flex items-start gap-3 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
                     <div class="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">2</div>
                     <div>
@@ -299,17 +291,13 @@
                         <p class="text-xs text-gray-600 mt-1">Notifikasi akan muncul saat staf mengirimkan hasil perbaikan berdasarkan permintaan revisi.</p>
                     </div>
                 </div>
-
-                <!-- Item 3 -->
                 <div class="flex items-start gap-3 p-3 bg-orange-50 border border-orange-200 rounded-xl">
                     <div class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">3</div>
                     <div>
                         <h4 class="font-bold text-gray-800 text-sm">Ada feedback negatif dari pengguna</h4>
-                        <p class="text-xs text-gray-600 mt-1">Notifikasi akan muncul ketika pengguna memberikan penilaian negatif (👍) pada sebuah artikel.</p>
+                        <p class="text-xs text-gray-600 mt-1">Notifikasi akan muncul ketika pengguna memberikan penilaian negatif pada sebuah artikel.</p>
                     </div>
                 </div>
-
-                <!-- Item 4 -->
                 <div class="flex items-start gap-3 p-3 bg-purple-50 border border-purple-200 rounded-xl">
                     <div class="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">4</div>
                     <div>
@@ -317,8 +305,6 @@
                         <p class="text-xs text-gray-600 mt-1">Sistem akan mengirim peringatan jika kapasitas penyimpanan Nextcloud mendekati batas maksimal.</p>
                     </div>
                 </div>
-
-                <!-- Item 5 -->
                 <div class="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-xl">
                     <div class="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">5</div>
                     <div>
@@ -326,8 +312,6 @@
                         <p class="text-xs text-gray-600 mt-1">Pemberitahuan segera akan dikirim jika sistem gagal melakukan backup database secara otomatis.</p>
                     </div>
                 </div>
-
-                <!-- Item 6 -->
                 <div class="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-xl">
                     <div class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">6</div>
                     <div>
@@ -335,35 +319,25 @@
                         <p class="text-xs text-gray-600 mt-1">Sistem keamanan akan memberitahu Admin jika ada percobaan login yang mencurigakan atau dari lokasi baru.</p>
                     </div>
                 </div>
-
             </div>
         </div>
-
     </main>
 
     <script>
-        // --- Toggle Sidebar Mobile ---
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar-mobile');
             const overlay = document.getElementById('sidebar-overlay');
             if (sidebar.classList.contains('-translate-x-full')) {
                 sidebar.classList.remove('-translate-x-full');
                 overlay.classList.remove('hidden');
-                setTimeout(() => {
-                    overlay.classList.remove('opacity-0');
-                    overlay.classList.add('opacity-100');
-                }, 10);
+                setTimeout(() => { overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); }, 10);
             } else {
                 overlay.classList.add('opacity-0');
                 overlay.classList.remove('opacity-100');
-                setTimeout(() => {
-                    sidebar.classList.add('-translate-x-full');
-                    overlay.classList.add('hidden');
-                }, 300);
+                setTimeout(() => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); }, 300);
             }
         }
 
-        // --- Toggle Knowledge Management Submenu ---
         function toggleSubmenu(id) {
             const el = document.getElementById(id);
             const arrow = document.getElementById('arrow-knowledge');
@@ -375,6 +349,37 @@
                 if(arrow) arrow.classList.remove('rotate-180');
             }
         }
+
+        function showToast(message, type = 'success') {
+            const color = type === 'success' ? 'border-gold' : 'border-red-500';
+            const icon = type === 'success' ? '✦' : '✖';
+            const iconColor = type === 'success' ? 'text-gold' : 'text-red-500';
+            
+            const toastContainer = document.createElement('div');
+            toastContainer.className = `fixed top-5 right-5 z-[9999] bg-white border-l-4 ${color} p-4 rounded-lg shadow-xl transform translate-x-[120%] animate-[slideInRight_0.4s_ease-out_forwards]`;
+            toastContainer.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span class="${iconColor} text-lg font-bold">${icon}</span>
+                    <p class="text-sm font-medium text-gray-800">${message}</p>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600 ml-4">✕</button>
+                </div>
+            `;
+            document.body.appendChild(toastContainer);
+            setTimeout(() => {
+                toastContainer.style.transform = 'translateX(120%)';
+                toastContainer.style.transition = 'transform 0.3s ease-in';
+                setTimeout(() => toastContainer.remove(), 300);
+            }, 3500);
+        }
+
+        const styleSheet = document.createElement("style");
+        styleSheet.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(120%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(styleSheet);
     </script>
 </body>
 </html>
