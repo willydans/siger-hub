@@ -19,6 +19,10 @@ return new class extends Migration
             $table->string('title');
             $table->string('slug')->unique();
             $table->string('thumbnail')->nullable();
+            $table->json('attachments')->nullable();
+            $table->json('tags_json')->nullable();
+            $table->json('relations')->nullable();
+
             $table->longText('content');
 
             // Status workflow: draft → pending → (published | revision | rejected)

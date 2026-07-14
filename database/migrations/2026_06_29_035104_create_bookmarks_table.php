@@ -8,16 +8,20 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('bookmarks', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('article_id')->constrained()->onDelete('cascade');
-            $table->timestamps(); // Menyimpan waktu kapan di-bookmark
-        });
+        // Pengecekan agar tidak error jika tabel sudah ada
+        if (!Schema::hasTable('bookmarks')) {
+            Schema::create('bookmarks', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+                $table->foreignId('article_id')->constrained()->cascadeOnDelete();
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void
     {
+        // Pastikan baris ini ada agar tabel benar-benar terhapus saat di-rollback/refresh
         Schema::dropIfExists('bookmarks');
     }
 };

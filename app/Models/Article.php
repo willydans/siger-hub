@@ -1,6 +1,7 @@
 <?php
 
 // FILE: app/Models/Article.php
+// FINAL — Kompatibel dengan API dan Frontend, bebas bentrok relasi
 
 namespace App\Models;
 
@@ -15,35 +16,51 @@ class Article extends Model
     use HasFactory, SoftDeletes, LogsActivity;
 
     protected $fillable = [
-        'user_id',
-        'category_id',
-        'opd_id',
-        'title',
-        'slug',
-        'thumbnail',
-        'content',
-        'status',
-        'visibility',
-        'version',
-        'views_count',
-        'downloads_count',
-        'meta_title',
-        'meta_description',
-        'keywords',
-        'references',
-        'published_at',
+        // ── Kolom API (backend kamu) ───────────────────────────────
+        'user_id', 'category_id', 'opd_id',
+        'title', 'slug', 'thumbnail', 'content',
+        'status', 'visibility', 'version',
+        'meta_title', 'meta_description', 'keywords',
+        'references', 'published_at',
+
+        // ── Kolom Statistik (Sesuai dengan struktur Database saat ini)
+        'views', 'downloads', 'rating', 'comments_count',
+        'views_count', 'downloads_count', // (Tetap dijaga jika API lama masih insert ke sini)
+
+        // ── Kolom Frontend (controller temanmu) ───────────────────
+        'category',       
+        'subcategory',    
+        'opd_unit',       
+        'tags_json',      
+        'attachments_json',
+        'doc_code',
+        'valid_from',
+        'valid_until',
+        'language',
+        'estimated_read_time',
+        'progress',
+        'relations',
     ];
 
     protected function casts(): array
     {
         return [
-            'published_at'   => 'datetime',
-            'views_count'    => 'integer',
-            'downloads_count'=> 'integer',
+            'published_at'        => 'datetime',
+            'valid_from'          => 'date',
+            'valid_until'         => 'date',
+            'views'               => 'integer',
+            'downloads'           => 'integer',
+            'views_count'         => 'integer',
+            'downloads_count'     => 'integer',
+            'rating'              => 'float',
+            'comments_count'      => 'integer',
+            'tags_json'           => 'array',
+            'attachments_json'    => 'array',
+            'relations'           => 'array',
+            'progress'            => 'integer',
         ];
     }
 
-    // Spatie ActivityLog — catat perubahan field ini
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -52,9 +69,50 @@ class Article extends Model
             ->dontSubmitEmptyLogs();
     }
 
+    // ── ACCESSOR ALIAS untuk kompatibilitas silang ─────────────────
+
+    // Jika API backend kamu secara eksplisit mencari $article->views_count
+    public function getViewsCountAttribute()
+    {
+        return $this->attributes['views'] ?? 0;
+    }
+
+    // Jika API backend kamu secara eksplisit mencari $article->downloads_count
+    public function getDownloadsCountAttribute()
+    {
+        return $this->attributes['downloads'] ?? 0;
+    }
+
+    public function getFeaturedImageAttribute(): ?string
+    {
+        return $this->thumbnail_url;
+    }
+
+    public function getRatingAvgAttribute(): float
+    {
+        return round($this->ratings()->avg('value') ?? 0, 1);
+    }
+
+    public function getAuthorNameAttribute(): string
+    {
+        return $this->author?->name ?? 'Unknown';
+    }
+
+    public function getCategoryNameAttribute(): ?string
+    {
+        return $this->category_id
+            ? $this->category?->name
+            : $this->category;
+    }
+
     // ── RELATIONSHIPS ──────────────────────────────────────────────
 
     public function author()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
@@ -104,7 +162,8 @@ class Article extends Model
         return $this->hasMany(Rating::class);
     }
 
-    public function views()
+    // PERBAIKAN: Diubah dari views() menjadi articleViews() agar tidak bentrok dengan nama kolom
+    public function articleViews()
     {
         return $this->hasMany(ArticleView::class);
     }
@@ -155,6 +214,7 @@ class Article extends Model
 
     public function incrementView(): void
     {
-        $this->increment('views_count');
+        // PERBAIKAN: Increment difokuskan pada kolom 'views' yang ada di tabel
+        $this->increment('views');
     }
 }

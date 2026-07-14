@@ -12,5 +12,9 @@ class Category extends Model
 
     public function parent()    { return $this->belongsTo(Category::class, 'parent_id'); }
     public function children()  { return $this->hasMany(Category::class, 'parent_id'); }
+    
+    // Tambahkan alias ini agar tidak error saat dipanggil oleh AdminCategoryController
+    public function subcategories() { return $this->hasMany(Subcategory::class); }
+    
     public function articles()  { return $this->hasMany(Article::class); }
 }

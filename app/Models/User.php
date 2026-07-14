@@ -1,7 +1,8 @@
 <?php
 
 // FILE: app/Models/User.php
-// Ganti seluruh isi file ini
+// Update dari Step 3 — tambah: role accessor, google_id, bidang, jabatan, bio, joined_at, preferences
+// PENTING: accessor 'role' menjembatani CheckRole middleware temanmu dengan Spatie Permission
 
 namespace App\Models;
 
@@ -18,11 +19,6 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles, CausesActivity;
 
-    public function sendEmailVerificationNotification(): void
-    {
-        $this->notify(new VerifyEmailNotification);
-    }
-
     protected $fillable = [
         'name',
         'email',
@@ -31,6 +27,12 @@ class User extends Authenticatable implements MustVerifyEmail
         'avatar',
         'phone',
         'nip',
+        'google_id',
+        'bidang',
+        'jabatan',
+        'bio',
+        'joined_at',
+        'preferences',
         'is_active',
         'last_login_at',
     ];
@@ -45,9 +47,44 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'last_login_at'     => 'datetime',
+            'joined_at'         => 'datetime',
             'password'          => 'hashed',
             'is_active'         => 'boolean',
+            'preferences'       => 'array',
         ];
+    }
+
+    // Override supaya pakai email verifikasi berbahasa Indonesia
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmailNotification);
+    }
+
+    // ── ROLE ACCESSOR ──────────────────────────────────────────────
+    // Ini kunci integrasi: CheckRole middleware temanmu cek $user->role (string)
+    // Accessor ini membaca dari Spatie getRoleNames() sehingga:
+    // - Spatie tetap jalan untuk API (RBAC sesuai judul KP)
+    // - $user->role tetap return 'admin'/'staff'/'user' untuk web routes temanmu
+    public function getRoleAttribute(): string
+    {
+        $roles = $this->getRoleNames();
+        if ($roles->isEmpty()) return 'user';
+
+        // Prioritas: admin > staff > user
+        if ($roles->contains('admin')) return 'admin';
+        if ($roles->contains('staff')) return 'staff';
+        return 'user';
+    }
+
+    // Setter accessor — digunakan saat SocialiteController set $user->role = 'user'
+    // Intercept dan translate ke Spatie assignRole supaya tidak crash
+    public function setRoleAttribute(string $value): void
+    {
+        // Tidak simpan ke DB (tidak ada kolom role), tapi assign ke Spatie
+        // Hanya berlaku kalau user sudah ada di DB (bukan saat create)
+        if ($this->exists) {
+            $this->syncRoles([$value]);
+        }
     }
 
     // ── RELATIONSHIPS ──────────────────────────────────────────────
@@ -87,29 +124,22 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Feedback::class);
     }
 
+    public function otps()
+    {
+        return $this->hasMany(Otp::class);
+    }
+
     // ── HELPERS ────────────────────────────────────────────────────
 
-    public function isAdmin(): bool
-    {
-        return $this->hasRole('admin');
-    }
-
-    public function isStaff(): bool
-    {
-        return $this->hasRole('staff');
-    }
-
-    public function isUser(): bool
-    {
-        return $this->hasRole('user');
-    }
+    public function isAdmin(): bool { return $this->hasRole('admin'); }
+    public function isStaff(): bool { return $this->hasRole('staff'); }
+    public function isUser(): bool  { return $this->hasRole('user'); }
 
     public function getAvatarUrlAttribute(): string
     {
         if ($this->avatar) {
             return asset('storage/' . $this->avatar);
         }
-        // Default avatar pakai UI Avatars (no external dependency)
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=0D8ABC&color=fff';
     }
 }

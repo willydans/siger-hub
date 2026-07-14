@@ -13,8 +13,10 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RoleAndPermissionSeeder::class,   // 1. Roles & permissions dulu
-            OpdAndUserSeeder::class,           // 2. OPD & users
-            CategoryAndArticleSeeder::class,  // 3. Kategori, tag, & artikel dummy
+            OpdAndUserSeeder::class,
+            CategorySeeder::class,
+            SubcategorySeeder::class,
+            // 2. OPD & users
         ]);
 
         $this->command->info('');
