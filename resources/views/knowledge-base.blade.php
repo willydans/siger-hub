@@ -35,7 +35,6 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* CSS Tambahan untuk Animasi Scroll Observer */
         .scroll-hidden {
             opacity: 0;
             transform: translateY(30px);
@@ -70,7 +69,6 @@
         <div>
             @auth
                 <div class="relative group">
-                    <!-- Tombol Avatar / Profil -->
                     <button class="flex items-center gap-2 text-white hover:text-gold transition-colors duration-300 focus:outline-none">
                         <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=EAB308&color=0f172a' }}" 
                              alt="Avatar" 
@@ -79,7 +77,6 @@
                         <svg class="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
 
-                    <!-- Dropdown Menu (Muncul saat hover) -->
                     <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right group-hover:scale-100 scale-95 z-50 overflow-hidden">
                         <div class="py-1">
                             <a href="{{ route('user.profil') }}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors duration-200">
@@ -97,7 +94,6 @@
                     </div>
                 </div>
             @else
-                <!-- Tampilan Guest (Belum Login) -->
                 <a href="{{ route('login') }}" id="login-btn" class="bg-white/10 border border-gray-600 text-white hover:bg-white/20 px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)]">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
                     Login Portal
@@ -126,20 +122,21 @@
                 Access comprehensive technical documentation, step-by-step tutorials, and best-practice guides curated for developers and IT professionals.
             </p>
             
-            <div class="relative max-w-2xl mx-auto mb-6 opacity-0 animate-fade-in-up group" style="animation-delay: 0.7s;">
+            <!-- ✅ FORM SEARCH DINAMIS -->
+            <form action="{{ route('knowledge-base') }}" method="GET" class="relative max-w-2xl mx-auto mb-6 opacity-0 animate-fade-in-up group" style="animation-delay: 0.7s;">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-gold transition-colors duration-300">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
-                <input type="text" placeholder="Search articles, keywords, or topics..." class="w-full bg-white text-gray-900 rounded-lg py-4 pl-12 pr-4 outline-none focus:ring-2 focus:ring-gold shadow-[0_4px_20px_rgba(0,0,0,0.3)] focus:shadow-[0_0_25px_rgba(234,179,8,0.4)] transition-all duration-300">
-            </div>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search articles, keywords, or topics..." class="w-full bg-white text-gray-900 rounded-lg py-4 pl-12 pr-4 outline-none focus:ring-2 focus:ring-gold shadow-[0_4px_20px_rgba(0,0,0,0.3)] focus:shadow-[0_0_25px_rgba(234,179,8,0.4)] transition-all duration-300">
+            </form>
 
             <div class="flex flex-wrap justify-center items-center gap-3 text-sm opacity-0 animate-fade-in-up" style="animation-delay: 0.9s;">
                 <span class="text-gray-500">Popular:</span>
-                <a href="#" class="bg-white/5 border border-gray-700 text-gray-300 hover:text-darkbg hover:bg-gold hover:border-gold px-3 py-1 rounded-full transition-all duration-300">Docker</a>
-                <a href="#" class="bg-white/5 border border-gray-700 text-gray-300 hover:text-darkbg hover:bg-gold hover:border-gold px-3 py-1 rounded-full transition-all duration-300">Kubernetes</a>
-                <a href="#" class="bg-white/5 border border-gray-700 text-gray-300 hover:text-darkbg hover:bg-gold hover:border-gold px-3 py-1 rounded-full transition-all duration-300">OWASP</a>
-                <a href="#" class="bg-white/5 border border-gray-700 text-gray-300 hover:text-darkbg hover:bg-gold hover:border-gold px-3 py-1 rounded-full transition-all duration-300">VLAN</a>
-                <a href="#" class="bg-white/5 border border-gray-700 text-gray-300 hover:text-darkbg hover:bg-gold hover:border-gold px-3 py-1 rounded-full transition-all duration-300">NGINX</a>
+                <a href="{{ route('knowledge-base', ['search' => 'Docker']) }}" class="bg-white/5 border border-gray-700 text-gray-300 hover:text-darkbg hover:bg-gold hover:border-gold px-3 py-1 rounded-full transition-all duration-300">Docker</a>
+                <a href="{{ route('knowledge-base', ['search' => 'Kubernetes']) }}" class="bg-white/5 border border-gray-700 text-gray-300 hover:text-darkbg hover:bg-gold hover:border-gold px-3 py-1 rounded-full transition-all duration-300">Kubernetes</a>
+                <a href="{{ route('knowledge-base', ['search' => 'OWASP']) }}" class="bg-white/5 border border-gray-700 text-gray-300 hover:text-darkbg hover:bg-gold hover:border-gold px-3 py-1 rounded-full transition-all duration-300">OWASP</a>
+                <a href="{{ route('knowledge-base', ['search' => 'VLAN']) }}" class="bg-white/5 border border-gray-700 text-gray-300 hover:text-darkbg hover:bg-gold hover:border-gold px-3 py-1 rounded-full transition-all duration-300">VLAN</a>
+                <a href="{{ route('knowledge-base', ['search' => 'NGINX']) }}" class="bg-white/5 border border-gray-700 text-gray-300 hover:text-darkbg hover:bg-gold hover:border-gold px-3 py-1 rounded-full transition-all duration-300">NGINX</a>
             </div>
         </div>
     </section>
@@ -153,7 +150,7 @@
                 <ul class="space-y-1">
                     <!-- All Topics -->
                     <li>
-                        <a href="/knowledge-base" class="flex justify-between items-center bg-[#0F172A] text-white px-3 py-2.5 rounded-lg text-sm font-medium group">
+                        <a href="{{ route('knowledge-base') }}" class="flex justify-between items-center bg-[#0F172A] text-white px-3 py-2.5 rounded-lg text-sm font-medium group">
                             <div class="flex items-center gap-3">
                                 <svg class="w-4 h-4 text-gold group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                                 <span>All Topics</span>
@@ -165,12 +162,12 @@
                     <!-- Loop Kategori Dinamis -->
                     @foreach($categories as $category)
                     <li>
-                        <a href="#" class="flex justify-between items-center hover:bg-gray-50 text-gray-700 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:translate-x-1 group">
+                        <!-- ✅ FILTER KATEGORI DINAMIS -->
+                        <a href="{{ route('knowledge-base', ['category' => $category->name]) }}" class="flex justify-between items-center hover:bg-gray-50 text-gray-700 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:translate-x-1 group">
                             <div class="flex items-center gap-3">
                                 <svg class="w-4 h-4 text-gray-400 group-hover:text-gold transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
                                 <span>{{ $category->name }}</span>
                             </div>
-                            <!-- ✅ SEKARANG BERFUNGSI KARENA ADA withCount('articles') DI CONTROLLER -->
                             <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-full group-hover:bg-gold/20 group-hover:text-gold transition-colors">{{ $category->articles_count ?? 0 }}</span>
                         </a>
                     </li>
@@ -185,26 +182,31 @@
                 <h3 class="font-bold text-gray-900 mb-2">Contribute</h3>
                 <p class="text-xs text-gray-600 mb-6 leading-relaxed">Share your knowledge with the community. Submit tutorials and guides.</p>
                 @auth
-                    <!-- ✅ PERBAIKAN: Gunakan route helper -->
                     <a href="{{ route('staff.editor') }}" class="w-full bg-gold hover:bg-goldhover text-darkbg hover:text-white font-bold py-2.5 rounded-lg text-sm transition-colors duration-300 shadow-sm hover:shadow-md text-center">Submit Article</a>
                 @else
-                    <!-- ✅ PERBAIKAN: Gunakan route helper -->
                     <a href="{{ route('login') }}" class="w-full bg-gold hover:bg-goldhover text-darkbg hover:text-white font-bold py-2.5 rounded-lg text-sm transition-colors duration-300 shadow-sm hover:shadow-md text-center">Login to Submit</a>
                 @endauth
             </div>
         </aside>
 
         <main class="w-full md:w-3/4">
+            <!-- ✅ Tampilkan parameter filter yang sedang aktif -->
             <div class="flex justify-between items-center mb-6 scroll-hidden obs-element" style="transition-delay: 200ms;">
-                <p class="text-sm text-gray-600">Showing <span class="font-bold text-gray-900">{{ $articles->count() }}</span> of <span class="font-bold text-gray-900">{{ $articles->total() }}</span> articles</p>
+                <p class="text-sm text-gray-600">
+                    Showing <span class="font-bold text-gray-900">{{ $articles->count() }}</span> of <span class="font-bold text-gray-900">{{ $articles->total() }}</span> articles
+                    @if(request('category')) <span class="text-xs text-gray-400 ml-2">(Filtered by: <span class="font-semibold text-gray-600">{{ request('category') }}</span>)</span> @endif
+                </p>
+                @if(request()->anyFilled(['search', 'category']))
+                    <a href="{{ route('knowledge-base') }}" class="text-xs text-blue-600 hover:underline">Reset Filter</a>
+                @endif
             </div>
 
             <!-- Grid Kartu Artikel -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
-                <!-- LOOP ARTIKEL -->
                 @forelse($articles as $article)
-                <div class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element" style="transition-delay: {{ ($loop->index % 3 + 1) * 100 }}ms;">
+                <!-- ✅ KARTU ARTIKEL BISA DIKLIK (Mengarah ke Document Detail) -->
+                <a href="{{ route('document.detail', $article->slug) }}" class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element" style="transition-delay: {{ ($loop->index % 3 + 1) * 100 }}ms;">
                     <div class="relative h-40 bg-gray-200 overflow-hidden group">
                         <img src="{{ $article->featured_image ?? 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80' }}" alt="{{ $article->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                         <span class="absolute top-3 left-3 bg-yellow-100/90 backdrop-blur-sm text-yellow-800 text-[10px] font-bold px-2 py-1 rounded">{{ $article->category->name ?? 'General' }}</span>
@@ -231,12 +233,12 @@
                             <div class="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-[11px] text-gray-400 gap-2">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <!-- Like -->
-                                    <button class="flex items-center gap-1 hover:text-red-500 transition-colors duration-200">
+                                    <button class="flex items-center gap-1 hover:text-red-500 transition-colors duration-200" onclick="event.preventDefault();">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
                                         <span>{{ $article->likes_count ?? 0 }}</span>
                                     </button>
                                     <!-- Bookmark -->
-                                    <button class="flex items-center gap-1 hover:text-gold transition-colors duration-200">
+                                    <button class="flex items-center gap-1 hover:text-gold transition-colors duration-200" onclick="event.preventDefault();">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
                                         <span>{{ $article->bookmarks_count ?? 0 }}</span>
                                     </button>
@@ -255,37 +257,35 @@
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <!-- Share -->
-                                    <button class="hover:text-blue-500 transition-colors duration-200">
+                                    <button class="hover:text-blue-500 transition-colors duration-200" onclick="event.preventDefault();">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
                                     </button>
                                     <!-- Download -->
-                                    <button class="hover:text-green-500 transition-colors duration-200">
+                                    <button class="hover:text-green-500 transition-colors duration-200" onclick="event.preventDefault();">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </a>
                 @empty
                     <div class="col-span-full text-center py-20 text-gray-500">
-                        <p>Belum ada artikel yang dipublikasikan.</p>
+                        <p>Tidak ada artikel yang ditemukan.</p>
                     </div>
                 @endforelse
 
             </div>
 
             <div class="mt-12 text-center scroll-hidden obs-element" style="transition-delay: 400ms;">
-                <button class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gold hover:border-gold font-semibold py-2.5 px-6 rounded-lg text-sm inline-flex items-center gap-2 transition-all duration-300 shadow-sm hover:shadow-md">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
-                    Load More Articles
-                </button>
+                {{ $articles->links() }}
             </div>
 
         </main>
     </div>
 
     <footer class="bg-[#0B1120] text-white py-16 border-t border-gray-800">
+        <!-- Footer content sama seperti sebelumnya -->
         <div class="max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-4 gap-12">
             <div class="col-span-1 scroll-hidden obs-element" style="transition-delay: 100ms;">
                 <div class="flex items-center gap-3 mb-4">
@@ -346,7 +346,6 @@
             const loginBtn = document.getElementById('login-btn');
 
             if (window.scrollY > 50) {
-                // Tampilan Navbar saat di-scroll ke bawah (Putih/Terang)
                 nav.classList.remove('bg-darkbg', 'border-gray-800');
                 nav.classList.add('bg-white', 'border-gray-200', 'shadow-sm', 'bg-opacity-95', 'backdrop-blur-md');
                 
@@ -361,13 +360,11 @@
                     link.classList.add('text-gray-600', 'hover:text-gray-900');
                 });
 
-                // Logic untuk Login Button vs Dropdown Avatar
-                if(loginBtn) { // Hanya jalan jika guest
+                if(loginBtn) {
                     loginBtn.classList.remove('bg-white/10', 'border-gray-600', 'text-white', 'hover:bg-white/20');
                     loginBtn.classList.add('border-gray-300', 'text-gray-700', 'hover:text-gray-900', 'hover:bg-gray-50');
                 }
             } else {
-                // Tampilan Navbar saat di atas (Gelap)
                 nav.classList.add('bg-darkbg', 'border-gray-800');
                 nav.classList.remove('bg-white', 'border-gray-200', 'shadow-sm', 'bg-opacity-95', 'backdrop-blur-md');
                 

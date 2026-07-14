@@ -75,6 +75,22 @@
         .relation-chip { display: inline-flex; align-items: center; background-color: #f3f4f6; border: 1px solid #e5e7eb; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.85rem; color: #1f2937; }
         .relation-chip .remove-btn { margin-left: 0.5rem; cursor: pointer; color: #9ca3af; transition: color 0.2s; }
         .relation-chip .remove-btn:hover { color: #ef4444; }
+
+        /* ✅ BARU: highlight sementara untuk field yang baru saja diisi otomatis oleh AI */
+        .ai-filled,
+        .ai-filled .ts-control {
+            box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.35) !important;
+            border-color: #9333ea !important;
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .ai-glow-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; font-weight: 700; color: #9333ea;
+            background: #f5f3ff; border: 1px solid #ddd6fe;
+            padding: 2px 8px; border-radius: 9999px;
+        }
+        .ai-action-btn { cursor: pointer; }
+        .ai-action-btn:hover i, .ai-action-btn:hover span { color: inherit; }
     </style>
 </head>
 <body class="font-sans antialiased text-textmain bg-lightbg flex h-screen overflow-hidden">
@@ -164,8 +180,8 @@
                 <span class="text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full hidden md:inline-block">
                     Status: <span class="font-bold {{ isset($article) && $article->status == 'draft' ? 'text-yellow-500' : 'text-green-500' }}">{{ isset($article) ? ucfirst($article->status) : 'Draft Baru' }}</span>
                 </span>
-                <button type="button" onclick="openAIAssistant()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2">
-                    <i class="fas fa-magic"></i> AI Assistant
+                <button type="button" onclick="openAIAssistant()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm hover:shadow-md flex items-center gap-2">
+                    <i class="fas fa-wand-magic-sparkles"></i> AI Assistant
                 </button>
             </div>
         </div>
@@ -238,8 +254,16 @@
             </div>
 
             <div class="lg:col-span-1 space-y-6 sticky top-6 h-fit">
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 fade-in-up delay-2 hover-lift sidebar-scroll max-h-[500px] overflow-y-auto">
-                    <h3 class="font-bold text-gray-800 border-b border-gray-100 pb-2 mb-4">Informasi Dasar</h3>
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 fade-in-up delay-2 hover-lift sidebar-scroll max-h-[560px] overflow-y-auto">
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-1">
+                        <h3 class="font-bold text-gray-800">Informasi Dasar</h3>
+                        <button type="button" id="ai-autofill-btn" onclick="autoFillFromAI()" class="flex items-center gap-1.5 text-[11px] font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2.5 py-1.5 rounded-lg transition-colors flex-shrink-0">
+                            <i class="fas fa-wand-magic-sparkles"></i> Auto-Isi AI
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mb-4 leading-relaxed">
+                        Kategori, subkategori, OPD, tag, dan metadata SEO akan disarankan otomatis oleh AI berdasarkan isi artikel Anda. Anda tetap bisa memilih atau mengubahnya secara manual kapan saja.
+                    </p>
                     <div class="space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-1">Kategori Utama <span class="text-red-500">*</span></label>
@@ -498,15 +522,13 @@ B --> C[End]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm out
                     const data = new FormData();
                     data.append('upload', file);
                     
-                    // 🚀 DEBUGGING: Cek URL yang dipanggil via Console Log
                     const uploadUrl = "{{ route('staff.editor.upload.image') }}";
-                    console.log("📸 CKEditor akan mengirim request ke:", uploadUrl);
 
                     fetch(uploadUrl, { 
                         method: 'POST',
                         headers: { 
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'X-Requested-With': 'XMLHttpRequest' // ✅ Tambahan header
+                            'X-Requested-With': 'XMLHttpRequest'
                         },
                         body: data
                     })
@@ -535,7 +557,11 @@ B --> C[End]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm out
             abort() {}
         }
 
+        // ✅ FIX KRUSIAL: sebelumnya `editorElement.ckeditorInstance` TIDAK PERNAH di-assign,
+        // sehingga getCKEditorContent() selalu jatuh ke fallback (data basi/kosong) dan
+        // AI Assistant, Preview, dan Auto-Isi AI tidak pernah membaca konten yang sebenarnya.
         const editorElement = document.querySelector('#editor');
+        let ckEditorReady = false;
         if (editorElement) {
             ClassicEditor
                 .create( editorElement, {
@@ -554,34 +580,50 @@ B --> C[End]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm out
                     table: { contentToolbar: [ 'tableColumn', 'tableRow', 'mergeTableCells' ] },
                     extraPlugins: [ MyUploadAdapterPlugin ]
                 })
+                .then(editor => {
+                    editorElement.ckeditorInstance = editor;
+                    ckEditorReady = true;
+                    // ✅ BARU: pantau perubahan konten (debounced) untuk auto-trigger Auto-Isi AI
+                    editor.model.document.on('change:data', debounce(() => {
+                        maybeAutoFillFromAI();
+                    }, 2500));
+                })
                 .catch( error => console.error(error) );
+        }
+
+        function debounce(fn, delay) {
+            let timer;
+            return function(...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, args), delay);
+            };
         }
 
         document.addEventListener('DOMContentLoaded', function() {
             const categorySelect = document.getElementById('category-select');
             if (categorySelect) {
-                new TomSelect(categorySelect, {
+                categoryTS = new TomSelect(categorySelect, {
                     create: true,
                     plugins: ['remove_button']
                 });
             }
             const subcategorySelect = document.getElementById('subcategory-select');
             if (subcategorySelect) {
-                new TomSelect(subcategorySelect, {
+                subcategoryTS = new TomSelect(subcategorySelect, {
                     create: true,
                     plugins: ['remove_button']
                 });
             }
             const opdSelect = document.getElementById('opd-select');
             if (opdSelect) {
-                new TomSelect(opdSelect, {
+                opdTS = new TomSelect(opdSelect, {
                     create: true,
                     plugins: ['remove_button']
                 });
             }
             const tagsInput = document.getElementById('tags-input');
             if (tagsInput) {
-                new TomSelect(tagsInput, {
+                tagsTS = new TomSelect(tagsInput, {
                     delimiter: ',',
                     persist: false,
                     create: function(input) { return { value: input, text: input }; },
@@ -591,7 +633,6 @@ B --> C[End]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm out
 
         // ✅ PERBAIKAN: DROPZONE menggunakan Route Helper
         Dropzone.options.myDropzone = {
-            // 🚀 DEBUGGING: Cek URL Dropzone via Console Log
             url: "{{ route('staff.editor.upload.attachment') }}", 
             paramName: "file",
             maxFilesize: 20,
@@ -723,94 +764,6 @@ B --> C[End]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm out
             });
         }
 
-        function openAIAssistant() {
-            const rawContent = getCKEditorContent();
-            const plainText = rawContent.replace(/<[^>]*>?/gm, '').trim();
-
-            if (!plainText || plainText.length < 50) {
-                if (rawContent.length > 0 && plainText.length < 50) {
-                    Swal.fire('Peringatan', 'Konten artikel terlalu pendek untuk AI. Minimal 50 karakter teks (tanpa tag HTML).', 'warning');
-                } else {
-                    Swal.fire('Peringatan', 'Konten artikel terlalu pendek untuk AI. Minimal 50 karakter.', 'warning');
-                }
-                return;
-            }
-
-            Swal.fire({
-                title: '<i class="fas fa-magic text-purple-500"></i> AI Assistant',
-                html: `
-                    <div style="text-align: left;">
-                        <p class="mb-2 text-sm text-gray-600">Pilih aksi AI untuk konten Anda:</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button class="ai-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs" data-action="Ringkas Artikel">
-                                <i class="fas fa-compress"></i> Ringkas
-                            </button>
-                            <button class="ai-btn bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-xs" data-action="Generate Keyword">
-                                <i class="fas fa-key"></i> Keyword
-                            </button>
-                            <button class="ai-btn bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded text-xs" data-action="Buat FAQ">
-                                <i class="fas fa-question-circle"></i> FAQ
-                            </button>
-                            <button class="ai-btn bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded text-xs" data-action="Perbaiki Tata Bahasa">
-                                <i class="fas fa-spell-check"></i> EYD
-                            </button>
-                            <button class="ai-btn bg-pink-500 hover:bg-pink-600 text-white px-3 py-2 rounded text-xs" data-action="Generate Tag">
-                                <i class="fas fa-tags"></i> Tag
-                            </button>
-                            <button class="ai-btn bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-2 rounded text-xs" data-action="Buat Deskripsi SEO">
-                                <i class="fas fa-search"></i> SEO
-                            </button>
-                        </div>
-                        <div id="ai-result" class="mt-4 p-3 border rounded bg-gray-100 hidden text-sm max-h-60 overflow-y-auto"></div>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'Tutup',
-                showConfirmButton: true,
-                didOpen: () => {
-                    document.querySelectorAll('.ai-btn').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            const action = this.getAttribute('data-action');
-                            const content = getCKEditorContent();
-                            const resultDiv = document.getElementById('ai-result');
-                            
-                            resultDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin text-gold"></i> AI sedang memproses...</div>';
-                            resultDiv.classList.remove('hidden');
-                            
-                            const targetUrl = "{{ route('staff.editor.ai') }}";
-
-                            fetch(targetUrl, {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json',
-                                    'X-Requested-With': 'XMLHttpRequest'
-                                },
-                                body: JSON.stringify({ action: action, content: content }),
-                                credentials: 'same-origin'
-                            })
-                            .then(async (response) => {
-                                if (!response.ok) {
-                                    const errorText = await response.text();
-                                    throw new Error(`Server Error ${response.status}: ${errorText.substring(0, 150)}`);
-                                }
-                                return response.json();
-                            })
-                            .then(data => {
-                                resultDiv.innerHTML = '<b>Hasil ' + action + ':</b><br>' + data.result;
-                            })
-                            .catch(err => {
-                                // ✅ TAMBAHAN NOTIFIKASI TOASTR SAAT AI ERROR
-                                toastr.error(err.message || 'Terjadi kesalahan pada AI Assistant', 'Gagal');
-                                resultDiv.innerHTML = '<p class="text-red-500">Terjadi kesalahan: ' + err.message + '</p>';
-                            });
-                        });
-                    });
-                }
-            });
-        }
-
         function getCKEditorContent() {
             const editor = document.querySelector('#editor');
             if (editor && editor.ckeditorInstance) {
@@ -843,6 +796,290 @@ B --> C[End]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm out
                 </body></html>
             `);
             win.document.close();
+        }
+
+        /* =========================================================================
+           ✅ BARU: AUTO-ISI INFORMASI DASAR & METADATA SEO DARI AI
+           (mengisi field yang MASIH KOSONG saja, tidak menimpa input manual user)
+           ========================================================================= */
+        let categoryTS, subcategoryTS, opdTS, tagsTS;
+        let aiAutoFillDone = false;
+
+        function collectPlainContent() {
+            const raw = getCKEditorContent();
+            return raw.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+        }
+
+        function markAiFilled(el) {
+            if (!el) return;
+            el.classList.add('ai-filled');
+            setTimeout(() => el.classList.remove('ai-filled'), 3500);
+        }
+
+        function maybeAutoFillFromAI() {
+            if (aiAutoFillDone) return; // sudah pernah auto-isi otomatis, tidak diulang lagi supaya tidak mengganggu saat user masih mengetik
+            const plain = collectPlainContent();
+            if (plain.length >= 150) {
+                autoFillFromAI(true);
+            }
+        }
+
+        function autoFillFromAI(isAutoTrigger = false) {
+            const plainText = collectPlainContent();
+            const title = document.getElementById('title-input') ? document.getElementById('title-input').value : '';
+
+            if (plainText.length < 80) {
+                if (!isAutoTrigger) {
+                    Swal.fire('Info', 'Tulis konten artikel dulu (minimal kurang lebih 80 karakter) supaya AI bisa menganalisa dan mengisi otomatis.', 'info');
+                }
+                return;
+            }
+
+            const btn = document.getElementById('ai-autofill-btn');
+            const originalBtnHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menganalisa...';
+            }
+
+            fetch("{{ route('staff.editor.autofill') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ content: plainText, title: title })
+            })
+            .then(async res => {
+                if (!res.ok) {
+                    const t = await res.json().catch(() => ({}));
+                    throw new Error(t.error || `Gagal menghubungi AI (status ${res.status})`);
+                }
+                return res.json();
+            })
+            .then(json => {
+                if (!json.success) throw new Error(json.error || 'AI gagal memproses.');
+                applyAutoFillResult(json.data);
+                aiAutoFillDone = true;
+                toastr.success('Informasi Dasar & Metadata SEO otomatis disarankan oleh AI. Silakan sesuaikan jika perlu.', '✨ AI Autofill');
+            })
+            .catch(err => {
+                if (!isAutoTrigger) {
+                    toastr.error(err.message, 'Gagal Auto-Isi');
+                }
+                console.error('AI Autofill Error:', err);
+            })
+            .finally(() => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnHtml;
+                }
+            });
+        }
+
+        function applyAutoFillResult(data) {
+            if (data.category && categoryTS && !categoryTS.getValue()) {
+                categoryTS.addOption({ value: data.category, text: data.category });
+                categoryTS.setValue(data.category, true);
+                markAiFilled(document.getElementById('category-select').nextElementSibling);
+            }
+            if (data.subcategory && subcategoryTS && !subcategoryTS.getValue()) {
+                subcategoryTS.addOption({ value: data.subcategory, text: data.subcategory });
+                subcategoryTS.setValue(data.subcategory, true);
+                markAiFilled(document.getElementById('subcategory-select').nextElementSibling);
+            }
+            if (data.opd_unit && opdTS && !opdTS.getValue()) {
+                opdTS.addOption({ value: data.opd_unit, text: data.opd_unit });
+                opdTS.setValue(data.opd_unit, true);
+                markAiFilled(document.getElementById('opd-select').nextElementSibling);
+            }
+            if (Array.isArray(data.tags) && data.tags.length && tagsTS && tagsTS.getValue().length === 0) {
+                data.tags.forEach(tag => {
+                    tagsTS.addOption({ value: tag, text: tag });
+                    tagsTS.addItem(tag, true);
+                });
+                markAiFilled(document.getElementById('tags-input').nextElementSibling);
+            }
+
+            const metaKeywords = document.querySelector('input[name="meta_keywords"]');
+            if (metaKeywords && !metaKeywords.value && data.meta_keywords) {
+                metaKeywords.value = data.meta_keywords;
+                markAiFilled(metaKeywords);
+            }
+            const metaDescription = document.querySelector('textarea[name="meta_description"]');
+            if (metaDescription && !metaDescription.value && data.meta_description) {
+                metaDescription.value = data.meta_description;
+                markAiFilled(metaDescription);
+            }
+            const readTime = document.querySelector('input[name="estimated_read_time"]');
+            if (readTime && !readTime.value && data.estimated_read_time) {
+                readTime.value = data.estimated_read_time;
+                markAiFilled(readTime);
+            }
+        }
+
+        /* =========================================================================
+           ✅ AI ASSISTANT — dibuat lebih menarik & fungsional dengan tombol "Terapkan"
+           per-aksi supaya hasil AI langsung mengisi field terkait, bukan cuma teks.
+           ========================================================================= */
+        const AI_ACTIONS = [
+            { action: 'Ringkas Artikel',      label: 'Ringkas',  icon: 'fa-compress',        desc: 'Ringkasan singkat',    theme: 'blue'   },
+            { action: 'Generate Keyword',     label: 'Keyword',  icon: 'fa-key',              desc: 'Kata kunci SEO',       theme: 'green'  },
+            { action: 'Buat FAQ',             label: 'FAQ',      icon: 'fa-question-circle',  desc: 'Tanya-jawab pembaca',  theme: 'yellow' },
+            { action: 'Perbaiki Tata Bahasa', label: 'EYD',      icon: 'fa-spell-check',      desc: 'Perbaiki ejaan',       theme: 'purple' },
+            { action: 'Generate Tag',         label: 'Tag',      icon: 'fa-tags',             desc: 'Tag artikel',          theme: 'pink'   },
+            { action: 'Buat Deskripsi SEO',   label: 'SEO',      icon: 'fa-search',           desc: 'Meta deskripsi',       theme: 'indigo' },
+        ];
+
+        const AI_THEME_CLASSES = {
+            blue:   'border-blue-100 bg-blue-50 text-blue-700 hover:bg-blue-500 hover:border-blue-500',
+            green:  'border-green-100 bg-green-50 text-green-700 hover:bg-green-500 hover:border-green-500',
+            yellow: 'border-yellow-100 bg-yellow-50 text-yellow-700 hover:bg-yellow-500 hover:border-yellow-500',
+            purple: 'border-purple-100 bg-purple-50 text-purple-700 hover:bg-purple-500 hover:border-purple-500',
+            pink:   'border-pink-100 bg-pink-50 text-pink-700 hover:bg-pink-500 hover:border-pink-500',
+            indigo: 'border-indigo-100 bg-indigo-50 text-indigo-700 hover:bg-indigo-500 hover:border-indigo-500',
+        };
+
+        const AI_APPLY_LABEL = {
+            'Generate Keyword':     'Terapkan ke Keyword SEO',
+            'Buat Deskripsi SEO':   'Terapkan ke Meta Deskripsi',
+            'Generate Tag':         'Terapkan ke Tags',
+            'Perbaiki Tata Bahasa': 'Ganti Isi Artikel',
+            'Ringkas Artikel':      'Sisipkan ke Akhir Artikel',
+            'Buat FAQ':             'Sisipkan ke Akhir Artikel',
+        };
+
+        function openAIAssistant() {
+            const rawContent = getCKEditorContent();
+            const plainText = rawContent.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+
+            if (!plainText || plainText.length < 50) {
+                Swal.fire('Peringatan', 'Konten artikel terlalu pendek untuk AI. Minimal 50 karakter teks (tanpa tag HTML).', 'warning');
+                return;
+            }
+
+            const buttonsHtml = AI_ACTIONS.map(a => `
+                <button class="ai-action-btn flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-200 hover:text-white hover:shadow-md hover:-translate-y-0.5 ${AI_THEME_CLASSES[a.theme]}" data-action="${a.action}">
+                    <i class="fas ${a.icon} text-lg"></i>
+                    <span class="text-xs font-bold">${a.label}</span>
+                    <span class="text-[10px] opacity-70">${a.desc}</span>
+                </button>
+            `).join('');
+
+            Swal.fire({
+                title: '<i class="fas fa-wand-magic-sparkles text-purple-500"></i> AI Assistant',
+                width: 640,
+                html: `
+                    <div style="text-align: left;">
+                        <p class="mb-3 text-sm text-gray-600">Pilih aksi AI untuk konten artikel Anda. Hasilnya bisa langsung diterapkan ke form dengan satu klik.</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                            ${buttonsHtml}
+                        </div>
+                        <div id="ai-result" class="mt-4 p-3 border rounded-lg bg-gray-50 hidden text-sm max-h-56 overflow-y-auto"></div>
+                        <div id="ai-apply-wrapper" class="mt-3 hidden"></div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Tutup',
+                showConfirmButton: true,
+                didOpen: () => {
+                    document.querySelectorAll('.ai-action-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            document.querySelectorAll('.ai-action-btn').forEach(b => b.classList.remove('ring-2', 'ring-offset-1'));
+                            this.classList.add('ring-2', 'ring-offset-1');
+                            const action = this.getAttribute('data-action');
+                            runAIAction(action, plainText);
+                        });
+                    });
+                }
+            });
+        }
+
+        function runAIAction(action, plainText) {
+            const resultDiv = document.getElementById('ai-result');
+            const applyWrapper = document.getElementById('ai-apply-wrapper');
+            resultDiv.classList.remove('hidden');
+            applyWrapper.classList.add('hidden');
+            applyWrapper.innerHTML = '';
+            resultDiv.innerHTML = '<div class="text-center text-gray-500 py-2"><i class="fas fa-spinner fa-spin text-purple-500"></i> AI sedang memproses...</div>';
+
+            fetch("{{ route('staff.editor.ai') }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ action: action, content: plainText }),
+                credentials: 'same-origin'
+            })
+            .then(async (response) => {
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server Error ${response.status}: ${errorText.substring(0, 150)}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                resultDiv.innerHTML = `<b class="text-gray-700">Hasil ${action}:</b><div class="mt-1 whitespace-pre-line text-gray-600">${data.result}</div>`;
+                const applyLabel = AI_APPLY_LABEL[action];
+                if (applyLabel) {
+                    applyWrapper.classList.remove('hidden');
+                    applyWrapper.innerHTML = `<button type="button" id="ai-apply-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"><i class="fas fa-check"></i> ${applyLabel}</button>`;
+                    document.getElementById('ai-apply-btn').addEventListener('click', () => applyAIResult(action, data.result));
+                }
+            })
+            .catch(err => {
+                toastr.error(err.message || 'Terjadi kesalahan pada AI Assistant', 'Gagal');
+                resultDiv.innerHTML = '<p class="text-red-500">Terjadi kesalahan: ' + err.message + '</p>';
+            });
+        }
+
+        function applyAIResult(action, resultText) {
+            const plain = resultText.replace(/<[^>]*>?/gm, '').trim();
+            switch (action) {
+                case 'Generate Keyword': {
+                    const el = document.querySelector('input[name="meta_keywords"]');
+                    if (el) { el.value = plain; markAiFilled(el); }
+                    break;
+                }
+                case 'Buat Deskripsi SEO': {
+                    const el = document.querySelector('textarea[name="meta_description"]');
+                    if (el) { el.value = plain; markAiFilled(el); }
+                    break;
+                }
+                case 'Generate Tag': {
+                    if (tagsTS) {
+                        plain.split(',').map(t => t.trim()).filter(Boolean).forEach(tag => {
+                            tagsTS.addOption({ value: tag, text: tag });
+                            tagsTS.addItem(tag, true);
+                        });
+                        markAiFilled(document.getElementById('tags-input').nextElementSibling);
+                    }
+                    break;
+                }
+                case 'Perbaiki Tata Bahasa': {
+                    const editorEl = document.querySelector('#editor');
+                    if (editorEl && editorEl.ckeditorInstance) editorEl.ckeditorInstance.setData(resultText);
+                    break;
+                }
+                case 'Ringkas Artikel':
+                case 'Buat FAQ': {
+                    const editorEl = document.querySelector('#editor');
+                    if (editorEl && editorEl.ckeditorInstance) {
+                        const current = editorEl.ckeditorInstance.getData();
+                        const heading = action === 'Ringkas Artikel' ? '<h3>Ringkasan</h3>' : '<h3>FAQ</h3>';
+                        const htmlChunk = plain.split('\n').filter(Boolean).map(line => `<p>${line}</p>`).join('');
+                        editorEl.ckeditorInstance.setData(current + heading + htmlChunk);
+                    }
+                    break;
+                }
+            }
+            toastr.success('Hasil AI berhasil diterapkan ke form!', 'Diterapkan');
+            Swal.close();
         }
     </script>
 </body>

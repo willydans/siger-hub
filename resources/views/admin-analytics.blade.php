@@ -32,36 +32,14 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Sidebar Mobile */
-        #sidebar-mobile {
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-        }
-        #sidebar-overlay {
-            transition: opacity 0.3s ease-in-out;
-        }
-        .submenu {
-            transition: all 0.3s ease-in-out;
-            overflow: hidden;
-        }
-        /* Hover Effects */
-        .stat-card {
-            transition: all 0.2s ease;
-        }
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 25px -5px rgba(0, 0, 0, 0.08);
-        }
-        /* Hide scrollbar for cleaner sidebar */
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 4px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 4px;
-        }
-        .sidebar-scroll {
-            scrollbar-width: thin;
-        }
+        #sidebar-mobile { transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; }
+        #sidebar-overlay { transition: opacity 0.3s ease-in-out; }
+        .submenu { transition: all 0.3s ease-in-out; overflow: hidden; }
+        .stat-card { transition: all 0.2s ease; }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 25px -5px rgba(0,0,0,0.08); }
+        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        .sidebar-scroll { scrollbar-width: thin; }
     </style>
 </head>
 <body class="font-sans antialiased text-textmain bg-lightbg flex h-screen overflow-hidden">
@@ -69,8 +47,9 @@
     <!-- Mobile Overlay -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden opacity-0" onclick="toggleSidebar()"></div>
 
-       <!-- SIDEBAR (Dipertahankan persis, dengan Analytics sebagai menu aktif) -->
+    <!-- SIDEBAR -->
     <aside id="sidebar-mobile" class="w-64 bg-darkbg text-gray-300 flex flex-col border-r border-gray-800 shadow-2xl z-40 fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 flex-shrink-0 sidebar-scroll">
+        <!-- Logo -->
         <div class="h-16 flex items-center gap-3 px-6 border-b border-gray-800">
             <div class="w-8 h-8 bg-gold rounded text-darkbg flex items-center justify-center font-bold text-lg">A</div>
             <div class="flex flex-col">
@@ -80,13 +59,11 @@
         </div>
 
         <div class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-            
-            <!-- Dashboard -->
-            <a href="/admin/dashboard" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg> Dashboard
             </a>
             
-            <!-- Menu Utama 1: Knowledge Management -->
+            <!-- Knowledge Management -->
             <div>
                 <button onclick="toggleSubmenu('submenu-knowledge')" class="w-full flex items-center justify-between text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                     <div class="flex items-center gap-3">
@@ -96,52 +73,47 @@
                     <svg class="w-4 h-4 transition-transform duration-200" id="arrow-knowledge" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="submenu-knowledge" class="submenu hidden pl-9 space-y-1 mt-1">
-                    <a href="/admin/all-articles" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• All Articles</a>
-                    <a href="/admin/pending-approval" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors flex items-center justify-between">• Pending Approval <span class="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">23</span></a>
-                    <!-- Draft sudah diperbaiki routenya -->
-                    <a href="/admin/draft" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Draft</a>
-                    <a href="/admin/revision" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Revision</a>
-                    <a href="/admin/published" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Published</a>
-                    <a href="/admin/archive" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Archived</a>
-                    <a href="/admin/delete" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Deleted</a>
+                    <a href="{{ route('admin.all-articles') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• All Articles</a>
+                    <a href="{{ route('admin.pending-approval') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors flex items-center justify-between">• Pending Approval <span class="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">23</span></a>
+                    <a href="{{ route('admin.draft') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Draft</a>
+                    <a href="{{ route('admin.revision') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Revision</a>
+                    <a href="{{ route('admin.published') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Published</a>
+                    <a href="{{ route('admin.archive') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Archived</a>
+                    <a href="{{ route('admin.delete') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Deleted</a>
                 </div>
             </div>
 
-            <!-- Menu Utama 2: User Management (Menu Tunggal) -->
-            <a href="/admin/users" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.users') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> User Management
             </a>
-
-            <!-- Menu Utama 3: Category (Menu Tunggal) -->
-            <a href="/admin/category" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.category') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg> Category
             </a>
 
-            <!-- Menu Utama 4: Analytics (Sedang Aktif) -->
-            <a href="/admin/analytics" class="flex items-center gap-3 bg-gray-800/50 text-white px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border border-gray-700">
+            <!-- Analytics Active -->
+            <a href="{{ route('admin.analytics') }}" class="flex items-center gap-3 bg-gray-800/50 text-white px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border border-gray-700">
                 <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Analytics
             </a>
 
-            <!-- Menu Utama 5: Single Links Lainnya (Semua tautan sudah diperbaiki) -->
-            <a href="/admin/searchlog" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.searchlog') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg> Search Log
             </a>
-            <a href="/admin/feedback" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.feedback') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> Feedback
             </a>
-            <a href="/admin/notification" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.notification') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg> Notification
             </a>
-            <a href="/admin/activity" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.activity') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Activity Log
             </a>
-            <a href="/admin/storage" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.storage') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7h-4.586a2 2 0 01-1.414-.586l-1.172-1.172a2 2 0 00-1.414-.586H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7z"></path></svg> Storage
             </a>
-            <a href="/admin/settings" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.settings') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Settings
             </a>
-            <a href="/admin/backup" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.backup') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Backup & Restore
             </a>
         </div>
@@ -150,18 +122,20 @@
             <div class="flex items-center gap-3 mb-4">
                 <img src="https://ui-avatars.com/api/?name=Admin+Utama&background=ef4444&color=ffffff" class="w-9 h-9 rounded-full">
                 <div class="flex flex-col">
-                    <span class="text-sm font-bold text-white">Admin Diskominfo</span>
+                    <span class="text-sm font-bold text-white">{{ auth()->user()->name ?? 'Admin Diskominfo' }}</span>
                     <span class="text-[10px] text-gray-400">Super Admin</span>
                 </div>
             </div>
-            <a href="/login" class="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 py-2 rounded-lg text-xs font-medium border border-gray-700 transition">Keluar</a>
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 py-2 rounded-lg text-xs font-medium border border-gray-700 transition cursor-pointer">Keluar</button>
+            </form>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT (Analytics Page) -->
+    <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#F8FAFC] p-4 md:p-8 relative w-full">
         
-        <!-- Mobile Toggle Sidebar -->
         <div class="flex justify-between items-center mb-6 md:hidden">
             <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-900 p-2 -ml-2 rounded-lg hover:bg-gray-100">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -176,50 +150,50 @@
                 <p class="text-sm text-gray-500 mt-1">Ini halaman favorit Admin. Pantau trafik, interaksi pengguna, dan gap knowledge sistem.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2 bg-gray-50 p-1.5 rounded-lg border border-gray-200 w-full md:w-auto">
-                <button class="px-3 py-1.5 text-xs font-bold bg-white shadow-sm rounded-md text-gray-800 border border-gray-200 transition-colors hover:bg-gray-50">Hari Ini</button>
-                <button class="px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-800 transition-colors">Minggu</button>
-                <button class="px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-800 transition-colors">Bulan</button>
-                <button class="px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-800 transition-colors">Tahun</button>
+                <a href="{{ route('admin.analytics', ['filter' => 'today']) }}" class="px-3 py-1.5 text-xs font-bold {{ $filter === 'today' ? 'bg-white shadow-sm rounded-md text-gray-800 border border-gray-200' : 'text-gray-500 hover:text-gray-800' }} transition-colors">Hari Ini</a>
+                <a href="{{ route('admin.analytics', ['filter' => 'week']) }}" class="px-3 py-1.5 text-xs font-medium {{ $filter === 'week' ? 'bg-white shadow-sm rounded-md text-gray-800 border border-gray-200' : 'text-gray-500 hover:text-gray-800' }} transition-colors">Minggu</a>
+                <a href="{{ route('admin.analytics', ['filter' => 'month']) }}" class="px-3 py-1.5 text-xs font-medium {{ $filter === 'month' ? 'bg-white shadow-sm rounded-md text-gray-800 border border-gray-200' : 'text-gray-500 hover:text-gray-800' }} transition-colors">Bulan</a>
+                <a href="{{ route('admin.analytics', ['filter' => 'year']) }}" class="px-3 py-1.5 text-xs font-medium {{ $filter === 'year' ? 'bg-white shadow-sm rounded-md text-gray-800 border border-gray-200' : 'text-gray-500 hover:text-gray-800' }} transition-colors">Tahun</a>
             </div>
         </div>
 
-        <!-- Statistic Cards (8 Cards) -->
+        <!-- Statistic Cards -->
         <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.2s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">👁 Jumlah View</p>
-                <p class="text-2xl font-bold text-gray-900">125.4K</p>
+                <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['views']) }}</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.3s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">⬇ Download</p>
-                <p class="text-2xl font-bold text-gray-900">42.8K</p>
+                <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['downloads']) }}</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.4s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">🔖 Bookmark</p>
-                <p class="text-2xl font-bold text-gray-900">18.3K</p>
+                <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['bookmarks']) }}</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.5s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">💬 Komentar</p>
-                <p class="text-2xl font-bold text-gray-900">2.1K</p>
+                <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['comments']) }}</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.6s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">⭐ Rating</p>
-                <p class="text-2xl font-bold text-yellow-500">4.8</p>
+                <p class="text-2xl font-bold text-yellow-500">{{ $stats['rating'] }}</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.7s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">💬 Feedback</p>
-                <p class="text-2xl font-bold text-gray-900">156</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $stats['feedback'] }}</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.8s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">🔎 Keyword</p>
-                <p class="text-2xl font-bold text-gray-900">582</p>
+                <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['keyword']) }}</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.9s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">👤 User Aktif</p>
-                <p class="text-2xl font-bold text-gray-900">1.2K</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $stats['active_users'] }}</p>
             </div>
         </div>
 
-        <!-- Heatmap Section (Jam Pengguna Aktif) -->
+        <!-- Heatmap -->
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-8 fade-in-up" style="animation-delay: 0.2s;">
             <h2 class="font-bold text-gray-800 text-lg mb-4">Heatmap <span class="text-sm font-normal text-gray-500">(Jam pengguna aktif)</span></h2>
             <div class="w-full h-64 relative">
@@ -227,29 +201,21 @@
             </div>
         </div>
 
-        <!-- Bottom Section: Top Search & Knowledge Gap -->
+        <!-- Bottom Section -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 fade-in-up" style="animation-delay: 0.3s;">
             
             <!-- Top Search -->
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
                 <h3 class="font-bold text-gray-800 text-lg mb-4 flex items-center gap-2">🔍 Top Search</h3>
                 <ul class="space-y-3">
+                    @forelse($topSearches as $search)
                     <li class="flex justify-between items-center border-b border-gray-100 pb-2 hover:bg-gray-50 -mx-2 px-2 rounded transition-colors">
-                        <span class="font-medium text-gray-700 text-sm">VPN</span>
-                        <span class="text-xs font-bold text-gray-400">2.3k Pencarian</span>
+                        <span class="font-medium text-gray-700 text-sm">{{ $search->query }}</span>
+                        <span class="text-xs font-bold text-gray-400">{{ number_format($search->total) }} Pencarian</span>
                     </li>
-                    <li class="flex justify-between items-center border-b border-gray-100 pb-2 hover:bg-gray-50 -mx-2 px-2 rounded transition-colors">
-                        <span class="font-medium text-gray-700 text-sm">Server</span>
-                        <span class="text-xs font-bold text-gray-400">1.8k Pencarian</span>
-                    </li>
-                    <li class="flex justify-between items-center border-b border-gray-100 pb-2 hover:bg-gray-50 -mx-2 px-2 rounded transition-colors">
-                        <span class="font-medium text-gray-700 text-sm">SOP</span>
-                        <span class="text-xs font-bold text-gray-400">1.5k Pencarian</span>
-                    </li>
-                    <li class="flex justify-between items-center border-b border-gray-100 pb-2 hover:bg-gray-50 -mx-2 px-2 rounded transition-colors">
-                        <span class="font-medium text-gray-700 text-sm">Email</span>
-                        <span class="text-xs font-bold text-gray-400">1.1k Pencarian</span>
-                    </li>
+                    @empty
+                    <li class="text-center text-gray-500 text-sm py-4">Belum ada data pencarian.</li>
+                    @endforelse
                 </ul>
             </div>
 
@@ -258,35 +224,23 @@
                 <h3 class="font-bold text-gray-800 text-lg mb-4 flex items-center gap-2">🧠 Knowledge Gap</h3>
                 <p class="text-xs text-gray-500 mb-4">Yang sering dicari tetapi tidak ada artikelnya. Ini menurutku fitur yang sangat keren karena Admin langsung tahu materi apa yang perlu dibuat.</p>
                 <ul class="space-y-4">
+                    @forelse($knowledgeGaps as $gap)
                     <li class="flex justify-between items-center border-b border-gray-100 pb-3">
-                        <span class="font-medium text-gray-700 text-sm">Firewall Mikrotik</span>
+                        <span class="font-medium text-gray-700 text-sm">{{ $gap['keyword'] }}</span>
                         <div class="flex items-center gap-2">
                             <span class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Artikel</span>
-                            <span class="text-xs font-bold text-gray-400">85 Pencarian</span>
+                            <span class="text-xs font-bold text-gray-400">{{ number_format($gap['searches']) }} Pencarian</span>
                         </div>
                     </li>
-                    <li class="flex justify-between items-center border-b border-gray-100 pb-3">
-                        <span class="font-medium text-gray-700 text-sm">Cisco Switch VLAN</span>
-                        <div class="flex items-center gap-2">
-                            <span class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Artikel</span>
-                            <span class="text-xs font-bold text-gray-400">54 Pencarian</span>
-                        </div>
-                    </li>
-                    <li class="flex justify-between items-center border-b border-gray-100 pb-3">
-                        <span class="font-medium text-gray-700 text-sm">Integrasi SSO Pemprov</span>
-                        <div class="flex items-center gap-2">
-                            <span class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Artikel</span>
-                            <span class="text-xs font-bold text-gray-400">32 Pencarian</span>
-                        </div>
-                    </li>
+                    @empty
+                    <li class="text-center text-gray-500 text-sm py-4">Belum ada gap pengetahuan.</li>
+                    @endforelse
                 </ul>
             </div>
-
         </div>
     </main>
 
     <script>
-        // --- Toggle Sidebar Mobile ---
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar-mobile');
             const overlay = document.getElementById('sidebar-overlay');
@@ -307,7 +261,6 @@
             }
         }
 
-        // --- Toggle Knowledge Management Submenu ---
         function toggleSubmenu(id) {
             const el = document.getElementById(id);
             const arrow = document.getElementById('arrow-knowledge');
@@ -320,17 +273,16 @@
             }
         }
 
-        // --- Chart.js Initialization for Heatmap ---
         document.addEventListener("DOMContentLoaded", function() {
             const ctx = document.getElementById('heatmapChart').getContext('2d');
             
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'],
+                    labels: ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23'],
                     datasets: [{
                         label: 'User Active',
-                        data: [12, 8, 5, 4, 3, 6, 15, 45, 120, 180, 210, 190, 170, 160, 220, 300, 350, 280, 220, 180, 140, 100, 60, 30],
+                        data: {{ json_encode($hourlyData) }},
                         backgroundColor: '#EAB308',
                         borderRadius: 4,
                         barThickness: 15
@@ -339,23 +291,16 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
                         y: {
                             beginAtZero: true,
                             grid: { color: '#F1F5F9', drawBorder: false },
-                            ticks: {
-                                font: { family: "'Inter', sans-serif", size: 10 }
-                            }
+                            ticks: { font: { family: "'Inter', sans-serif", size: 10 } }
                         },
                         x: {
                             grid: { display: false, drawBorder: false },
-                            ticks: {
-                                font: { family: "'Inter', sans-serif", size: 10 },
-                                maxRotation: 0
-                            }
+                            ticks: { font: { family: "'Inter', sans-serif", size: 10 }, maxRotation: 0 }
                         }
                     }
                 }

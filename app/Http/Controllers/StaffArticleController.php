@@ -4,13 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\UserActivity;
+use Barryvdh\DomPDF\Facade\Pdf; // Tambahkan ini!
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 class StaffArticleController extends Controller
 {
+    // ... (method index, create, edit, store, update, show, preview, history tetap sama seperti kode Anda)
+
     /**
      * Menampilkan list artikel dengan filter, search, sorting & pagination
      */
@@ -32,7 +37,7 @@ class StaffArticleController extends Controller
                 return $query->where('category', $request->category);
             })
             ->when($request->filled('tag'), function ($query) use ($request) {
-                return $query->where('tags', 'like', "%{$request->tag}%"); // Tag biasanya disimpan sebagai JSON/string
+                return $query->where('tags', 'like', "%{$request->tag}%");
             })
             ->when($request->filled('status'), function ($query) use ($request) {
                 return $query->where('status', $request->status);
@@ -50,8 +55,85 @@ class StaffArticleController extends Controller
         return view('staff-articles', compact('articles'));
     }
 
-    // --- Method tampilan (show, preview, history) ---
+    // --- CRUD: Tampilan Form (Create, Edit) ---
+    public function create()
+    {
+        return view('staff-articles-create');
+    }
 
+    public function edit($id)
+    {
+        $article = Article::where('user_id', auth()->id())->findOrFail($id);
+        return view('staff-articles-edit', compact('article'));
+    }
+
+    // --- CRUD: Aksi Simpan (Store, Update) ---
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title'      => 'required|string|max:255',
+            'content'    => 'required|string',
+            'category'   => 'required|string|max:100',
+            'visibility' => ['required', Rule::in(['public', 'internal', 'restricted', 'private'])],
+            'tags'       => 'nullable|string',
+        ]);
+
+        $article = Article::create([
+            'user_id'    => auth()->id(),
+            'title'      => $request->title,
+            'slug'       => Str::slug($request->title . ' ' . uniqid()), 
+            'content'    => $request->content,
+            'category'   => $request->category,
+            'visibility' => $request->visibility,
+            'tags'       => $request->tags,
+            'status'     => 'draft',
+        ]);
+
+        UserActivity::create([
+            'user_id'    => auth()->id(),
+            'article_id' => $article->id,
+            'type'       => 'Tambah Artikel',
+            'description'=> 'Menambahkan artikel baru: ' . $article->title,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return redirect()->route('staff.articles')->with('success', 'Artikel berhasil dibuat!');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $article = Article::where('user_id', auth()->id())->findOrFail($id);
+
+        $request->validate([
+            'title'      => 'required|string|max:255',
+            'content'    => 'required|string',
+            'category'   => 'required|string|max:100',
+            'visibility' => ['required', Rule::in(['public', 'internal', 'restricted', 'private'])],
+            'tags'       => 'nullable|string',
+        ]);
+
+        $article->update([
+            'title'      => $request->title,
+            'content'    => $request->content,
+            'category'   => $request->category,
+            'visibility' => $request->visibility,
+            'tags'       => $request->tags,
+        ]);
+
+        UserActivity::create([
+            'user_id'    => auth()->id(),
+            'article_id' => $article->id,
+            'type'       => 'Update Artikel',
+            'description'=> 'Memperbarui artikel: ' . $article->title,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return redirect()->route('staff.articles')->with('success', 'Artikel berhasil diperbarui!');
+    }
+
+    // --- Method Tampilan (Show, Preview, History) ---
     public function show($id)
     {
         $article = Article::where('user_id', auth()->id())->findOrFail($id);
@@ -67,25 +149,26 @@ class StaffArticleController extends Controller
     public function history($id)
     {
         $article = Article::where('user_id', auth()->id())->findOrFail($id);
-        return view('staff-articles-history', compact('article'));
+
+        $revisions = UserActivity::where('article_id', $article->id)
+            ->whereIn('type', ['Tambah Artikel', 'Update Artikel', 'Edit Cepat Artikel', 'Publikasi Artikel', 'Duplikasi Artikel'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('staff-articles-history', compact('article', 'revisions'));
     }
 
-    // --- Method aksi (quickUpdate, duplicate, archive, unarchive, destroy, bulk) ---
-
+    // --- Method Aksi Lainnya ---
     public function quickUpdate(Request $request, $id)
     {
         $article = Article::where('user_id', auth()->id())->findOrFail($id);
-
-        // ✅ PERBAIKAN UTAMA: Sesuaikan Rule visibility dengan nilai di database (public, internal, restricted, private)
         $validated = $request->validate([
             'title'      => 'required|string|max:255',
             'category'   => 'required|string|max:100',
             'visibility' => ['required', Rule::in(['public', 'internal', 'restricted', 'private'])],
         ]);
-
         $article->update($validated);
 
-        // Catat aktivitas Edit Cepat Artikel
         UserActivity::create([
             'user_id'    => auth()->id(),
             'article_id' => $article->id,
@@ -101,24 +184,36 @@ class StaffArticleController extends Controller
     public function duplicate($id)
     {
         $original = Article::where('user_id', auth()->id())->findOrFail($id);
-        $newArticle = $original->replicate();
-        $newArticle->title = $original->title . ' (Copy)';
-        $newArticle->status = 'draft';
-        $newArticle->views = 0;
-        $newArticle->rating = 0;
-        $newArticle->created_at = now();
-        $newArticle->save();
 
-        UserActivity::create([
-            'user_id'    => auth()->id(),
-            'article_id' => $newArticle->id,
-            'type'       => 'Duplikasi Artikel',
-            'description'=> 'Menduplikasi artikel dari: ' . $original->title,
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-        ]);
+        try {
+            $newArticle = DB::transaction(function () use ($original) {
+                $newArticle = $original->replicate();
+                $newArticle->title = $original->title . ' (Copy)';
+                $newArticle->status = 'draft';
+                $newArticle->views = 0;
+                $newArticle->rating = 0;
+                $newArticle->slug = Str::slug($original->title . ' ' . uniqid());
+                $newArticle->created_at = now();
+                $newArticle->updated_at = now();
+                $newArticle->save();
 
-        return back()->with('success', 'Berhasil menduplikasi artikel!');
+                UserActivity::create([
+                    'user_id'    => auth()->id(),
+                    'article_id' => $newArticle->id,
+                    'type'       => 'Duplikasi Artikel',
+                    'description'=> 'Menduplikasi artikel dari: ' . $original->title,
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                ]);
+
+                return $newArticle;
+            });
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'Gagal menduplikasi artikel. Silakan coba lagi.');
+        }
+
+        return back()->with('success', 'Berhasil menduplikasi artikel menjadi "' . $newArticle->title . '"!');
     }
 
     public function archive($id)
@@ -158,7 +253,7 @@ class StaffArticleController extends Controller
     public function destroy($id)
     {
         $article = Article::where('user_id', auth()->id())->findOrFail($id);
-        $title = $article->title; // Simpan judul sebelum dihapus
+        $title = $article->title;
 
         UserActivity::create([
             'user_id'    => auth()->id(),
@@ -200,13 +295,23 @@ class StaffArticleController extends Controller
         return back()->with('success', $message);
     }
 
+    /**
+     * Download PDF artikel (REVISI SESUAI REQUEST FOLDER VIEW).
+     */
     public function downloadPdf($id)
     {
         $article = Article::where('user_id', auth()->id())->findOrFail($id);
-        $path = storage_path("app/public/articles/{$article->id}.pdf");
-        if (!file_exists($path)) {
-            return back()->with('error', 'Dokumen PDF belum tersedia untuk artikel ini.');
+
+        try {
+            // Mengambil data artikel & memuat view dari folder views/pdf/article.blade.php
+            $pdf = Pdf::loadView('pdf.article', compact('article'));
+            
+            // Download file PDF
+            return $pdf->download('artikel-' . Str::slug($article->title) . '.pdf');
+            
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'Gagal menghasilkan file PDF. Pastikan library DomPDF sudah terinstall.');
         }
-        return response()->download($path, \Str::slug($article->title) . '.pdf');
     }
 }

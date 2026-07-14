@@ -77,15 +77,27 @@
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#F8FAFC] p-4 md:p-8 relative w-full">
-        <!-- Mobile Toggle -->
-        <div class="flex justify-between items-center mb-6 md:hidden">
-            <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-900 p-2 -ml-2 rounded-lg hover:bg-gray-100">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
-            <div class="flex items-center gap-2">
-                <div class="w-6 h-6 bg-gold rounded text-white flex items-center justify-center font-bold text-sm">A</div>
-                <span class="font-bold text-gray-800 text-lg">AKSARA</span>
+        
+        <!-- =========================================================== -->
+        <!-- 🔥 HEADER DENGAN TOMBOL KEMBALI KE BERANDA -->
+        <!-- =========================================================== -->
+        <div class="flex justify-between items-center mb-6">
+            <!-- Mobile Only: Toggle & Logo -->
+            <div class="flex items-center gap-2 md:hidden">
+                <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-900 p-2 -ml-2 rounded-lg hover:bg-gray-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 bg-gold rounded text-white flex items-center justify-center font-bold text-sm">A</div>
+                    <span class="font-bold text-gray-800 text-lg">AKSARA</span>
+                </div>
             </div>
+            
+            <!-- 🔙 TOMBOL KEMBALI KE HOME PAGE (Terlihat di Desktop & Mobile) -->
+            <a href="{{ route('home.public') }}" class="ml-auto flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Kembali ke Beranda
+            </a>
         </div>
 
         <!-- Tab Dashboard -->

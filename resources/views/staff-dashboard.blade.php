@@ -112,11 +112,15 @@
                 <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=eab308&color=0f172a" class="w-9 h-9 rounded-full">
                 <div class="flex flex-col">
                     <span class="text-sm font-bold text-white">{{ auth()->user()->name }}</span>
-                    <span class="text-[10px] text-gray-400">{{ ucfirst(auth()->user()->role) }} E-Government</span>
+                    
+                    <!-- ✨ PERBAIKAN SIDEBAR: Ambil label/nama dari object role, jangan print object mentah -->
+                    <span class="text-[10px] text-gray-400">
+                        {{ auth()->user()->role ? ucfirst(auth()->user()->role->label) : 'Staff' }} E-Government
+                    </span>
                 </div>
             </div>
 
-            <!-- ✨ PERBAIKAN UTAMA: Tombol Logout menggunakan Form POST -->
+            <!-- Tombol Logout menggunakan Form POST -->
             <form action="{{ route('logout') }}" method="POST" class="w-full">
                 @csrf
                 <button type="submit" class="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 py-2 rounded-lg text-xs font-medium border border-gray-700 transition cursor-pointer">
@@ -140,7 +144,12 @@
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900 fade-in-up">Selamat Datang, {{ auth()->user()->name }}</h1>
                         <div class="flex flex-wrap items-center gap-2 text-sm text-gray-500 fade-in-up delay-1">
-                            <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">{{ ucfirst(auth()->user()->role) }} - Bidang E-Government</span>
+                            
+                            <!-- ✨ PERBAIKAN HEADER: Ambil label/nama dari object role, jangan print object mentah -->
+                            <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">
+                                {{ auth()->user()->role ? ucfirst(auth()->user()->role->label) : 'Staff' }} - Bidang E-Government
+                            </span>
+                            
                             <span class="text-gray-300">|</span>
                             <span>Kominfo Provinsi Lampung</span>
                         </div>
@@ -345,7 +354,7 @@
                         @endif
                     </div>
 
-                    <!-- QUICK ACTION (Tombol sudah diarahkan ke route yang aktif) -->
+                    <!-- QUICK ACTION -->
                     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 fade-in-up delay-1 hover:shadow-md transition-shadow">
                         <h3 class="font-bold text-gray-800 text-lg mb-4">Quick Action</h3>
                         <div class="grid grid-cols-2 gap-3">

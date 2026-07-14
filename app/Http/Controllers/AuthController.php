@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Otp;        // Pastikan model Otp sudah dibuat
+use App\Models\Otp;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OtpMail;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -18,48 +20,60 @@ class AuthController extends Controller
     public function showLoginForm()
     {
         if (Auth::check()) {
-            return redirect('/');
+            return $this->redirectBasedOnRole(Auth::user());
         }
         return view('login');
     }
 
     /**
      * Proses login manual (email & password)
+     *
+     * ✅ PERBAIKAN KRUSIAL: Sebelumnya kode ini memakai Auth::attempt(),
+     * yang LANGSUNG membuat session "authenticated" begitu password
+     * cocok — walau email belum diverifikasi. Akibatnya, middleware
+     * 'guest' di halaman login/register jadi langsung meloloskan user
+     * ke dashboard tanpa pernah melewati halaman OTP.
+     *
+     * Solusi: pakai Auth::validate() untuk mengecek kredensial TANPA
+     * membuat session, baru panggil Auth::login() setelah OTP benar-benar
+     * diverifikasi (lihat OtpController::verify()).
      */
     public function login(Request $request)
     {
         $request->validate([
             'email'    => 'required|email',
             'password' => 'required'
-        ], [
-            'email.required'    => 'Email wajib diisi.',
-            'email.email'       => 'Format email tidak valid.',
-            'password.required' => 'Password wajib diisi.'
         ]);
 
-        if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
-            $user = Auth::user();
+        $credentials = $request->only('email', 'password');
 
-            // Jika email belum diverifikasi, kirim OTP dan arahkan ke halaman verifikasi
-            if (!$user->email_verified_at) {
-                $this->sendOtp($user);
-                return redirect()->route('otp.verify')->with('email', $user->email);
-            }
-
-            // Regenerasi session untuk mencegah session fixation
-            $request->session()->regenerate();
-
-            // Redirect berdasarkan role
-            return $this->redirectBasedOnRole($user);
+        if (!Auth::validate($credentials)) {
+            return back()->withErrors(['email' => 'Email atau password salah.']);
         }
 
-        return back()->withErrors([
-            'email' => 'Email atau password yang Anda masukkan salah.'
-        ]);
+        $user = User::where('email', $credentials['email'])->first();
+
+        if (!$user->email_verified_at) {
+            // ✅ Simpan id user sementara di session, JANGAN Auth::login() dulu
+            $request->session()->put('otp_user_id', $user->id);
+            $request->session()->put('otp_remember', $request->boolean('remember'));
+
+            $this->sendOtp($user);
+            return redirect()->route('otp.verify')->with('email', $user->email);
+        }
+
+        Auth::login($user, $request->boolean('remember'));
+        $request->session()->regenerate();
+        return $this->redirectBasedOnRole($user);
     }
 
     /**
      * Proses registrasi akun baru
+     *
+     * ✅ PERBAIKAN: Tidak lagi memanggil Auth::login($user) di sini.
+     * User baru hanya disimpan id-nya di session ('otp_user_id') sampai
+     * OTP berhasil diverifikasi. Ini menutup celah yang membuat user bisa
+     * "masuk" tanpa pernah mengisi OTP.
      */
     public function register(Request $request)
     {
@@ -70,18 +84,31 @@ class AuthController extends Controller
             'nip'      => 'nullable|string|max:50'
         ]);
 
+        $userRole = Role::where('name', 'user')->first();
+        $roleId = $userRole ? $userRole->id : null;
+
         $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
             'nip'      => $request->nip,
-            'role'     => 'user'
+            'role_id'  => $roleId
         ]);
 
-        Auth::login($user);
-        $this->sendOtp($user);
+        // ✅ Jangan Auth::login($user) dulu — simpan id-nya saja di session
+        $request->session()->put('otp_user_id', $user->id);
+        $request->session()->put('otp_remember', false);
 
-        return redirect()->route('otp.verify')->with('email', $user->email);
+        // Kirim OTP, jika gagal kita kasih pesan di session flash
+        $otpSent = $this->sendOtp($user);
+
+        $redirect = redirect()->route('otp.verify')->with('email', $user->email);
+
+        if (!$otpSent) {
+            return $redirect->with('warning', 'Kami gagal mengirim kode OTP ke email Anda. Pastikan konfigurasi SMTP Anda benar di .env!');
+        }
+
+        return $redirect;
     }
 
     /**
@@ -97,31 +124,29 @@ class AuthController extends Controller
     }
 
     /**
-     * ✅ FIX: Diubah dari 'private' menjadi 'public'.
-     * Method ini dipanggil dari OtpController lewat app(AuthController::class)->redirectBasedOnRole(...),
-     * yaitu dari LUAR class ini. PHP tidak mengizinkan pemanggilan method 'private'
-     * dari luar class-nya, sekalipun lewat instance yang di-resolve via app().
-     * Karena dipanggil dari luar, method ini wajib 'public'.
-     *
-     * Redirect berdasarkan role (Relatif, otomatis menyesuaikan domain)
+     * Mengarahkan user berdasarkan role setelah login/verifikasi
      */
     public function redirectBasedOnRole($user)
     {
-        if ($user->role === 'admin') {
+        $roleName = $user->role ? $user->role->name : 'user';
+
+        if ($roleName === 'admin') {
             return redirect()->to('/admin/dashboard');
         }
-        if ($user->role === 'staff') {
+        if ($roleName === 'staff') {
             return redirect()->to('/staff/dashboard');
         }
-        return redirect()->to('/');
+
+        // ✅ User biasa diarahkan ke Welcome Page sesuai route 'home.public' di web.php
+        return redirect()->route('home.public');
     }
 
     /**
-     * Mengirim Email OTP ke user
+     * Mengirim Email OTP (return boolean agar tahu berhasil/gagal)
      */
     private function sendOtp($user)
     {
-        if (!$user) return;
+        if (!$user) return false;
 
         $otpCode = rand(100000, 999999);
         Otp::create([
@@ -133,8 +158,10 @@ class AuthController extends Controller
 
         try {
             Mail::to($user->email)->send(new OtpMail($otpCode, $user));
+            return true;
         } catch (\Exception $e) {
-            \Log::error('Gagal mengirim OTP ke ' . $user->email . ': ' . $e->getMessage());
+            Log::error('Gagal mengirim OTP ke ' . $user->email . ': ' . $e->getMessage());
+            return false;
         }
     }
 }

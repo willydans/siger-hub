@@ -15,17 +15,17 @@ class HomeController extends Controller
         // --- CEK REDIRECT JIKA SUDAH LOGIN ---
         if (auth()->check()) {
             $user = auth()->user();
+            
+            // ✅ PERBAIKAN: Gunakan relasi role untuk mendapatkan nama role
+            $roleName = $user->role ? $user->role->name : 'user';
 
-            // ✅ PERBAIKAN: Hanya Admin dan Staff yang dipaksa redirect ke dashboard.
-            // Role 'user' (pengguna biasa) dibiarkan tetap berada di halaman publik/welcome.
-            if ($user->role === 'admin') {
+            // Hanya Admin dan Staff yang dipaksa redirect ke dashboard.
+            if ($roleName === 'admin') {
                 return redirect()->to('/admin/dashboard');
             }
-
-            if ($user->role === 'staff') {
+            if ($roleName === 'staff') {
                 return redirect()->to('/staff/dashboard');
             }
-
             // Jika role 'user', jangan redirect kemanapun.
             // Biarkan mereka menikmati halaman publik (welcome) di bawah ini.
         }

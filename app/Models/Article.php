@@ -48,7 +48,7 @@ class Article extends Model
 
     protected $casts = [
         'tags' => 'array',
-        'attachments' => 'array', // ✅ Sudah benar!
+        'attachments' => 'array',
         'relations' => 'array',
         'rating_avg' => 'float',
         'rating' => 'integer',
@@ -58,6 +58,8 @@ class Article extends Model
         'valid_until' => 'date'
     ];
 
+    // ========== RELATIONSHIPS ==========
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -66,5 +68,89 @@ class Article extends Model
     public function tags()
     {
         return $this->belongsToMany(Tag::class, 'article_tag');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category', 'name');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    // ========== ACCESSORS ==========
+
+    /**
+     * Fallback version if null.
+     */
+    public function getVersionAttribute($value)
+    {
+        return $value ?? '-';
+    }
+
+    /**
+     * Nama penulis / admin, aman jika user tidak ada.
+     * Di template bisa langsung pakai: $article->author_name
+     */
+    public function getAuthorNameAttribute()
+    {
+        return $this->user->name ?? 'Admin';
+    }
+
+    /**
+     * Format tanggal publikasi sesuai kebutuhan template.
+     */
+    public function getCreatedAtFormattedAttribute()
+    {
+        return $this->created_at ? $this->created_at->format('d M Y') : '-';
+    }
+
+    /**
+     * Format tanggal publish khusus jika pakai published_at.
+     */
+    public function getPublishedAtFormattedAttribute()
+    {
+        return $this->published_at ? $this->published_at->format('d M Y') : 'Belum dipublikasikan';
+    }
+
+    // ========== SCOPES ==========
+
+    /**
+     * Artikel yang sudah dipublikasikan.
+     */
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'published')->whereNotNull('published_at');
+    }
+
+    /**
+     * Filter berdasarkan kategori.
+     */
+    public function scopeByCategory($query, $category)
+    {
+        return $query->where('category', $category);
+    }
+
+    /**
+     * Filter berdasarkan bahasa.
+     */
+    public function scopeByLanguage($query, $language)
+    {
+        return $query->where('language', $language);
+    }
+
+    /**
+     * Hanya artikel yang masih berlaku.
+     */
+    public function scopeValid($query)
+    {
+        $now = now();
+        return $query->where(function ($q) use ($now) {
+            $q->whereNull('valid_from')->orWhere('valid_from', '<=', $now);
+        })->where(function ($q) use ($now) {
+            $q->whereNull('valid_until')->orWhere('valid_until', '>=', $now);
+        });
     }
 }

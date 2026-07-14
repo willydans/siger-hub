@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Revision Management - AKSARA</title>
+    <title>Revision Management - AKSARA (Dinamis)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { 
@@ -31,41 +31,20 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Sidebar Mobile & Dropdown */
-        #sidebar-mobile {
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-        }
-        #sidebar-overlay {
-            transition: opacity 0.3s ease-in-out;
-        }
-        .submenu {
-            transition: all 0.3s ease-in-out;
-            overflow: hidden;
-        }
-        /* Hover Effects */
-        .hover-lift {
-            transition: all 0.2s ease;
-        }
-        .hover-lift:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-        /* Dropdown Menu Animation */
-        .dropdown-menu {
-            transform-origin: top right;
-            transition: transform 0.1s ease, opacity 0.1s ease;
-        }
-        /* Hide scrollbar for cleaner sidebar */
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 4px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 4px;
-        }
-        .sidebar-scroll {
-            scrollbar-width: thin;
-        }
+        #sidebar-mobile { transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; }
+        #sidebar-overlay { transition: opacity 0.3s ease-in-out; }
+        .submenu { transition: all 0.3s ease-in-out; overflow: hidden; }
+        .hover-lift { transition: all 0.2s ease; }
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        .sidebar-scroll { scrollbar-width: thin; }
+        
+        /* Modal Transitions */
+        #note-modal { transition: opacity 0.3s ease, visibility 0.3s ease; visibility: hidden; opacity: 0; }
+        #note-modal.active { visibility: visible; opacity: 1; }
+        .modal-box { transform: scale(0.95); transition: transform 0.3s ease; }
+        #note-modal.active .modal-box { transform: scale(1); }
     </style>
 </head>
 <body class="font-sans antialiased text-textmain bg-lightbg flex h-screen overflow-hidden">
@@ -73,7 +52,7 @@
     <!-- Mobile Overlay -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden opacity-0" onclick="toggleSidebar()"></div>
 
-        <!-- SIDEBAR (Dipertahankan persis, dengan submenu Revision yang aktif) -->
+    <!-- SIDEBAR (Menu Revision otomatis terbuka) -->
     <aside id="sidebar-mobile" class="w-64 bg-darkbg text-gray-300 flex flex-col border-r border-gray-800 shadow-2xl z-40 fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 flex-shrink-0 sidebar-scroll">
         <div class="h-16 flex items-center gap-3 px-6 border-b border-gray-800">
             <div class="w-8 h-8 bg-gold rounded text-darkbg flex items-center justify-center font-bold text-lg">A</div>
@@ -84,13 +63,9 @@
         </div>
 
         <div class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-            
-            <!-- Dashboard -->
-            <a href="/admin/dashboard" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg> Dashboard
             </a>
-            
-            <!-- Menu Utama 1: Knowledge Management -->
             <div>
                 <button onclick="toggleSubmenu('submenu-knowledge')" class="w-full flex items-center justify-between text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                     <div class="flex items-center gap-3">
@@ -100,50 +75,43 @@
                     <svg class="w-4 h-4 transition-transform duration-200" id="arrow-knowledge" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="submenu-knowledge" class="submenu hidden pl-9 space-y-1 mt-1">
-                    <a href="/admin/all-articles" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• All Articles</a>
-                    <a href="/admin/pending-approval" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors flex items-center justify-between">• Pending Approval <span class="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">23</span></a>
-                    <a href="/admin/draft" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Draft</a>
-                    <!-- Revision menjadi link yang aktif di halaman ini -->
-                    <a href="/admin/revision" class="block text-white font-medium bg-gray-800/30 rounded px-2 py-1.5 text-[13px] transition-colors flex items-center justify-between">• Revision</a>
-                    <a href="/admin/published" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Published</a>
-                    <a href="/admin/archive" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Archived</a>
-                    <a href="/admin/delete" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Deleted</a>
+                    <a href="#" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• All Articles</a>
+                    <a href="#" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors flex items-center justify-between">• Pending Approval <span class="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">23</span></a>
+                    <a href="#" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Draft</a>
+                    <a href="#" class="block text-white font-medium bg-gray-800/30 rounded px-2 py-1.5 text-[13px] transition-colors">• Revision</a>
+                    <a href="#" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Published</a>
+                    <a href="#" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Archived</a>
+                    <a href="#" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Deleted</a>
                 </div>
             </div>
-
-            <!-- Menu Utama 2: User Management (Diubah menjadi menu tunggal) -->
-            <a href="/admin/users" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> User Management
             </a>
-
-            <!-- Menu Utama 3: Category (Menggantikan Master Data, menu tunggal) -->
-            <a href="/admin/category" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg> Category
             </a>
-
-            <!-- Menu Utama 4: Single Links -->
-            <a href="/admin/analytics" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Analytics
             </a>
-            <a href="/admin/searchlog" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg> Search Log
             </a>
-            <a href="/admin/feedback" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> Feedback
             </a>
-            <a href="/admin/notification" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg> Notification
             </a>
-            <a href="/admin/activity" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Activity Log
             </a>
-            <a href="/admin/storage" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7h-4.586a2 2 0 01-1.414-.586l-1.172-1.172a2 2 0 00-1.414-.586H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7z"></path></svg> Storage
             </a>
-            <a href="/admin/settings" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Settings
             </a>
-            <a href="/admin/backup" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Backup & Restore
             </a>
         </div>
@@ -156,7 +124,7 @@
                     <span class="text-[10px] text-gray-400">Super Admin</span>
                 </div>
             </div>
-            <a href="/login" class="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 py-2 rounded-lg text-xs font-medium border border-gray-700 transition">Keluar</a>
+            <a href="#" class="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 py-2 rounded-lg text-xs font-medium border border-gray-700 transition">Keluar</a>
         </div>
     </aside>
 
@@ -177,6 +145,12 @@
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Daftar Revisi Artikel</h1>
                 <p class="text-sm text-gray-500 mt-1">Semua artikel revisi. Pantau status, deadline, dan kelola permintaan perbaikan.</p>
             </div>
+            <div class="flex gap-2">
+                <button onclick="loadData()" class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1 shadow-sm">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Refresh
+                </button>
+            </div>
         </div>
 
         <!-- Table Container -->
@@ -185,7 +159,9 @@
                 <table class="w-full text-left text-sm">
                     <thead class="bg-gray-50 text-[11px] uppercase text-gray-500 font-bold border-b border-gray-200 whitespace-nowrap">
                         <tr>
-                            <th class="px-4 py-4 w-10"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></th>
+                            <th class="px-4 py-4 w-10">
+                                <input type="checkbox" id="select-all" onclick="toggleSelectAll(this)" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer">
+                            </th>
                             <th class="px-4 py-4 min-w-[220px]">Artikel</th>
                             <th class="px-4 py-4 min-w-[120px]">Penulis</th>
                             <th class="px-4 py-4 min-w-[120px]">Tanggal</th>
@@ -195,97 +171,193 @@
                             <th class="px-4 py-4 text-center min-w-[60px]">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <!-- Row 1 -->
-                        <tr class="hover:bg-gray-50/80 transition-colors duration-200">
-                            <td class="px-4 py-4"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
-                            <td class="px-4 py-4 font-medium text-gray-900">Panduan VPN</td>
-                            <td class="px-4 py-4 text-gray-600">Wildan</td>
-                            <td class="px-4 py-4 text-gray-600">20 Jun 2026</td>
-                            <td class="px-4 py-4 text-gray-600 max-w-[200px] truncate">Perbaiki bagian pendahuluan</td>
-                            <td class="px-4 py-4"><span class="bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Sedang Direvisi</span></td>
-                            <td class="px-4 py-4 text-gray-600 font-medium">3 Hari Lagi</td>
-                            <td class="px-4 py-4 text-center relative">
-                                <!-- Dropdown Menu Action -->
-                                <div class="relative inline-block">
-                                    <button onclick="toggleDropdown(this)" class="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
-                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
-                                    </button>
-                                    <!-- Dropdown Content -->
-                                    <div class="dropdown-menu hidden absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-xl z-20 origin-top-right scale-95 opacity-0">
-                                        <div class="py-1">
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> Lihat</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit Catatan</button>
-                                            <div class="border-t border-gray-100 my-1"></div>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-green-600 hover:bg-green-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Approve</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Reject</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Row 2 -->
-                        <tr class="hover:bg-gray-50/80 transition-colors duration-200">
-                            <td class="px-4 py-4"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
-                            <td class="px-4 py-4 font-medium text-gray-900">SOP Backup Server</td>
-                            <td class="px-4 py-4 text-gray-600">Rina</td>
-                            <td class="px-4 py-4 text-gray-600">18 Jun 2026</td>
-                            <td class="px-4 py-4 text-gray-600 max-w-[200px] truncate">Tambahkan referensi</td>
-                            <td class="px-4 py-4"><span class="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Dikirim Ulang</span></td>
-                            <td class="px-4 py-4 text-gray-600 font-medium">7 Hari Lagi</td>
-                            <td class="px-4 py-4 text-center relative">
-                                <div class="relative inline-block">
-                                    <button onclick="toggleDropdown(this)" class="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
-                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
-                                    </button>
-                                    <div class="dropdown-menu hidden absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-xl z-20 origin-top-right scale-95 opacity-0">
-                                        <div class="py-1">
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> Lihat</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit Catatan</button>
-                                            <div class="border-t border-gray-100 my-1"></div>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-green-600 hover:bg-green-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Approve</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Reject</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Row 3 -->
-                        <tr class="hover:bg-gray-50/80 transition-colors duration-200">
-                            <td class="px-4 py-4"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
-                            <td class="px-4 py-4 font-medium text-gray-900">Panduan Email Dinas</td>
-                            <td class="px-4 py-4 text-gray-600">Andi</td>
-                            <td class="px-4 py-4 text-gray-600">15 Jun 2026</td>
-                            <td class="px-4 py-4 text-gray-600 max-w-[200px] truncate">Format gambar kurang jelas</td>
-                            <td class="px-4 py-4"><span class="bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Menunggu Verifikasi</span></td>
-                            <td class="px-4 py-4 text-gray-600 font-medium">5 Hari Lagi</td>
-                            <td class="px-4 py-4 text-center relative">
-                                <div class="relative inline-block">
-                                    <button onclick="toggleDropdown(this)" class="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
-                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
-                                    </button>
-                                    <div class="dropdown-menu hidden absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-xl z-20 origin-top-right scale-95 opacity-0">
-                                        <div class="py-1">
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> Lihat</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit Catatan</button>
-                                            <div class="border-t border-gray-100 my-1"></div>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-green-600 hover:bg-green-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Approve</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Reject</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
+                    <tbody id="revision-tbody" class="divide-y divide-gray-100">
+                        <!-- Dinamis dari JavaScript -->
                     </tbody>
                 </table>
             </div>
         </div>
     </main>
 
+    <!-- MODAL Edit Catatan -->
+    <div id="note-modal" class="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4">
+        <div class="modal-box bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden transition-all">
+            <div class="flex justify-between items-center p-6 border-b border-gray-100">
+                <h3 class="text-xl font-bold text-gray-900">Edit Catatan Revisi</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Catatan Baru</label>
+                    <textarea id="edit-note-input" rows="4" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none" placeholder="Masukkan catatan revisi..."></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 p-6 border-t border-gray-100 bg-gray-50 rounded-b-xl">
+                <button onclick="closeModal()" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition">Batal</button>
+                <button onclick="saveNote()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-sm">Simpan Catatan</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // --- Toggle Sidebar Mobile ---
+        // --- STATE & DATA PERSISTENCE ---
+        const STORAGE_KEY = 'aksara_revision_data';
+        let revisions = [];
+        let editingId = null;
+
+        function getDefaultData() {
+            return [
+                { id: 1, article: 'Panduan VPN', author: 'Wildan', date: '20 Jun 2026', note: 'Perbaiki bagian pendahuluan', status: 'Sedang Direvisi', deadline: '3 Hari Lagi' },
+                { id: 2, article: 'SOP Backup Server', author: 'Rina', date: '18 Jun 2026', note: 'Tambahkan referensi', status: 'Dikirim Ulang', deadline: '7 Hari Lagi' },
+                { id: 3, article: 'Panduan Email Dinas', author: 'Andi', date: '15 Jun 2026', note: 'Format gambar kurang jelas', status: 'Menunggu Verifikasi', deadline: '5 Hari Lagi' }
+            ];
+        }
+
+        function getStatusColor(status) {
+            const map = {
+                'Sedang Direvisi': 'bg-yellow-100 text-yellow-700',
+                'Dikirim Ulang': 'bg-blue-100 text-blue-700',
+                'Menunggu Verifikasi': 'bg-purple-100 text-purple-700',
+                'Disetujui': 'bg-green-100 text-green-700',
+                'Ditolak': 'bg-red-100 text-red-700'
+            };
+            return map[status] || 'bg-gray-100 text-gray-700';
+        }
+
+        function loadData() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try { revisions = JSON.parse(stored); } catch(e) { revisions = getDefaultData(); }
+            } else {
+                revisions = getDefaultData();
+            }
+            renderTable();
+            showToast('Data berhasil disegarkan');
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(revisions));
+            renderTable();
+        }
+
+        // --- RENDER TABLE FUNCTION ---
+        function renderTable() {
+            const tbody = document.getElementById('revision-tbody');
+            if (revisions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-12 text-center text-gray-500">
+                    <p class="font-medium">Belum ada data revisi.</p>
+                </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = revisions.map(rev => `
+                <tr class="hover:bg-gray-50/80 transition-colors duration-200 data-row">
+                    <td class="px-4 py-4"><input type="checkbox" class="row-checkbox w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
+                    <td class="px-4 py-4 font-medium text-gray-900">${rev.article}</td>
+                    <td class="px-4 py-4 text-gray-600">${rev.author}</td>
+                    <td class="px-4 py-4 text-gray-600">${rev.date}</td>
+                    <td class="px-4 py-4 text-gray-600 max-w-[200px] truncate" title="${rev.note}">${rev.note}</td>
+                    <td class="px-4 py-4"><span class="${getStatusColor(rev.status)} px-2.5 py-1 rounded-full text-[10px] font-bold">${rev.status}</span></td>
+                    <td class="px-4 py-4 text-gray-600 font-medium">${rev.deadline}</td>
+                    <td class="px-4 py-4 text-center relative">
+                        <div class="relative inline-block">
+                            <button onclick="toggleDropdown(this)" class="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+                            </button>
+                            <!-- Dropdown Actions -->
+                            <div class="dropdown-menu hidden absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-xl z-20 origin-top-right scale-95 opacity-0">
+                                <div class="py-1">
+                                    <button onclick="viewRevision(${rev.id})" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> Lihat
+                                    </button>
+                                    <button onclick="openEditModal(${rev.id})" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit Catatan
+                                    </button>
+                                    <div class="border-t border-gray-100 my-1"></div>
+                                    <button onclick="approveRevision(${rev.id})" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-green-600 hover:bg-green-50 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Approve
+                                    </button>
+                                    <button onclick="rejectRevision(${rev.id})" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Reject
+                                    </button>
+                                    <button onclick="deleteRevision(${rev.id})" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-600 hover:bg-gray-100 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Hapus
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // --- CRUD ACTION HANDLERS ---
+
+        function viewRevision(id) {
+            const rev = revisions.find(d => d.id === id);
+            if(rev) showToast(`📄 Detail: ${rev.article}\nPenulis: ${rev.author}\nStatus: ${rev.status}\nCatatan: ${rev.note}`);
+        }
+
+        function openEditModal(id) {
+            const rev = revisions.find(d => d.id === id);
+            if(!rev) return;
+            editingId = id;
+            document.getElementById('edit-note-input').value = rev.note;
+            document.getElementById('note-modal').classList.add('active');
+        }
+
+        function saveNote() {
+            const newNote = document.getElementById('edit-note-input').value.trim();
+            if(!newNote) {
+                showToast('⚠️ Catatan wajib diisi!');
+                return;
+            }
+            const index = revisions.findIndex(d => d.id === editingId);
+            if(index !== -1) {
+                revisions[index].note = newNote;
+                saveData();
+                showToast('✅ Catatan berhasil diperbarui!');
+            }
+            closeModal();
+        }
+
+        function approveRevision(id) {
+            const index = revisions.findIndex(d => d.id === id);
+            if(index !== -1) {
+                revisions[index].status = 'Disetujui';
+                revisions[index].deadline = 'Selesai';
+                saveData();
+                showToast('✅ Revisi telah disetujui (Selesai)!');
+            }
+        }
+
+        function rejectRevision(id) {
+            const index = revisions.findIndex(d => d.id === id);
+            if(index !== -1) {
+                revisions[index].status = 'Ditolak';
+                saveData();
+                showToast('❌ Revisi ditolak.');
+            }
+        }
+
+        function deleteRevision(id) {
+            if(confirm('Apakah Anda yakin ingin menghapus data revisi ini? Data akan hilang permanen.')) {
+                revisions = revisions.filter(d => d.id !== id);
+                saveData();
+                showToast('🗑️ Data revisi berhasil dihapus.');
+            }
+        }
+
+        // --- UTILITY FUNCTIONS ---
+
+        // Checkbox Select All
+        function toggleSelectAll(master) {
+            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = master.checked);
+        }
+
+        // Sidebar
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar-mobile');
             const overlay = document.getElementById('sidebar-overlay');
@@ -306,10 +378,9 @@
             }
         }
 
-        // --- Toggle Sidebar Dropdowns ---
         function toggleSubmenu(id) {
             const el = document.getElementById(id);
-            const arrow = document.getElementById('arrow-' + id.split('-')[1]);
+            const arrow = document.getElementById('arrow-knowledge');
             if (el.classList.contains('hidden')) {
                 el.classList.remove('hidden');
                 if(arrow) arrow.classList.add('rotate-180');
@@ -319,11 +390,10 @@
             }
         }
 
-        // --- Logic Dropdown Action Menu ---
+        // Dropdown Action
         function toggleDropdown(button) {
             const menu = button.parentElement.querySelector('.dropdown-menu');
             const isHidden = menu.classList.contains('hidden');
-            // Close all dropdowns first
             document.querySelectorAll('.dropdown-menu').forEach(m => {
                 if (m !== menu) {
                     m.classList.add('hidden');
@@ -345,7 +415,6 @@
                 }, 100);
             }
         }
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.relative')) {
                 document.querySelectorAll('.dropdown-menu').forEach(m => {
@@ -358,14 +427,48 @@
             }
         });
 
-        // --- Buka Knowledge Management secara otomatis saat halaman dimuat ---
+        // Modal Utils
+        function closeModal() {
+            document.getElementById('note-modal').classList.remove('active');
+            editingId = null;
+        }
+        document.getElementById('note-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // Toast Notification
+        function showToast(message) {
+            const toastContainer = document.createElement('div');
+            toastContainer.className = `fixed top-5 right-5 z-[99999] bg-white border-l-4 border-gold p-4 rounded-lg shadow-xl transform translate-x-[120%] animate-[slideInRight_0.4s_ease-out_forwards] min-w-[250px] max-w-[350px]`;
+            toastContainer.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span class="text-gold text-lg font-bold">✦</span>
+                    <p class="text-sm font-medium text-gray-800 whitespace-pre-line">${message}</p>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600 ml-4">✕</button>
+                </div>
+            `;
+            document.body.appendChild(toastContainer);
+            setTimeout(() => {
+                toastContainer.style.transform = 'translateX(120%)';
+                toastContainer.style.transition = 'transform 0.3s ease-in';
+                setTimeout(() => toastContainer.remove(), 300);
+            }, 5000);
+        }
+        const styleSheet = document.createElement("style");
+        styleSheet.textContent = `@keyframes slideInRight { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }`;
+        document.head.appendChild(styleSheet);
+
+        // INISIALISASI
         document.addEventListener('DOMContentLoaded', function() {
+            // Buka submenu Knowledge Management
             const submenu = document.getElementById('submenu-knowledge');
             const arrow = document.getElementById('arrow-knowledge');
             if(submenu) {
                 submenu.classList.remove('hidden');
                 if(arrow) arrow.classList.add('rotate-180');
             }
+            // Load data utama
+            loadData();
         });
     </script>
 </body>

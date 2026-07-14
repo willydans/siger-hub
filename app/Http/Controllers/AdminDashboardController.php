@@ -46,15 +46,20 @@ class AdminDashboardController extends Controller
         // --- Statistik Kartu ---
         $data = [
             'totalUsers'    => User::count(),
-            'totalStaff'    => User::where('role', 'staff')->count(),
+            // ✅ PERBAIKAN: Menggunakan whereHas untuk mencari user dengan role 'staff'
+            'totalStaff'    => User::whereHas('role', function ($query) {
+                                    $query->where('name', 'staff');
+                                })->count(),
             'totalArticles' => Article::count(),
             'pending'       => Article::where('status', 'pending')->count(),
             'published'     => Article::where('status', 'published')->count(),
             'rejected'      => Article::where('status', 'rejected')->count(),
             'archived'      => Article::where('status', 'archived')->count(),
-            'private'       => Article::where('visibility', 'privat')->count(),
+            // ✅ PERBAIKAN: Menggunakan 'private' sesuai nilai database
+            'private'       => Article::where('visibility', 'private')->count(),
             'feedback'      => Feedback::count(),
-            'rating'        => number_format(Article::avg('rating'), 1),
+            // ✅ PERBAIKAN: Menggunakan kolom 'rating_avg' yang benar
+            'rating'        => number_format(Article::avg('rating_avg'), 1),
             
             // ✨ DINAMIS: Mengambil total ukuran file dari Laravel Storage
             'storage'       => $this->getStorageSize(),
@@ -74,6 +79,8 @@ class AdminDashboardController extends Controller
         }
 
         // --- Data Grafik OPD (Pie Chart) ---
+        // Catatan: query ini mencari berdasarkan kolom 'category' di tabel articles.
+        // Jika Anda ingin menggunakan relasi OPD, Anda bisa menyesuaikan di sini.
         $opdData = [
             'Kominfo' => Article::where('category', 'Kominfo')->count(),
             'BKD'     => Article::where('category', 'BKD')->count(),

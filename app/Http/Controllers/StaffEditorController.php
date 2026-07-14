@@ -213,6 +213,10 @@ class StaffEditorController extends Controller
 
     /**
      * ✅ PERBAIKAN AI ASSISTANT MENGGUNAKAN GOOGLE GEMINI API
+     *
+     * DITAMBAHKAN: instruksi per-action supaya hasil AI singkat & rapi
+     * (tanpa basa-basi tambahan), sehingga bisa langsung "Diterapkan" ke
+     * field form terkait dari sisi frontend (lihat tombol "Terapkan" di modal).
      */
     public function aiAssistant(Request $request)
     {
@@ -228,11 +232,21 @@ class StaffEditorController extends Controller
             return response()->json(['result' => 'Error: GEMINI_API_KEY belum diatur di file .env'], 400);
         }
 
-        // Model yang digunakan
         $model = 'gemini-2.5-flash';
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
-        $prompt = "Tugas: {$request->action}\n\nKonten Artikel:\n{$request->content}";
+        // Instruksi tambahan per jenis aksi, supaya output AI konsisten & mudah diterapkan otomatis ke form
+        $actionInstructions = [
+            'Ringkas Artikel'        => 'Buat ringkasan singkat (maksimal 4 kalimat) dari artikel di atas dalam bentuk paragraf biasa, tanpa basa-basi pembuka seperti "Berikut ringkasannya".',
+            'Generate Keyword'       => 'Berikan HANYA daftar 5-8 kata kunci SEO yang relevan, dipisah koma, tanpa penjelasan tambahan, tanpa penomoran, tanpa tanda kutip.',
+            'Buat FAQ'               => 'Buat 3-5 pertanyaan yang mungkin muncul dari pembaca beserta jawaban singkatnya. Format setiap poin: "Q: ...\\nA: ...".',
+            'Perbaiki Tata Bahasa'   => 'Perbaiki ejaan dan tata bahasa (sesuai EYD) dari isi artikel di atas. Kembalikan HANYA versi teks yang sudah diperbaiki, tanpa penjelasan tambahan, tanpa tanda kutip pembuka/penutup.',
+            'Generate Tag'          => 'Berikan HANYA 5-8 tag singkat (1-2 kata per tag) yang relevan dengan isi artikel, dipisah koma, huruf kecil semua, tanpa penjelasan tambahan.',
+            'Buat Deskripsi SEO'    => 'Buat SATU meta description SEO maksimal 155 karakter yang menarik dan deskriptif. Kembalikan HANYA teks deskripsinya saja, tanpa tanda kutip, tanpa penjelasan tambahan.',
+        ];
+        $instruction = $actionInstructions[$request->action] ?? '';
+
+        $prompt = "Tugas: {$request->action}\n{$instruction}\n\nKonten Artikel:\n{$request->content}";
 
         try {
             \Log::info('AI Request ke Google Gemini dimulai. Action: ' . $request->action);
@@ -247,8 +261,13 @@ class StaffEditorController extends Controller
                         ]
                     ],
                     'generationConfig' => [
-                        'temperature' => 0.7,
+                        'temperature' => 0.6,
                         'maxOutputTokens' => 2048,
+                        // FIX: samakan dengan autoFillMetadata() - matikan thinking budget
+                        // supaya token tidak habis untuk "mikir" dan hasil tidak terpotong.
+                        'thinkingConfig' => [
+                            'thinkingBudget' => 0,
+                        ],
                     ]
                 ]);
 
@@ -256,30 +275,154 @@ class StaffEditorController extends Controller
                 \Log::error('Google Gemini Response Error: ' . $response->body());
                 $status = $response->status();
                 $body = $response->body();
-                
+
                 $errorMessage = match ($status) {
                     400 => 'Format request ke Google Gemini salah.',
                     403 => 'API Key Google Gemini tidak valid atau kuota habis.',
                     429 => 'Terlalu banyak permintaan. Tunggu beberapa saat.',
                     default => "Google Gemini Error (Status {$status}): " . $body
                 };
-                
+
                 return response()->json(['result' => $errorMessage], $status);
             }
 
             $data = $response->json();
-            
-            // Ambil teks hasil AI dari response JSON Google Gemini
+
             $result = $data['candidates'][0]['content']['parts'][0]['text'] ?? 'AI tidak memberikan respons.';
-            
+
             \Log::info('AI Request sukses.');
-            return response()->json(['result' => trim($result)]);
+            return response()->json(['result' => trim($result), 'action' => $request->action]);
 
         } catch (\Exception $e) {
             \Log::error('AI Assistant Exception: ' . $e->getMessage());
             return response()->json([
                 'result' => 'Kesalahan Koneksi ke Google Gemini: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * ✅ BARU: Auto-Isi Informasi Dasar & Metadata SEO menggunakan AI.
+     *
+     * AI menganalisa isi artikel lalu menyarankan category/subcategory/opd_unit
+     * (dicocokkan HANYA dengan data yang benar-benar ada di database, ditolak
+     * kalau AI mengarang nilai baru), tags, meta_keywords, meta_description,
+     * dan estimated_read_time. Hasilnya dikirim sebagai JSON supaya frontend
+     * bisa mengisi form secara otomatis, tapi tetap bisa diubah manual oleh user
+     * (frontend hanya mengisi field yang masih kosong).
+     */
+    public function autoFillMetadata(Request $request)
+    {
+        $request->validate([
+            'content' => 'required|string|min:50',
+            'title'   => 'nullable|string',
+        ]);
+
+        $apiKey = env('GEMINI_API_KEY');
+        if (!$apiKey) {
+            return response()->json(['error' => 'GEMINI_API_KEY belum diatur di file .env'], 400);
+        }
+
+        $categories = Category::pluck('name')->filter()->values();
+        $subcategories = Subcategory::pluck('name')->filter()->values();
+        $opds = Opd::pluck('name')->filter()->values();
+
+        $model = 'gemini-2.5-flash';
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+        $plainContent = trim(strip_tags($request->content));
+        $plainContent = Str::limit($plainContent, 6000, '');
+
+        $title = $request->title ?? '(tidak ada judul)';
+        $categoryList = $categories->implode(', ') ?: '(belum ada kategori terdaftar)';
+        $subcategoryList = $subcategories->implode(', ') ?: '(belum ada subkategori terdaftar)';
+        $opdList = $opds->implode(', ') ?: '(belum ada OPD terdaftar)';
+
+        $prompt = <<<PROMPT
+Kamu adalah asisten yang membantu melengkapi metadata artikel untuk portal knowledge management pemerintah (SIGER-Hub, Pemerintah Provinsi Lampung).
+
+Judul artikel: {$title}
+
+Isi artikel (teks polos):
+{$plainContent}
+
+Daftar Kategori yang tersedia di sistem (pilih SALAH SATU yang paling sesuai, tulisannya HARUS persis sama dengan salah satu di daftar ini; kalau tidak ada yang cocok sama sekali, kembalikan string kosong ""):
+{$categoryList}
+
+Daftar Subkategori yang tersedia (pilih SALAH SATU yang paling relevan dari daftar ini, atau string kosong "" kalau tidak ada yang cocok):
+{$subcategoryList}
+
+Daftar OPD/Unit yang tersedia (pilih SALAH SATU yang paling relevan dari daftar ini, atau string kosong "" kalau tidak jelas):
+{$opdList}
+
+Analisa isi artikel di atas, lalu kembalikan HANYA JSON valid (tanpa markdown, tanpa backtick, tanpa penjelasan apa pun di luar JSON) dengan format PERSIS seperti ini:
+{"category": "...", "subcategory": "...", "opd_unit": "...", "tags": ["tag1", "tag2", "tag3"], "meta_keywords": "keyword1, keyword2, keyword3", "meta_description": "deskripsi singkat maksimal 155 karakter", "estimated_read_time": 3}
+PROMPT;
+
+        try {
+            $response = Http::timeout(45)->post($url, [
+                'contents' => [['parts' => [['text' => $prompt]]]],
+                'generationConfig' => [
+                    'temperature' => 0.4,
+                    'maxOutputTokens' => 2048,
+                    'responseMimeType' => 'application/json',
+                    // FIX: gemini-2.5-flash aktifkan "thinking" secara default yang ikut
+                    // memakan jatah maxOutputTokens untuk proses berpikir internal, sehingga
+                    // JSON hasil akhir bisa terpotong/kosong. Matikan budget-nya supaya token
+                    // sepenuhnya dipakai untuk output JSON yang kita butuhkan.
+                    'thinkingConfig' => [
+                        'thinkingBudget' => 0,
+                    ],
+                ],
+            ]);
+
+            if (!$response->successful()) {
+                \Log::error('Gemini Autofill Error: ' . $response->body());
+                return response()->json(['error' => 'Gagal menghubungi AI (status ' . $response->status() . ')'], $response->status());
+            }
+
+            $data = $response->json();
+            $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            $finishReason = $data['candidates'][0]['finishReason'] ?? null;
+
+            if (!$text) {
+                \Log::error('Gemini Autofill: tidak ada teks hasil. finishReason=' . $finishReason . ' | raw=' . json_encode($data));
+                return response()->json(['error' => 'AI tidak memberikan hasil (finish reason: ' . ($finishReason ?? 'unknown') . ').'], 500);
+            }
+
+            $clean = trim(preg_replace('/```json|```/', '', $text));
+            $parsed = json_decode($clean, true);
+
+            // FIX: fallback kalau AI membungkus JSON dengan teks tambahan di luar blok {...}
+            if (json_last_error() !== JSON_ERROR_NONE && preg_match('/\{.*\}/s', $clean, $matches)) {
+                $parsed = json_decode($matches[0], true);
+            }
+
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($parsed)) {
+                \Log::error('Gagal parse JSON dari Gemini Autofill. Raw text: ' . $text);
+                return response()->json(['error' => 'Gagal memproses hasil AI. Coba lagi.'], 500);
+            }
+
+            // Validasi ulang: pastikan category/subcategory/opd yang disarankan AI
+            // benar-benar ada di database, supaya AI tidak "mengarang" opsi baru.
+            if (!empty($parsed['category']) && !$categories->contains($parsed['category'])) {
+                $parsed['category'] = null;
+            }
+            if (!empty($parsed['subcategory']) && !$subcategories->contains($parsed['subcategory'])) {
+                $parsed['subcategory'] = null;
+            }
+            if (!empty($parsed['opd_unit']) && !$opds->contains($parsed['opd_unit'])) {
+                $parsed['opd_unit'] = null;
+            }
+            if (empty($parsed['tags']) || !is_array($parsed['tags'])) {
+                $parsed['tags'] = [];
+            }
+
+            return response()->json(['success' => true, 'data' => $parsed]);
+
+        } catch (\Exception $e) {
+            \Log::error('AI Autofill Exception: ' . $e->getMessage());
+            return response()->json(['error' => 'Kesalahan koneksi ke AI: ' . $e->getMessage()], 500);
         }
     }
 

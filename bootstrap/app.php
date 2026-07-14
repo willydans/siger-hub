@@ -14,10 +14,17 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     // --- Konfigurasi Middleware ---
     ->withMiddleware(function (Middleware $middleware) {
-        // ✅ Daftarkan alias middleware agar 'role' dan 'prevent.back' bisa dipanggil di web.php
+        // ✅ Daftarkan alias middleware agar 'role', 'prevent.back', dan
+        // 'verified.otp' bisa dipanggil di web.php
         $middleware->alias([
-            'role' => \App\Http\Middleware\CheckRole::class,
+            'role'         => \App\Http\Middleware\CheckRole::class,
             'prevent.back' => \App\Http\Middleware\PreventBackHistory::class,
+
+            // ✅ TAMBAHAN: middleware jaga-jaga (defense-in-depth) supaya
+            // session yang authenticated tapi email-nya belum terverifikasi
+            // (mis. dari bug lama, atau login Google) tidak bisa menembus
+            // halaman staff/admin/user tanpa melewati OTP.
+            'verified.otp' => \App\Http\Middleware\EnsureEmailIsVerified::class,
         ]);
 
         // 🔥 Percayai semua proxy (untuk ngrok/HTTPS)

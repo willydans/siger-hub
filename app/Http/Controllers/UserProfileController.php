@@ -14,15 +14,47 @@ use App\Notifications\UserNotification;
 
 class UserProfileController extends Controller
 {
-    // --- Dashboard ---
-    public function index()
+    /**
+     * Menampilkan halaman Dashboard/Profil Pengguna (Single Page dengan Tabs).
+     * Semua data (Stats, History, Bookmark, Notification) di-load sekaligus di sini.
+     */
+    public function index(Request $request)
     {
         $user = Auth::user();
-        $activities = UserActivity::where('user_id', $user->id)->latest()->take(5)->get();
-        $bookmarks = Bookmark::where('user_id', $user->id)->with('article')->latest()->take(3)->get();
-        $notifications = $user->notifications()->latest()->take(5)->get();
 
-        // Statistik
+        // 1. Query History (Riwayat Aktivitas) dengan Filter
+        $activityQuery = UserActivity::where('user_id', $user->id);
+        if ($request->filled('search')) {
+            $activityQuery->where('title', 'like', '%' . $request->search . '%');
+        }
+        if ($request->filled('type')) {
+            $activityQuery->where('type', $request->type);
+        }
+        if ($request->filled('date')) {
+            $activityQuery->whereDate('created_at', $request->date);
+        }
+        // Paginate & pertahankan Query String agar saat pindah halaman filter tetap berlaku
+        $activities = $activityQuery->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->appends($request->except('page'));
+
+        // 2. Query Bookmark dengan Filter Kategori
+        $bookmarkQuery = Bookmark::where('user_id', $user->id)->with('article');
+        if ($request->filled('category')) {
+            $bookmarkQuery->whereHas('article', function ($q) use ($request) {
+                $q->where('category', $request->category);
+            });
+        }
+        $bookmarks = $bookmarkQuery->orderBy('created_at', 'desc')
+            ->paginate(9)
+            ->appends($request->except('page'));
+
+        // 3. Query Notifikasi (Paling baru di atas)
+        $notifications = $user->notifications()
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        // 4. Statistik Dashboard
         $stats = [
             'total_activities' => UserActivity::where('user_id', $user->id)->count(),
             'articles_read'    => UserActivity::where('user_id', $user->id)->where('type', 'read')->count(),
@@ -32,15 +64,20 @@ class UserProfileController extends Controller
             'likes'            => UserActivity::where('user_id', $user->id)->where('type', 'like')->count(),
         ];
 
-        // Data untuk chart (contoh 7 hari terakhir)
+        // 5. Data Chart (7 Hari Terakhir)
         $chartData = $this->getChartData($user->id);
 
+        // Return ke view yang sudah disediakan (resources/views/user-profil.blade.php)
         return view('user-profil', compact('user', 'activities', 'bookmarks', 'notifications', 'stats', 'chartData'));
     }
 
+    /**
+     * Helper untuk menghitung data Chart aktivitas 7 hari terakhir.
+     */
     private function getChartData($userId)
     {
         $days = [];
+        // 7 hari ke belakang (dari hari ini)
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
             $count = UserActivity::where('user_id', $userId)
@@ -49,6 +86,7 @@ class UserProfileController extends Controller
             $days[] = $count;
         }
         return [
+            // Label bisa disesuaikan format tanggalnya menjadi 'Senin, Selasa' dll.
             'labels' => ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'],
             'data' => $days
         ];
@@ -69,7 +107,7 @@ class UserProfileController extends Controller
 
         $user->update($request->only('name', 'email', 'phone', 'instansi', 'bidang', 'jabatan'));
 
-        return redirect()->back()->with('success', 'Profil berhasil diperbarui.');
+        return redirect()->route('user.profil')->with('success', 'Profil berhasil diperbarui.');
     }
 
     // --- Ganti Password ---
@@ -84,59 +122,24 @@ class UserProfileController extends Controller
         $user->password = Hash::make($request->new_password);
         $user->save();
 
-        return redirect()->back()->with('success', 'Password berhasil diubah.');
+        return redirect()->route('user.profil')->with('success', 'Password berhasil diubah.');
     }
 
-    // --- History ---
-    public function history(Request $request)
-    {
-        $user = Auth::user();
-        $query = UserActivity::where('user_id', $user->id);
-
-        if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
-        }
-        if ($request->filled('type')) {
-            $query->where('type', $request->type);
-        }
-        if ($request->filled('date')) {
-            $query->whereDate('created_at', $request->date);
-        }
-
-        $activities = $query->orderBy('created_at', 'desc')->paginate(10);
-        return view('user.history', compact('activities'));
-    }
-
+    // --- History Actions ---
     public function deleteHistory($id)
     {
         $activity = UserActivity::where('user_id', Auth::id())->findOrFail($id);
         $activity->delete();
-        return redirect()->back()->with('success', 'Aktivitas berhasil dihapus.');
+        return redirect()->route('user.profil')->with('success', 'Aktivitas berhasil dihapus.');
     }
 
     public function clearHistory()
     {
         UserActivity::where('user_id', Auth::id())->delete();
-        return redirect()->back()->with('success', 'Semua riwayat aktivitas telah dihapus.');
+        return redirect()->route('user.profil')->with('success', 'Semua riwayat aktivitas telah dihapus.');
     }
 
-    // --- Bookmark ---
-    public function bookmarks(Request $request)
-    {
-        $user = Auth::user();
-        $bookmarks = Bookmark::where('user_id', $user->id)
-            ->with('article')
-            ->when($request->filled('category'), function ($q) use ($request) {
-                return $q->whereHas('article', function ($query) use ($request) {
-                    $query->where('category', $request->category);
-                });
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(9);
-
-        return view('user.bookmarks', compact('bookmarks'));
-    }
-
+    // --- Bookmark Actions ---
     public function toggleBookmark(Request $request)
     {
         $articleId = $request->article_id;
@@ -156,42 +159,33 @@ class UserProfileController extends Controller
     {
         $bookmark = Bookmark::where('user_id', Auth::id())->findOrFail($id);
         $bookmark->delete();
-        return redirect()->back()->with('success', 'Bookmark berhasil dihapus.');
+        return redirect()->route('user.profil')->with('success', 'Bookmark berhasil dihapus.');
     }
 
-    // --- Notification ---
-    public function notifications(Request $request)
-    {
-        $user = Auth::user();
-        $notifications = $user->notifications()
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-        return view('user.notifications', compact('notifications'));
-    }
-
+    // --- Notification Actions ---
     public function markNotificationAsRead($id)
     {
         $notification = Auth::user()->notifications()->findOrFail($id);
         $notification->markAsRead();
-        return redirect()->back()->with('success', 'Notifikasi ditandai telah dibaca.');
+        return redirect()->route('user.profil')->with('success', 'Notifikasi ditandai telah dibaca.');
     }
 
     public function markAllNotificationsAsRead()
     {
         Auth::user()->unreadNotifications->markAsRead();
-        return redirect()->back()->with('success', 'Semua notifikasi telah dibaca.');
+        return redirect()->route('user.profil')->with('success', 'Semua notifikasi telah dibaca.');
     }
 
     public function deleteNotification($id)
     {
         $notification = Auth::user()->notifications()->findOrFail($id);
         $notification->delete();
-        return redirect()->back()->with('success', 'Notifikasi berhasil dihapus.');
+        return redirect()->route('user.profil')->with('success', 'Notifikasi berhasil dihapus.');
     }
 
     public function clearNotifications()
     {
         Auth::user()->notifications()->delete();
-        return redirect()->back()->with('success', 'Semua notifikasi telah dihapus.');
+        return redirect()->route('user.profil')->with('success', 'Semua notifikasi telah dihapus.');
     }
 }

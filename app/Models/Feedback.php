@@ -10,19 +10,29 @@ class Feedback extends Model
     use HasFactory;
 
     /**
-     * Kolom yang boleh diisi secara massal (Mass Assignment)
+     * ✅ PERBAIKAN PENTING: Paksa Laravel memakai tabel 'feedbacks' (jamak)
+     * karena kita baru saja membuat migrasi dengan nama tabel tersebut.
      */
+    protected $table = 'feedbacks';
+
     protected $fillable = [
+        'article_id',
         'user_id',
-        'name',
-        'email',
-        'message',
-        'rating',
+        'feedback_type',
         'status',
+        'message',
     ];
 
     /**
-     * Relasi ke Model User (jika feedback diberikan oleh user yang login)
+     * Relasi ke artikel yang diberi feedback
+     */
+    public function article()
+    {
+        return $this->belongsTo(Article::class);
+    }
+
+    /**
+     * Relasi ke user yang memberikan feedback
      */
     public function user()
     {

@@ -1,7 +1,50 @@
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 
-class Comment extends Model {
-    protected $fillable = ['user_id', 'article_id', 'parent_id', 'content', 'status'];
+class Comment extends Model
+{
+    protected $fillable = [
+        'user_id',
+        'article_id',
+        'parent_id',
+        'content',
+        'status',
+        'likes'
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function article()
+    {
+        return $this->belongsTo(Article::class);
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(Comment::class, 'parent_id');
+    }
+
+    public function replies()
+    {
+        return $this->hasMany(Comment::class, 'parent_id');
+    }
+
+    // ✅ Relasi ke tabel comment_likes
+    public function likes()
+    {
+        return $this->hasMany(CommentLike::class);
+    }
+
+    // ✅ Helper untuk mengecek apakah user sudah like
+    public function isLikedBy($user = null)
+    {
+        if (!$user) return false;
+        return $this->likes()->where('user_id', $user->id)->exists();
+    }
 }
