@@ -104,11 +104,19 @@ class AdminArticleController extends Controller
 
     /**
      * Memperbarui data artikel (judul, kategori, status, visibility, versi).
+     * Menambahkan logika otomatis isi published_at jika status berubah menjadi published.
      */
     public function update(Request $request, $id)
     {
         $article = Article::findOrFail($id);
-        $article->update($request->only(['title', 'category', 'status', 'visibility', 'version']));
+        $data = $request->only(['title', 'category', 'status', 'visibility', 'version']);
+
+        // ✨ Jika status diubah menjadi 'published' dan published_at kosong, isi otomatis
+        if ($request->has('status') && $request->status === 'published' && is_null($article->published_at)) {
+            $data['published_at'] = now();
+        }
+
+        $article->update($data);
         return redirect()->route('admin.all-articles')->with('success', 'Artikel berhasil diperbarui.');
     }
 
@@ -124,11 +132,19 @@ class AdminArticleController extends Controller
 
     /**
      * Menyetujui artikel (ubah status dari pending menjadi published).
+     * ✨ PERBAIKAN UTAMA: Otomatis mengisi published_at jika kosong.
      */
     public function approve($id)
     {
         $article = Article::findOrFail($id);
-        $article->update(['status' => 'published']);
+        
+        $data = ['status' => 'published'];
+        if (is_null($article->published_at)) {
+            $data['published_at'] = now();
+        }
+        
+        $article->update($data);
+
         // Catat activity log
         ActivityLog::create([
             'subject_id'   => $article->id,
@@ -137,7 +153,8 @@ class AdminArticleController extends Controller
             'description'  => 'Artikel disetujui oleh admin',
             'properties'   => json_encode(['old_status' => 'pending', 'new_status' => 'published']),
         ]);
-        return redirect()->back()->with('success', 'Artikel berhasil disetujui.');
+
+        return redirect()->back()->with('success', 'Artikel berhasil disetujui dan dipublikasikan.');
     }
 
     /**
@@ -169,7 +186,6 @@ class AdminArticleController extends Controller
 
     /**
      * Memulihkan artikel dari arsip (kembali ke draft).
-     * Route: GET /admin/articles/restore/{id}
      */
     public function restore($id)
     {
@@ -199,8 +215,7 @@ class AdminArticleController extends Controller
     }
 
     /**
-     * Menampilkan detail artikel di halaman Admin (Mengatasi 404 View).
-     * Route: GET /admin/articles/view/{id}
+     * Menampilkan detail artikel di halaman Admin.
      */
     public function show($id)
     {
@@ -210,7 +225,6 @@ class AdminArticleController extends Controller
 
     /**
      * Menampilkan riwayat perubahan spesifik untuk artikel tersebut.
-     * Route: GET /admin/articles/history/{id}
      */
     public function history($id)
     {
@@ -226,7 +240,6 @@ class AdminArticleController extends Controller
 
     /**
      * Mengambil data artikel dalam format JSON untuk modal review.
-     * Route: GET /admin/articles/json/{id}
      */
     public function getArticleJson($id)
     {
@@ -236,7 +249,6 @@ class AdminArticleController extends Controller
 
     /**
      * Mengirim permintaan revisi (catatan revisi)
-     * Route: POST /admin/articles/revision/{id}
      */
     public function revision(Request $request, $id)
     {

@@ -31,6 +31,9 @@ use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\CommentController;
 
+// ✨ Tambahkan ini untuk AI Chatbot Publik
+use App\Http\Controllers\AiAssistantController;
+
 /*
 |--------------------------------------------------------------------------
 | Public Routes (Tidak perlu login)
@@ -42,6 +45,9 @@ Route::get('/document/sop-siber', function () { return view('document-detail'); 
 
 // Route Detail Dokumen Publik
 Route::get('/document/{slug}', [DocumentController::class, 'show'])->name('document.detail');
+
+// ✨ Route AI Chatbot yang terbatas hanya pada database AKSARA
+Route::post('/api/ai/chat', [AiAssistantController::class, 'chat'])->name('api.ai.chat');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -99,7 +105,6 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'verified.otp', 'rol
     Route::post('/articles/unarchive/{id}', [StaffArticleController::class, 'unarchive'])->name('articles.unarchive');
     Route::post('/articles/bulk-action', [StaffArticleController::class, 'bulkAction'])->name('articles.bulkAction');
 
-    // 👇 BARIS YANG DIUBAH (dari articles.download menjadi articles.download-pdf)
     Route::get('/articles/download/{id}', [StaffArticleController::class, 'downloadPdf'])->name('articles.download-pdf');
     
     Route::get('/articles/{id}', [StaffArticleController::class, 'show'])->name('articles.show');
@@ -127,8 +132,7 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'verified.otp', 'rol
     Route::post('/editor/upload-attachment', [StaffEditorController::class, 'uploadAttachment'])->name('editor.upload.attachment');
     Route::post('/editor/ai-assistant', [StaffEditorController::class, 'aiAssistant'])->name('editor.ai');
 
-    // ✅ BARU: route yang sebelumnya belum ada, menyebabkan RouteNotFoundException
-    // saat tombol "Auto-Isi AI" dipanggil dari staff-editor.blade.php.
+    // ✅ Route AutoFill Metadata yang sudah Anda tambahkan
     Route::post('/editor/autofill', [StaffEditorController::class, 'autoFillMetadata'])->name('editor.autofill');
 
     Route::get('/editor/{id}', [StaffEditorController::class, 'edit'])->whereNumber('id')->name('editor.edit');

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\UserActivity;
-use Barryvdh\DomPDF\Facade\Pdf; // Tambahkan ini!
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -14,8 +14,6 @@ use Illuminate\Support\Str;
 
 class StaffArticleController extends Controller
 {
-    // ... (method index, create, edit, store, update, show, preview, history tetap sama seperti kode Anda)
-
     /**
      * Menampilkan list artikel dengan filter, search, sorting & pagination
      */
@@ -56,6 +54,7 @@ class StaffArticleController extends Controller
     }
 
     // --- CRUD: Tampilan Form (Create, Edit) ---
+
     public function create()
     {
         return view('staff-articles-create');
@@ -68,6 +67,7 @@ class StaffArticleController extends Controller
     }
 
     // --- CRUD: Aksi Simpan (Store, Update) ---
+
     public function store(Request $request)
     {
         $request->validate([
@@ -81,7 +81,7 @@ class StaffArticleController extends Controller
         $article = Article::create([
             'user_id'    => auth()->id(),
             'title'      => $request->title,
-            'slug'       => Str::slug($request->title . ' ' . uniqid()), 
+            'slug'       => Str::slug($request->title . ' ' . uniqid()),
             'content'    => $request->content,
             'category'   => $request->category,
             'visibility' => $request->visibility,
@@ -101,6 +101,9 @@ class StaffArticleController extends Controller
         return redirect()->route('staff.articles')->with('success', 'Artikel berhasil dibuat!');
     }
 
+    /**
+     * REVISI UTAMA: Update lengkap dengan logika pengisian published_at otomatis.
+     */
     public function update(Request $request, $id)
     {
         $article = Article::where('user_id', auth()->id())->findOrFail($id);
@@ -111,15 +114,27 @@ class StaffArticleController extends Controller
             'category'   => 'required|string|max:100',
             'visibility' => ['required', Rule::in(['public', 'internal', 'restricted', 'private'])],
             'tags'       => 'nullable|string',
+            'status'     => 'nullable|in:draft,published,review,revision,archived', // Tambahkan validasi status
         ]);
 
-        $article->update([
+        // Siapkan data yang akan diupdate
+        $dataToUpdate = [
             'title'      => $request->title,
             'content'    => $request->content,
             'category'   => $request->category,
             'visibility' => $request->visibility,
             'tags'       => $request->tags,
-        ]);
+        ];
+
+        // ✨ LOGIKA BARU: Jika status berubah menjadi published dan published_at kosong, isi otomatis!
+        if ($request->has('status')) {
+            $dataToUpdate['status'] = $request->status;
+            if ($request->status === 'published' && is_null($article->published_at)) {
+                $dataToUpdate['published_at'] = now();
+            }
+        }
+
+        $article->update($dataToUpdate);
 
         UserActivity::create([
             'user_id'    => auth()->id(),
@@ -134,6 +149,7 @@ class StaffArticleController extends Controller
     }
 
     // --- Method Tampilan (Show, Preview, History) ---
+
     public function show($id)
     {
         $article = Article::where('user_id', auth()->id())->findOrFail($id);
@@ -158,16 +174,38 @@ class StaffArticleController extends Controller
         return view('staff-articles-history', compact('article', 'revisions'));
     }
 
-    // --- Method Aksi Lainnya ---
+    // --- Method Aksi Lainnya (Quick Update, Duplicate, Archive, dll) ---
+
+    /**
+     * REVISI UTAMA: Quick Update dengan logika pengisian published_at otomatis.
+     */
     public function quickUpdate(Request $request, $id)
     {
         $article = Article::where('user_id', auth()->id())->findOrFail($id);
-        $validated = $request->validate([
+
+        $request->validate([
             'title'      => 'required|string|max:255',
             'category'   => 'required|string|max:100',
             'visibility' => ['required', Rule::in(['public', 'internal', 'restricted', 'private'])],
+            'status'     => 'nullable|in:draft,published,review,revision,archived', // Tambahkan validasi status
         ]);
-        $article->update($validated);
+
+        // Siapkan data yang akan diupdate
+        $dataToUpdate = [
+            'title'      => $request->title,
+            'category'   => $request->category,
+            'visibility' => $request->visibility,
+        ];
+
+        // ✨ LOGIKA BARU: Jika status berubah menjadi published dan published_at kosong, isi otomatis!
+        if ($request->has('status')) {
+            $dataToUpdate['status'] = $request->status;
+            if ($request->status === 'published' && is_null($article->published_at)) {
+                $dataToUpdate['published_at'] = now();
+            }
+        }
+
+        $article->update($dataToUpdate);
 
         UserActivity::create([
             'user_id'    => auth()->id(),
@@ -296,19 +334,15 @@ class StaffArticleController extends Controller
     }
 
     /**
-     * Download PDF artikel (REVISI SESUAI REQUEST FOLDER VIEW).
+     * Download PDF artikel.
      */
     public function downloadPdf($id)
     {
         $article = Article::where('user_id', auth()->id())->findOrFail($id);
 
         try {
-            // Mengambil data artikel & memuat view dari folder views/pdf/article.blade.php
             $pdf = Pdf::loadView('pdf.article', compact('article'));
-            
-            // Download file PDF
             return $pdf->download('artikel-' . Str::slug($article->title) . '.pdf');
-            
         } catch (\Throwable $e) {
             report($e);
             return back()->with('error', 'Gagal menghasilkan file PDF. Pastikan library DomPDF sudah terinstall.');

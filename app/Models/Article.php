@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str; // Tambahkan ini untuk Str::limit
 
 class Article extends Model
 {
@@ -113,6 +114,21 @@ class Article extends Model
     public function getPublishedAtFormattedAttribute()
     {
         return $this->published_at ? $this->published_at->format('d M Y') : 'Belum dipublikasikan';
+    }
+
+    // ✨ PERBAIKAN UTAMA DI SINI
+    /**
+     * Accessor untuk kolom excerpt.
+     * Jika kosong, ambil 120 karakter pertama dari konten (tanpa tag HTML).
+     */
+    public function getExcerptAttribute($value)
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+
+        // Hapus tag HTML (<p>, <strong>, dll) lalu potong 120 karakter
+        return Str::limit(strip_tags($this->content), 120);
     }
 
     // ========== SCOPES ==========
