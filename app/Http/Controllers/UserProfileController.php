@@ -33,21 +33,19 @@ class UserProfileController extends Controller
         if ($request->filled('date')) {
             $activityQuery->whereDate('created_at', $request->date);
         }
+        
         // Paginate & pertahankan Query String agar saat pindah halaman filter tetap berlaku
         $activities = $activityQuery->orderBy('created_at', 'desc')
             ->paginate(10)
             ->appends($request->except('page'));
 
-        // 2. Query Bookmark dengan Filter Kategori
-        $bookmarkQuery = Bookmark::where('user_id', $user->id)->with('article');
-        if ($request->filled('category')) {
-            $bookmarkQuery->whereHas('article', function ($q) use ($request) {
-                $q->where('category', $request->category);
-            });
-        }
-        $bookmarks = $bookmarkQuery->orderBy('created_at', 'desc')
-            ->paginate(9)
-            ->appends($request->except('page'));
+        // 2. Query Bookmark (FILTER KATEGORI DIPINDAHKAN KE JAVASCRIPT)
+        // Kita hanya ambil semua data bookmark user. Filter kategori dilakukan 100% oleh JS di frontend.
+        $bookmarks = Bookmark::where('user_id', $user->id)->with('article')
+            ->orderBy('created_at', 'desc')
+            ->paginate(9);
+            // Catatan: `->appends()` dihapus karena JS menangani filter tanpa memerlukan parameter URL,
+            // sehingga pagination tidak akan pernah kehilangan data.
 
         // 3. Query Notifikasi (Paling baru di atas)
         $notifications = $user->notifications()
@@ -67,7 +65,7 @@ class UserProfileController extends Controller
         // 5. Data Chart (7 Hari Terakhir)
         $chartData = $this->getChartData($user->id);
 
-        // Return ke view yang sudah disediakan (resources/views/user-profil.blade.php)
+        // Return ke view user-profil (sesuai file blade kamu)
         return view('user-profil', compact('user', 'activities', 'bookmarks', 'notifications', 'stats', 'chartData'));
     }
 
@@ -139,7 +137,8 @@ class UserProfileController extends Controller
         return redirect()->route('user.profil')->with('success', 'Semua riwayat aktivitas telah dihapus.');
     }
 
-    // --- Bookmark Actions ---
+    // --- Bookmark Actions (Controller hanya handle Hapus) ---
+    // Catatan: Fungsi toggleBookmark bisa digunakan untuk API jika nanti mau bikin tombol bookmark di halaman artikel.
     public function toggleBookmark(Request $request)
     {
         $articleId = $request->article_id;

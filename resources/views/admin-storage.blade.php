@@ -46,6 +46,7 @@
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden opacity-0" onclick="toggleSidebar()"></div>
 
     <aside id="sidebar-mobile" class="w-64 bg-darkbg text-gray-300 flex flex-col border-r border-gray-800 shadow-2xl z-40 fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 flex-shrink-0 sidebar-scroll">
+        <!-- Sidebar Content (Sama seperti sebelumnya, tidak diubah) -->
         <div class="h-16 flex items-center gap-3 px-6 border-b border-gray-800">
             <div class="w-8 h-8 bg-gold rounded text-darkbg flex items-center justify-center font-bold text-lg">A</div>
             <div class="flex flex-col">
@@ -53,6 +54,7 @@
                 <span class="text-[10px] text-red-400 font-bold uppercase tracking-widest">Super Admin</span>
             </div>
         </div>
+
         <div class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg> Dashboard
@@ -200,9 +202,9 @@
                 </ul>
             </div>
 
-            <!-- 2. File Tidak Digunakan (Yatim / Orphan) -->
+            <!-- 2. Daftar File Orphan (Tidak Digunakan) -->
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-                <h3 class="font-bold text-gray-800 text-lg mb-4 flex items-center gap-2">🗑️ File Tidak Digunakan</h3>
+                <h3 class="font-bold text-gray-800 text-lg mb-4 flex items-center gap-2">🗑️ Daftar File Orphan</h3>
                 <ul class="space-y-3">
                     @forelse($orphanFilesDisplay as $file)
                     <li class="flex justify-between items-center border-b border-gray-100 pb-2">
@@ -217,23 +219,23 @@
                         </form>
                     </li>
                     @empty
-                    <li class="text-center text-gray-500 text-sm py-2">Tidak ada file yang tidak digunakan.</li>
+                    <li class="text-center text-gray-500 text-sm py-2">Tidak ada file orphan yang terdeteksi.</li>
                     @endforelse
                 </ul>
             </div>
 
-            <!-- 3. Pembersihan File Yatim (Orphan Files) -->
+            <!-- 3. Reklamasi File Orphan -->
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 flex flex-col">
-                <h3 class="font-bold text-gray-800 text-lg mb-2 flex items-center gap-2">🧹 Pembersihan File Yatim</h3>
-                <p class="text-xs text-gray-500 mb-4">File yang tidak terhubung dengan database atau artikel (orphan files) dapat memenuhi storage. Lakukan scan dan pembersihan secara berkala.</p>
+                <h3 class="font-bold text-gray-800 text-lg mb-2 flex items-center gap-2">♻️ Reklamasi File Orphan</h3>
+                <p class="text-xs text-gray-500 mb-4">File yang tidak memiliki referensi dalam basis data (orphan files) dapat mengakumulasi ruang penyimpanan. Lakukan analisis dan reklamasi secara berkala untuk optimalisasi kapasitas.</p>
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                    <p class="text-xs text-blue-700 font-medium">Total file yatim terdeteksi: <span class="font-bold">{{ number_format(count($orphanFiles)) }} file</span></p>
+                    <p class="text-xs text-blue-700 font-medium">Total file orphan terdeteksi: <span class="font-bold">{{ number_format(count($orphanFiles)) }} entri</span></p>
                 </div>
-                <form action="{{ route('admin.storage.cleanup') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus semua file yatim? Tindakan ini tidak dapat dibatalkan!')">
+                <form action="{{ route('admin.storage.cleanup') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus semua file orphan? Tindakan ini tidak dapat dibatalkan!')">
                     @csrf
                     <button type="submit" class="mt-auto w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-lg text-sm transition-colors shadow-sm hover:shadow flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        Scan & Cleanup
+                        Jalankan Reklamasi
                     </button>
                 </form>
             </div>
@@ -270,7 +272,7 @@
             }
         }
 
-        // --- Toast Notification (Untuk menampilkan session success/error) ---
+        // --- Toast Notification ---
         function showToast(message, type = 'success') {
             const color = type === 'success' ? 'border-gold' : 'border-red-500';
             const icon = type === 'success' ? '✦' : '✖';

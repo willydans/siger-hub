@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Otp;
 use App\Models\Role;
+use App\Models\UserActivity; // ✨ Tambahkan import ini
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -27,16 +28,6 @@ class AuthController extends Controller
 
     /**
      * Proses login manual (email & password)
-     *
-     * ✅ PERBAIKAN KRUSIAL: Sebelumnya kode ini memakai Auth::attempt(),
-     * yang LANGSUNG membuat session "authenticated" begitu password
-     * cocok — walau email belum diverifikasi. Akibatnya, middleware
-     * 'guest' di halaman login/register jadi langsung meloloskan user
-     * ke dashboard tanpa pernah melewati halaman OTP.
-     *
-     * Solusi: pakai Auth::validate() untuk mengecek kredensial TANPA
-     * membuat session, baru panggil Auth::login() setelah OTP benar-benar
-     * diverifikasi (lihat OtpController::verify()).
      */
     public function login(Request $request)
     {
@@ -54,7 +45,7 @@ class AuthController extends Controller
         $user = User::where('email', $credentials['email'])->first();
 
         if (!$user->email_verified_at) {
-            // ✅ Simpan id user sementara di session, JANGAN Auth::login() dulu
+            // Simpan id user sementara di session, JANGAN Auth::login() dulu
             $request->session()->put('otp_user_id', $user->id);
             $request->session()->put('otp_remember', $request->boolean('remember'));
 
@@ -64,16 +55,21 @@ class AuthController extends Controller
 
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
+
+        // ✨ CATAT AKTIVITAS LOGIN
+        UserActivity::create([
+            'user_id'    => $user->id,
+            'type'       => 'Login',
+            'description'=> $user->name . ' berhasil login ke sistem',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
         return $this->redirectBasedOnRole($user);
     }
 
     /**
      * Proses registrasi akun baru
-     *
-     * ✅ PERBAIKAN: Tidak lagi memanggil Auth::login($user) di sini.
-     * User baru hanya disimpan id-nya di session ('otp_user_id') sampai
-     * OTP berhasil diverifikasi. Ini menutup celah yang membuat user bisa
-     * "masuk" tanpa pernah mengisi OTP.
      */
     public function register(Request $request)
     {
@@ -95,7 +91,16 @@ class AuthController extends Controller
             'role_id'  => $roleId
         ]);
 
-        // ✅ Jangan Auth::login($user) dulu — simpan id-nya saja di session
+        // ✨ CATAT AKTIVITAS REGISTER (sebelum OTP dikirim)
+        UserActivity::create([
+            'user_id'    => $user->id,
+            'type'       => 'Register',
+            'description'=> $user->name . ' mendaftarkan akun baru',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        // Jangan Auth::login($user) dulu — simpan id-nya saja di session
         $request->session()->put('otp_user_id', $user->id);
         $request->session()->put('otp_remember', false);
 
@@ -116,6 +121,17 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        // ✨ CATAT AKTIVITAS LOGOUT sebelum user benar-benar logout
+        if (Auth::check()) {
+            UserActivity::create([
+                'user_id'    => Auth::id(),
+                'type'       => 'Logout',
+                'description'=> Auth::user()->name . ' keluar dari sistem',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -137,7 +153,7 @@ class AuthController extends Controller
             return redirect()->to('/staff/dashboard');
         }
 
-        // ✅ User biasa diarahkan ke Welcome Page sesuai route 'home.public' di web.php
+        // User biasa diarahkan ke Welcome Page
         return redirect()->route('home.public');
     }
 

@@ -78,11 +78,8 @@
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#F8FAFC] p-4 md:p-8 relative w-full">
         
-        <!-- =========================================================== -->
-        <!-- 🔥 HEADER DENGAN TOMBOL KEMBALI KE BERANDA -->
-        <!-- =========================================================== -->
+        <!-- HEADER DENGAN TOMBOL KEMBALI KE BERANDA -->
         <div class="flex justify-between items-center mb-6">
-            <!-- Mobile Only: Toggle & Logo -->
             <div class="flex items-center gap-2 md:hidden">
                 <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-900 p-2 -ml-2 rounded-lg hover:bg-gray-100">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -93,7 +90,7 @@
                 </div>
             </div>
             
-            <!-- 🔙 TOMBOL KEMBALI KE HOME PAGE (Terlihat di Desktop & Mobile) -->
+            <!-- TOMBOL KEMBALI -->
             <a href="{{ route('home.public') }}" class="ml-auto flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 Kembali ke Beranda
@@ -109,7 +106,7 @@
                 </div>
             </div>
             
-            <!-- Statistik Cards (Dinamis) -->
+            <!-- Statistik Cards -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm stat-card fade-in-up">
                     <p class="text-[10px] font-bold text-gray-500 uppercase mb-1">📚 Total Aktivitas</p>
@@ -129,7 +126,7 @@
                 </div>
             </div>
 
-            <!-- Charts (Dinamis) -->
+            <!-- Charts -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 fade-in-up">
                 <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
                     <h3 class="font-bold text-gray-800 text-sm mb-3">Distribusi Aktivitas</h3>
@@ -258,7 +255,9 @@
             </div>
         </div>
 
-        <!-- Tab Bookmark -->
+        <!-- ============================================= -->
+        <!-- 🔥 REVISI TAB BOOKMARK (FILTER FRONTEND)       -->
+        <!-- ============================================= -->
         <div id="tab-bookmark" class="tab-content">
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 fade-in-up">
                 <div>
@@ -267,20 +266,21 @@
                 </div>
             </div>
 
-            <!-- Filter Bookmark -->
+            <!-- Filter Bookmark (Diubah jadi Javascript agar tidak 404) -->
             <div class="flex flex-wrap items-center gap-2 mb-6 bg-white p-2 rounded-xl border border-gray-200 shadow-sm fade-in-up">
                 <span class="text-[10px] font-bold text-gray-400 uppercase px-1">Filter:</span>
-                <a href="{{ route('user.bookmarks') }}" class="px-3 py-1.5 text-xs font-medium rounded-lg {{ !request('category') ? 'bg-gray-100 text-gray-600' : 'text-gray-500 hover:bg-gray-50' }}">Semua</a>
+                <a href="javascript:void(0)" onclick="filterBookmarks('')" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-100 text-gray-600 filter-btn active">Semua</a>
                 @foreach(['SOP', 'Tutorial', 'Video', 'PDF', 'Dokumen'] as $cat)
-                    <a href="{{ route('user.bookmarks', ['category' => $cat]) }}" class="px-3 py-1.5 text-xs font-medium rounded-lg {{ request('category') == $cat ? 'bg-gray-100 text-gray-600' : 'text-gray-500 hover:bg-gray-50' }}">{{ $cat }}</a>
+                    <a href="javascript:void(0)" onclick="filterBookmarks('{{ $cat }}')" class="px-3 py-1.5 text-xs font-medium rounded-lg text-gray-500 hover:bg-gray-50 filter-btn">{{ $cat }}</a>
                 @endforeach
             </div>
 
             <!-- Grid Bookmark -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in-up">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in-up" id="bookmark-grid">
                 @if($bookmarks->count() > 0)
                     @foreach($bookmarks as $bookmark)
-                    <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover-lift">
+                    <!-- Tambahkan data-category untuk filtering JS -->
+                    <div class="bookmark-item bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover-lift" data-category="{{ $bookmark->article->category ?? 'Umum' }}">
                         <div class="flex justify-between items-start mb-2">
                             <h3 class="font-bold text-gray-900 text-lg leading-tight line-clamp-2">{{ $bookmark->article->title }}</h3>
                             <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{{ $bookmark->article->category ?? 'Umum' }}</span>
@@ -302,14 +302,17 @@
                         </div>
                     </div>
                     @endforeach
-                    <div class="col-span-full mt-4">
-                        {{ $bookmarks->links() }}
-                    </div>
                 @else
-                    <div class="col-span-full text-center py-10 text-gray-500">
+                    <!-- Empty state akan ditampilkan jika tidak ada data sama sekali -->
+                    <div id="bookmark-empty" class="col-span-full text-center py-10 text-gray-500">
                         <p>Belum ada bookmark.</p>
                     </div>
                 @endif
+            </div>
+            
+            <!-- Pagination Bookmark (di luar grid) -->
+            <div class="mt-4">
+                {{ $bookmarks->links() }}
             </div>
         </div>
 
@@ -338,7 +341,6 @@
                 </div>
             </div>
 
-            <!-- Summary -->
             <div class="grid grid-cols-2 gap-4 mb-6 fade-in-up">
                 <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card">
                     <p class="text-[10px] font-bold text-gray-500 uppercase mb-1">🔔 Belum Dibaca</p>
@@ -350,7 +352,6 @@
                 </div>
             </div>
 
-            <!-- Daftar Notifikasi -->
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 fade-in-up">
                 @if(Auth::user()->notifications->count() > 0)
                     <div class="space-y-4">
@@ -406,7 +407,6 @@
                 </div>
             </div>
 
-            <!-- Header & Statistik -->
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6 fade-in-up">
                 <div class="flex flex-col md:flex-row gap-6 border-b border-gray-100 pb-6 mb-6">
                     <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 flex-1">
@@ -429,7 +429,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Statistik Singkat -->
                 <div class="grid grid-cols-3 sm:grid-cols-6 gap-4">
                     <div class="text-center"><p class="text-xl font-bold text-gray-900">{{ $stats['articles_read'] }}</p><p class="text-[10px] text-gray-500">Dibaca</p></div>
                     <div class="text-center"><p class="text-xl font-bold text-gray-900">{{ $stats['bookmarks'] }}</p><p class="text-[10px] text-gray-500">Bookmark</p></div>
@@ -440,7 +439,6 @@
                 </div>
             </div>
 
-            <!-- Informasi Akun (Form Update) -->
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6 fade-in-up">
                 <h3 class="font-bold text-gray-800 text-lg mb-4 border-b border-gray-100 pb-2">Informasi Akun</h3>
                 <form action="{{ route('user.profile.update') }}" method="POST">
@@ -477,11 +475,9 @@
                 </form>
             </div>
 
-            <!-- Keamanan -->
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 fade-in-up">
                 <h3 class="font-bold text-gray-800 text-lg mb-4 border-b border-gray-100 pb-2">Keamanan</h3>
                 
-                <!-- Ganti Password -->
                 <div class="mb-6">
                     <h4 class="font-semibold text-gray-700 text-sm mb-2">Ganti Password</h4>
                     <form action="{{ route('user.profile.password') }}" method="POST">
@@ -532,9 +528,7 @@
         }
 
         function switchTab(tabId) {
-            // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            // Remove active state from sidebar links
             document.querySelectorAll('.sidebar-link').forEach(link => {
                 link.classList.remove('bg-gray-100', 'text-gray-900', 'border-gray-200');
                 link.classList.add('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-50');
@@ -543,11 +537,9 @@
                 if(svg) svg.classList.add('text-gray-500');
             });
 
-            // Show target tab
             const target = document.getElementById('tab-' + tabId);
             if(target) target.classList.add('active');
 
-            // Highlight active sidebar link
             const activeLink = document.querySelector(`.sidebar-link[onclick*="'${tabId}'"]`);
             if(activeLink) {
                 activeLink.classList.remove('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-50');
@@ -557,12 +549,10 @@
                 if(svg) svg.classList.remove('text-gray-500');
             }
 
-            // Inisialisasi Chart jika tab Dashboard yang dibuka
             if(tabId === 'dashboard') {
                 setTimeout(initDashboardCharts, 150);
             }
 
-            // Close sidebar on mobile
             if(window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebar-mobile');
                 const overlay = document.getElementById('sidebar-overlay');
@@ -573,6 +563,73 @@
                 }
             }
         }
+
+        // =============================================
+        // 🔥 LOGIKA FILTER BOOKMARK (FRONTEND SAJA)
+        // =============================================
+        function filterBookmarks(category) {
+            const items = document.querySelectorAll('.bookmark-item');
+            const emptyState = document.getElementById('bookmark-empty');
+            let visibleItems = 0;
+
+            // Update active state pada tombol filter
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-gray-100', 'text-gray-600');
+                btn.classList.add('text-gray-500');
+            });
+            // Cari tombol yang diklik (sedikit trik karena onclick di HTML)
+            const activeBtn = Array.from(document.querySelectorAll('.filter-btn')).find(btn => btn.getAttribute('onclick').includes(`'${category}'`));
+            if (activeBtn) {
+                activeBtn.classList.add('bg-gray-100', 'text-gray-600');
+                activeBtn.classList.remove('text-gray-500');
+            } else if (category === '') {
+                // Jika 'Semua', ambil tombol pertama
+                const firstBtn = document.querySelector('.filter-btn');
+                if(firstBtn) {
+                    firstBtn.classList.add('bg-gray-100', 'text-gray-600');
+                    firstBtn.classList.remove('text-gray-500');
+                }
+            }
+
+            items.forEach(item => {
+                const cat = item.dataset.category;
+                if (category === '' || cat === category) {
+                    item.classList.remove('hidden');
+                    visibleItems++;
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+
+            // Tampilkan pesan jika kosong
+            if (emptyState) {
+                if (visibleItems === 0) {
+                    emptyState.classList.remove('hidden');
+                } else {
+                    emptyState.classList.add('hidden');
+                }
+            }
+        }
+
+        // Inisialisasi Filter Bookmark Saat Load (Mendeteksi URL Param)
+        document.addEventListener('DOMContentLoaded', function() {
+            switchTab('dashboard');
+            
+            // Cek jika ada parameter 'category' di URL saat halaman dimuat (misal user refresh)
+            const urlParams = new URLSearchParams(window.location.search);
+            const categoryParam = urlParams.get('category');
+            
+            // Pastikan filter diterapkan jika ada param, dan hapus param dari URL agar tidak error
+            if (categoryParam) {
+                // Hapus query string dari URL tanpa reload
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, newUrl);
+                // Panggil fungsi filter
+                setTimeout(() => {
+                    filterBookmarks(categoryParam);
+                }, 100);
+            }
+        });
 
         let chartsInitialized = false;
         let activityChartInstance = null;
@@ -588,8 +645,7 @@
             if (activityChartInstance) activityChartInstance.destroy();
             if (trendChartInstance) trendChartInstance.destroy();
 
-            // Data dummy untuk chart (diganti dengan data real dari controller)
-            const activityData = {!! json_encode([98, 12, 15]) !!}; // Contoh: Membaca, Download, Bookmark
+            const activityData = {!! json_encode([98, 12, 15]) !!}; 
             const trendData = {!! json_encode($chartData['data'] ?? []) !!};
 
             activityChartInstance = new Chart(activityCtx, {
@@ -640,11 +696,6 @@
 
             chartsInitialized = true;
         }
-
-        // Set initial tab
-        document.addEventListener('DOMContentLoaded', function() {
-            switchTab('dashboard');
-        });
     </script>
 </body>
 </html>

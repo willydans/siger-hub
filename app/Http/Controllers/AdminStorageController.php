@@ -24,35 +24,42 @@ class AdminStorageController extends Controller
         $orphanFiles = [];
         $usedPaths = [];
 
-        // 2. Ambil semua path file yang digunakan oleh Artikel (dari thumbnail, attachments, dan content)
+        // 2. Ambil semua path file yang digunakan oleh Artikel
         $articles = Article::select('thumbnail', 'attachments', 'content')->get();
         foreach ($articles as $article) {
-            if ($article->thumbnail) $usedPaths[] = $article->thumbnail;
+            if ($article->thumbnail) {
+                $usedPaths[] = $article->thumbnail;
+            }
             
-            // ✅ PERBAIKAN: attachments sudah berupa array karena cast model
+            // Proses attachments (JSON array atau string)
             $attachments = $article->attachments;
-            // Jika ternyata masih string (data lama), kita decode manual
             if (is_string($attachments)) {
                 $attachments = json_decode($attachments, true);
             }
-            // Proses jika benar-benar array
             if (is_array($attachments)) {
                 foreach ($attachments as $att) {
                     if (isset($att['path'])) $usedPaths[] = $att['path'];
                 }
             }
 
-            // Regex sederhana untuk mencari src gambar di konten HTML
+            // Regex untuk src="..." di dalam konten HTML
             preg_match_all('/src="([^"]*)"/', $article->content, $matches);
             foreach ($matches[1] as $src) {
-                // Menghapus URL base jika menggunakan full URL
-                $relativePath = str_replace(asset('storage/'), '', $src);
-                $usedPaths[] = $relativePath;
+                $usedPaths[] = $src;
+            }
+
+            // Regex untuk href="..." jika ada link lampiran/file di dalam konten
+            preg_match_all('/href="([^"]*)"/', $article->content, $hrefMatches);
+            foreach ($hrefMatches[1] as $href) {
+                if (preg_match('/\.(pdf|doc|docx|zip|jpg|png|jpeg)$/i', $href)) {
+                    $usedPaths[] = $href;
+                }
             }
         }
+        // Hapus duplikasi dan nilai kosong
         $usedPaths = array_unique(array_filter($usedPaths));
 
-        // --- 3. Loop file untuk menghitung statistik dan mendeteksi Orphan (Yatim) ---
+        // --- 3. Loop file untuk menghitung statistik dan mendeteksi Orphan ---
         foreach ($allFiles as $file) {
             $size = $disk->size($file);
             $totalSize += $size;
@@ -72,27 +79,30 @@ class AdminStorageController extends Controller
                 'size_human' => $this->formatBytes($size),
             ];
 
-            // Deteksi File Yatim / Tidak Digunakan
+            // --- ✨ PERBAIKAN DETEKSI ORPHAN ---
             $isUsed = false;
+            $normalizedFile = $this->normalizePath($file); // Normalisasi path fisik
+
             foreach ($usedPaths as $usedPath) {
-                // Cek apakah file saat ini ada di dalam path yang digunakan database
-                if (strpos($usedPath, $file) !== false) {
+                $normalizedUsed = $this->normalizePath($usedPath); // Normalisasi path dari database
+                
+                // Logika pencocokan:
+                // 1. Sama persis
+                // 2. Path di database berakhir dengan nama file fisik
+                if ($normalizedFile === $normalizedUsed || str_ends_with($normalizedUsed, '/' . $normalizedFile)) {
                     $isUsed = true;
                     break;
                 }
             }
-            if (!$isUsed) {
-                $fileInfo = pathinfo($file);
-                // Abaikan folder seperti .gitignore atau folder sistem
-                if (!str_starts_with($fileInfo['basename'], '.')) {
-                    $orphanFiles[] = [
-                        'path' => $file,
-                        'name' => $fileInfo['basename'],
-                        'ext' => $fileInfo['extension'] ?? 'unknown',
-                        'last_modified' => $disk->lastModified($file),
-                        'size' => $this->formatBytes($size),
-                    ];
-                }
+
+            if (!$isUsed && !str_starts_with(basename($file), '.')) {
+                $orphanFiles[] = [
+                    'path' => $file,
+                    'name' => basename($file),
+                    'ext' => $ext ?? 'unknown',
+                    'last_modified' => $disk->lastModified($file),
+                    'size' => $this->formatBytes($size),
+                ];
             }
         }
 
@@ -100,7 +110,7 @@ class AdminStorageController extends Controller
         usort($topFiles, fn($a, $b) => $b['size'] - $a['size']);
         $topFiles = array_slice($topFiles, 0, 5);
 
-        // Batasi jumlah file yatim yang ditampilkan di UI (agar halaman tidak berat)
+        // Batasi jumlah file orphan yang ditampilkan di UI agar tidak berat
         $orphanFilesDisplay = array_slice($orphanFiles, 0, 15);
 
         // --- 4. Data untuk Kartu Statistik ---
@@ -112,7 +122,7 @@ class AdminStorageController extends Controller
         $imageCount = ($fileExtensions['jpg'] ?? 0) + ($fileExtensions['jpeg'] ?? 0) + ($fileExtensions['png'] ?? 0) + ($fileExtensions['gif'] ?? 0) + ($fileExtensions['webp'] ?? 0);
 
         // Statistik Nextcloud (Placeholder sampai integrasi Nextcloud selesai)
-        $nextcloudSize = '31 GB'; // Jika Nextcloud terintegrasi, ganti ini dengan Storage::disk('nextcloud')->...
+        $nextcloudSize = '31 GB';
 
         return view('admin-storage', compact(
             'laravelSize', 'nextcloudSize', 'totalFileCount',
@@ -122,7 +132,7 @@ class AdminStorageController extends Controller
     }
 
     /**
-     * Menghapus file spesifik (Dari tombol Hapus di File Tidak Digunakan)
+     * Menghapus file spesifik (Dari tombol Hapus di Daftar File Orphan)
      */
     public function deleteFile(Request $request)
     {
@@ -138,7 +148,7 @@ class AdminStorageController extends Controller
     }
 
     /**
-     * Scan & Cleanup (Menghapus semua file yatim / orphan)
+     * Scan & Cleanup (Menghapus semua file orphan)
      */
     public function cleanup(Request $request)
     {
@@ -151,7 +161,6 @@ class AdminStorageController extends Controller
         foreach ($articles as $article) {
             if ($article->thumbnail) $usedPaths[] = $article->thumbnail;
             
-            // ✅ PERBAIKAN KEDUA: Sama seperti di method index
             $attachments = $article->attachments;
             if (is_string($attachments)) {
                 $attachments = json_decode($attachments, true);
@@ -164,28 +173,60 @@ class AdminStorageController extends Controller
 
             preg_match_all('/src="([^"]*)"/', $article->content, $matches);
             foreach ($matches[1] as $src) {
-                $relativePath = str_replace(asset('storage/'), '', $src);
-                $usedPaths[] = $relativePath;
+                $usedPaths[] = $src;
+            }
+            
+            preg_match_all('/href="([^"]*)"/', $article->content, $hrefMatches);
+            foreach ($hrefMatches[1] as $href) {
+                if (preg_match('/\.(pdf|doc|docx|zip|jpg|png|jpeg)$/i', $href)) {
+                    $usedPaths[] = $href;
+                }
             }
         }
         $usedPaths = array_unique(array_filter($usedPaths));
 
         $deletedCount = 0;
         foreach ($allFiles as $file) {
+            if (str_starts_with(basename($file), '.')) continue;
+
             $isUsed = false;
+            $normalizedFile = $this->normalizePath($file);
             foreach ($usedPaths as $usedPath) {
-                if (strpos($usedPath, $file) !== false) {
+                $normalizedUsed = $this->normalizePath($usedPath);
+                if ($normalizedFile === $normalizedUsed || str_ends_with($normalizedUsed, '/' . $normalizedFile)) {
                     $isUsed = true;
                     break;
                 }
             }
-            if (!$isUsed && !str_starts_with(basename($file), '.')) {
+
+            if (!$isUsed) {
                 $disk->delete($file);
                 $deletedCount++;
             }
         }
 
-        return back()->with('success', "Pembersihan selesai! Sebanyak {$deletedCount} file yatim telah dihapus.");
+        return back()->with('success', "Reklamasi selesai! Sebanyak {$deletedCount} file orphan telah dihapus.");
+    }
+
+    /**
+     * ✨ HELPER: Normalisasi path file agar konsisten antara database dan physical disk.
+     * Menghapus protokol, domain, dan prefix /storage/ atau storage/.
+     */
+    private function normalizePath($path)
+    {
+        $path = trim($path);
+        // Hapus protokol dan domain jika ada URL lengkap
+        if (preg_match('/^https?:\/\//', $path)) {
+            $parsed = parse_url($path);
+            $path = $parsed['path'] ?? '';
+        }
+        // Hapus prefix /storage/ atau storage/ atau public/
+        $path = preg_replace('#^(/storage/|storage/|public/)#', '', $path);
+        // Hapus querystring jika ada (misal ?v=1)
+        if (($pos = strpos($path, '?')) !== false) {
+            $path = substr($path, 0, $pos);
+        }
+        return ltrim($path, '/');
     }
 
     /**

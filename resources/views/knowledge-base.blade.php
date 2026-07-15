@@ -281,7 +281,7 @@
                     // Rating rata-rata (Langsung ambil dari kolom database)
                     $avgRating = $article->rating_avg ?? 0;
 
-                    // Tambahan: Mapping warna badge untuk Visibilitas
+                    // Mapping warna badge untuk Visibilitas
                     $visClass = 'bg-gray-500 text-white';
                     $visLabel = $article->visibility ?? 'public';
                     if ($article->visibility === 'public') {
@@ -293,7 +293,9 @@
                     }
                 @endphp
 
-                <a href="{{ route('document.detail', $article->slug) }}"
+                {{-- ✨ TAMBAHAN: event onclick untuk mencatat klik ke SearchLog --}}
+                <a href="{{ route('document.detail', $article->slug) }}" 
+                   onclick="trackClick({{ $article->id }}, '{{ addslashes($article->slug) }}')"
                    class="bg-white border border-cardborder rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer scroll-hidden obs-element"
                    style="transition-delay: {{ ($loop->index % 3 + 1) * 100 }}ms">
 
@@ -311,7 +313,7 @@
                             {{ $catName }}
                         </span>
 
-                        {{-- ✨ BADGE BARU: Badge Visibilitas (Public/Internal/Private) --}}
+                        {{-- Badge Visibilitas (Public/Internal/Private) --}}
                         <span class="absolute top-3 right-3 {{ $visClass }} text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm uppercase">
                             {{ ucfirst($visLabel) }}
                         </span>
@@ -323,7 +325,7 @@
                             {{ $article->title }}
                         </h3>
                         <p class="text-xs text-gray-500 mb-4 line-clamp-2">
-                            {{ $article->excerpt ?? 'Deskripsi tidak tersedia.' }}
+                            {{ $article->excerpt }}
                         </p>
 
                         <div class="mt-auto flex flex-col gap-3">
@@ -344,10 +346,10 @@
                                 </span>
                             </div>
 
-                            {{-- Action Bar (Menggunakan kolom integer langsung dari tabel) --}}
+                            {{-- Action Bar --}}
                             <div class="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-[11px] text-gray-400 gap-2">
                                 <div class="flex items-center gap-3 flex-wrap">
-                                    {{-- Like (Diambil dari kolom `likes`) --}}
+                                    {{-- Like --}}
                                     <span class="flex items-center gap-1 cursor-default">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -356,7 +358,7 @@
                                         <span>{{ $article->likes ?? 0 }}</span>
                                     </span>
 
-                                    {{-- Rating (Diambil dari kolom `rating_avg`) --}}
+                                    {{-- Rating --}}
                                     <div class="flex items-center gap-0.5 text-[10px]">
                                         @for($i = 1; $i <= 5; $i++)
                                             <span class="{{ $i <= round($avgRating) ? 'star-filled' : 'star-empty' }}">★</span>
@@ -517,6 +519,28 @@
             );
             document.querySelectorAll('.obs-element').forEach(el => observer.observe(el));
         });
+
+        // ✨ FITUR BARU: Fungsi untuk mencatat klik artikel (update search_logs)
+        function trackClick(articleId, slug) {
+            // Hanya catat klik jika ada parameter pencarian yang aktif di URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchQuery = urlParams.get('search');
+
+            if (searchQuery) {
+                // Kirim data klik ke backend via Fetch API
+                fetch('/api/track-click', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        query: searchQuery,
+                        article_id: articleId
+                    })
+                }).catch(err => console.error('Gagal mencatat klik:', err));
+            }
+        }
     </script>
 </body>
 </html>

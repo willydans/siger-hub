@@ -15,7 +15,6 @@ class StaffNotificationController extends Controller
         $filter = $request->query('filter', 'all');
         $user = Auth::user();
 
-        // Ambil notifikasi dari user yang login (menggunakan relasi notifiable)
         $query = $user->notifications()->orderBy('created_at', 'desc');
 
         if ($filter === 'unread') {
@@ -36,10 +35,14 @@ class StaffNotificationController extends Controller
      */
     public function markAsRead($id)
     {
-        $notification = Auth::user()->notifications()->findOrFail($id);
-        $notification->markAsRead();
+        try {
+            $notification = Auth::user()->notifications()->findOrFail($id);
+            $notification->markAsRead();
 
-        return response()->json(['success' => true]);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     /**

@@ -46,6 +46,7 @@
 </head>
 <body class="font-sans antialiased text-textmain bg-lightbg flex h-screen overflow-hidden">
 
+    <!-- SIDEBAR & MOBILE OVERLAY -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden opacity-0" onclick="toggleSidebar()"></div>
 
     <aside id="sidebar-mobile" class="w-64 bg-darkbg text-gray-300 flex flex-col border-r border-gray-800 shadow-2xl z-40 fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 flex-shrink-0 sidebar-scroll">
@@ -91,7 +92,7 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Analytics
             </a>
 
-<a href="{{ route('admin.searchlog') }}" class="flex items-center gap-3 bg-gray-800/50 text-white px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border border-gray-700">
+            <a href="{{ route('admin.searchlog') }}" class="flex items-center gap-3 bg-gray-800/50 text-white px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border border-gray-700">
                 <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg> Search Log
             </a>
 
@@ -222,7 +223,8 @@
                         <tr class="hover:bg-gray-50/80 transition-colors duration-200">
                             <td class="px-4 py-3 font-medium text-gray-900">{{ $log->query }}</td>
                             <td class="px-4 py-3 text-gray-600">{{ $log->user ? $log->user->name : 'Guest' }}</td>
-                            <td class="px-4 py-3 text-gray-600">{{ $log->user ? ucfirst($log->user->role) : '-' }}</td>
+                            {{-- ✨ PERBAIKAN PENTING: Mengambil nama role melalui relasi, dengan fallback '-' --}}
+                            <td class="px-4 py-3 text-gray-600">{{ $log->user ? optional($log->user->role)->name : '-' }}</td>
                             <td class="px-4 py-3 text-gray-600">{{ $log->user ? $log->user->opd : '-' }}</td>
                             <td class="px-4 py-3 text-gray-600">{{ $log->created_at->format('H:i') }}</td>
                             <td class="px-4 py-3">
@@ -266,7 +268,8 @@
                                 @csrf
                                 <input type="hidden" name="keyword" value="{{ $zero->query }}">
                                 <select name="staff_id" class="text-[10px] border border-gray-300 rounded py-1 px-2 bg-white mr-2">
-                                    @foreach(\App\Models\User::where('role', 'staff')->get() as $staff)
+                                    {{-- ✨ PERBAIKAN: Mencari staff berdasarkan nama role di tabel roles dengan whereHas --}}
+                                    @foreach(\App\Models\User::whereHas('role', fn($q) => $q->where('name', 'staff'))->get() as $staff)
                                         <option value="{{ $staff->id }}">{{ $staff->name }}</option>
                                     @endforeach
                                 </select>
@@ -308,6 +311,7 @@
                 <div>
                     <h3 class="font-bold text-gray-800 text-lg mb-3">Search Berdasarkan Role</h3>
                     <div class="flex flex-col gap-2 text-sm">
+                        {{-- ✨ PERBAIKAN: Variabel $role->role sudah berasal dari roles.name --}}
                         @forelse($roleData as $role)
                         <div class="flex justify-between border-b border-gray-100 pb-1">
                             <span class="text-gray-600">{{ ucfirst($role->role) }}</span>

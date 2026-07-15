@@ -181,6 +181,12 @@
         <div class="space-y-4">
             @forelse($notifications as $notif)
                 @php
+                    // Decode data JSON notifikasi
+                    $data = json_decode($notif->data, true);
+                    $title = $data['title'] ?? 'Judul Tidak Tersedia';
+                    $message = $data['message'] ?? 'Pesan tidak tersedia.';
+                    $link = $data['link'] ?? null;
+
                     // Mapping Warna dan Ikon berdasarkan type
                     $type = $notif->type;
                     $borderColor = 'border-gray-400';
@@ -208,6 +214,9 @@
                     } elseif ($type === 'mention') {
                         $borderColor = 'border-indigo-500'; $bgColor = 'bg-indigo-100'; $textColor = 'text-indigo-600'; $labelClass = 'bg-indigo-50 text-indigo-600'; $labelText = 'Mention';
                         $iconHtml = '<span class="text-lg font-bold">@</span>';
+                    } elseif ($type === 'assignment') { 
+                        $borderColor = 'border-blue-500'; $bgColor = 'bg-blue-100'; $textColor = 'text-blue-600'; $labelClass = 'bg-blue-50 text-blue-600'; $labelText = 'Tugas';
+                        $iconHtml = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
                     }
                 @endphp
 
@@ -217,22 +226,21 @@
                             {!! $iconHtml !!}
                         </div>
                         <div>
-                            <!-- ✨ PENYEMPURNAAN: Jika ada link, judul jadi hyperlink -->
-                            @if($notif->link)
-                                <a href="{{ $notif->link }}" class="font-bold text-gray-800 text-sm hover:text-blue-600 transition-colors">
-                                    {{ $notif->title }}
+                            @if($link)
+                                <a href="{{ $link }}" class="font-bold text-gray-800 text-sm hover:text-blue-600 transition-colors">
+                                    {{ $title }}
                                 </a>
                             @else
-                                <h4 class="font-bold text-gray-800 text-sm">{{ $notif->title }}</h4>
+                                <h4 class="font-bold text-gray-800 text-sm">{{ $title }}</h4>
                             @endif
                             
-                            <p class="text-xs text-gray-500 mt-0.5">{{ $notif->message }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">{{ $message }}</p>
                             <span class="text-[10px] text-gray-400 mt-1 block">{{ $notif->created_at->diffForHumans() }}</span>
                         </div>
                     </div>
                     <div class="flex flex-col items-end gap-1">
                         @if(!$notif->is_read)
-                            <!-- Tombol AJAX untuk Tandai Sudah Dibaca -->
+                            <!-- ✨ PERBAIKAN JS: Tombol Tandai Sudah Dibaca dengan reload halaman -->
                             <button onclick="markAsRead({{ $notif->id }}, this)" class="w-2.5 h-2.5 bg-blue-500 rounded-full unread-dot cursor-pointer hover:scale-125 transition-transform" title="Tandai sudah dibaca"></button>
                         @else
                             <span class="w-2.5 h-2.5 bg-transparent rounded-full"></span>
@@ -286,7 +294,7 @@
             }
         }
 
-        // --- Logic Toast Notification (Jika dibutuhkan manual) ---
+        // --- Logic Toast Notification ---
         function showToast(message) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -299,9 +307,9 @@
             }, 3000);
         }
 
-        // --- Logic Mark As Read via AJAX (Tanpa reload halaman!) ---
+        // --- ✨ PERBAIKAN LOGIC MARK AS READ (Agar database terupdate dan halaman reload) ---
         function markAsRead(id, buttonElement) {
-            // Hapus animasi & ubah jadi kosong secara visual segera
+            // Hapus animasi & ubah jadi kosong secara visual segera (opsional, jika mau feedback instan)
             buttonElement.classList.remove('bg-blue-500', 'unread-dot');
             buttonElement.classList.add('bg-transparent');
             buttonElement.removeAttribute('onclick');
@@ -316,10 +324,19 @@
             .then(response => response.json())
             .then(data => {
                 if(data.success) {
-                    // Opsional: refresh halaman jika ingin update counter, tapi biarkan saja UX lebih smooth.
+                    // Reload halaman agar status read_at terupdate dari database dan UI sinkron!
+                    window.location.reload();
+                } else {
+                    alert('Gagal menandai notifikasi. Silakan coba lagi.');
+                    // Kembalikan visual jika gagal
+                    window.location.reload(); // Fallback reload
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan koneksi. Silakan refresh halaman.');
+                window.location.reload(); // Reload sebagai pemulihan
+            });
         }
     </script>
 </body>

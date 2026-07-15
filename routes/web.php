@@ -30,9 +30,8 @@ use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\CommentController;
-
-// ✨ Tambahkan ini untuk AI Chatbot Publik
 use App\Http\Controllers\AiAssistantController;
+use Illuminate\Http\Request; // Tambahkan ini untuk closure route
 
 /*
 |--------------------------------------------------------------------------
@@ -46,8 +45,29 @@ Route::get('/document/sop-siber', function () { return view('document-detail'); 
 // Route Detail Dokumen Publik
 Route::get('/document/{slug}', [DocumentController::class, 'show'])->name('document.detail');
 
-// ✨ Route AI Chatbot yang terbatas hanya pada database AKSARA
+// ✨ Route AI Chatbot
 Route::post('/api/ai/chat', [AiAssistantController::class, 'chat'])->name('api.ai.chat');
+
+// ✨ TAMBAHAN BARU: Route untuk mencatat klik artikel dari hasil pencarian (Search Log)
+Route::post('/api/track-click', function (Request $request) {
+    $validated = $request->validate([
+        'query' => 'required|string',
+        'article_id' => 'required|integer|exists:articles,id'
+    ]);
+
+    // Cari log pencarian terakhir yang cocok dengan query dan user saat ini
+    $log = \App\Models\SearchLog::where('query', $validated['query'])
+                ->where('user_id', auth()->id())
+                ->latest()
+                ->first();
+
+    if ($log) {
+        $log->increment('clicks');
+        $log->update(['clicked_article_id' => $validated['article_id']]);
+    }
+
+    return response()->json(['status' => 'ok']);
+})->middleware('web'); // Middleware web memastikan CSRF token terverifikasi
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -131,8 +151,6 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'verified.otp', 'rol
     Route::post('/editor/upload-image', [StaffEditorController::class, 'uploadImage'])->name('editor.upload.image');
     Route::post('/editor/upload-attachment', [StaffEditorController::class, 'uploadAttachment'])->name('editor.upload.attachment');
     Route::post('/editor/ai-assistant', [StaffEditorController::class, 'aiAssistant'])->name('editor.ai');
-
-    // ✅ Route AutoFill Metadata yang sudah Anda tambahkan
     Route::post('/editor/autofill', [StaffEditorController::class, 'autoFillMetadata'])->name('editor.autofill');
 
     Route::get('/editor/{id}', [StaffEditorController::class, 'edit'])->whereNumber('id')->name('editor.edit');

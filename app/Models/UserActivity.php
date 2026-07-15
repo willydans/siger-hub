@@ -18,6 +18,18 @@ class UserActivity extends Model
         'user_agent'
     ];
 
+    /**
+     * Relasi ke tabel articles.
+     * Memungkinkan kita memanggil $activity->article
+     */
+    public function article()
+    {
+        return $this->belongsTo(Article::class, 'article_id');
+    }
+
+    /**
+     * Relasi ke tabel users.
+     */
     public function user()
     {
         return $this->belongsTo(User::class);

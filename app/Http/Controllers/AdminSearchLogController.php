@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Article;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Str; // Tambahkan untuk generate UUID
 
 class AdminSearchLogController extends Controller
 {
@@ -28,7 +29,9 @@ class AdminSearchLogController extends Controller
         $trendValues = $trendData->pluck('total');
 
         // --- 3. Tabel Search History (Pagination) ---
-        $history = SearchLog::with('user')->orderBy('created_at', 'desc')->paginate(10);
+        $history = SearchLog::with('user.role')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
         // --- 4. Keyword Tanpa Hasil (Zero Results) ---
         $zeroResults = SearchLog::with('user')
@@ -48,8 +51,9 @@ class AdminSearchLogController extends Controller
 
         // --- 6. Search Berdasarkan Role ---
         $roleData = SearchLog::join('users', 'search_logs.user_id', '=', 'users.id')
-            ->select('users.role', \DB::raw('count(*) as total'))
-            ->groupBy('users.role')
+            ->join('roles', 'users.role_id', '=', 'roles.id')
+            ->select('roles.name as role', \DB::raw('count(*) as total'))
+            ->groupBy('roles.name')
             ->orderByDesc('total')
             ->get();
 
@@ -85,18 +89,16 @@ class AdminSearchLogController extends Controller
                 : '-';
         }
 
-        // ✨ PERBAIKAN PENTING: Tambahkan 'trendData' ke dalam compact agar bisa dipakai di View
         return view('admin-searchlog', compact(
             'totalSearch', 'todaySearch', 'activeUsers', 'newKeywords',
-            'trendData', 'trendLabels', 'trendValues', // <-- trendData telah ditambahkan di sini
+            'trendData', 'trendLabels', 'trendValues',
             'history', 'zeroResults', 'opdData', 'roleData', 'deviceData',
             'successCount', 'failCount', 'totalCount', 'analytics'
         ));
     }
 
     /**
-     * Tombol Assign pada halaman "Keyword Tanpa Hasil"
-     * Menugaskan staff untuk membuat artikel
+     * ✨ REVISI UTAMA: Menugaskan staff untuk membuat artikel & mengirim notifikasi.
      */
     public function assign(Request $request)
     {
@@ -106,7 +108,24 @@ class AdminSearchLogController extends Controller
         ]);
 
         $staff = User::find($request->staff_id);
+        $keyword = $request->keyword;
 
-        return redirect()->back()->with('success', "Artikel untuk keyword '{$request->keyword}' telah ditugaskan ke {$staff->name}!");
+        // 1. Simpan notifikasi ke tabel `notifications` agar muncul di halaman Staff
+        $staff->notifications()->create([
+            'id' => Str::uuid(), // Laravel Notification wajib menggunakan UUID
+            'type' => 'assignment', // Tipe khusus untuk penugasan
+            'notifiable_type' => get_class($staff),
+            'notifiable_id' => $staff->id,
+            'data' => json_encode([
+                'title' => 'Tugas Artikel Baru dari Admin',
+                'message' => "Anda ditugaskan untuk membuat dokumentasi terkait keyword: '{$keyword}'. Silakan buka editor untuk memulai.",
+                'link' => route('staff.editor'), // Arahkan ke halaman Tulis Artikel Baru
+            ]),
+            'read_at' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', "Artikel untuk keyword '{$keyword}' telah ditugaskan ke {$staff->name}!");
     }
 }
