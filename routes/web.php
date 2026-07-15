@@ -31,7 +31,7 @@ use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\AiAssistantController;
-use Illuminate\Http\Request; // Tambahkan ini untuk closure route
+use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -262,9 +262,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified.otp', 'rol
 Route::prefix('user')->name('user.')->middleware(['auth', 'verified.otp', 'role:user'])->group(function () {
     // Halaman Dashboard/Profil Utama (Memuat semua data History, Bookmark, Notif)
     Route::get('/profil', [UserProfileController::class, 'index'])->name('profil');
-    Route::get('/history', [UserProfileController::class, 'history'])->name('history');
-    Route::get('/bookmarks', [UserProfileController::class, 'bookmarks'])->name('bookmarks');
-    Route::get('/notifications', [UserProfileController::class, 'notifications'])->name('notifications');
     
     // Update Profil & Password
     Route::put('/profil/update', [UserProfileController::class, 'updateProfile'])->name('profile.update');
@@ -294,6 +291,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/document/{id}/like', [DocumentController::class, 'toggleLike'])->name('document.like');
     Route::post('/document/{id}/rate', [DocumentController::class, 'rate'])->name('document.rate');
     Route::post('/document/{id}/bookmark', [DocumentController::class, 'toggleBookmark'])->name('document.bookmark');
+    Route::post('/document/{id}/feedback', [DocumentController::class, 'submitFeedback'])->name('document.feedback');
 });
 Route::get('/document/{id}/download-pdf', [DocumentController::class, 'downloadPdf'])->name('document.download-pdf');
 

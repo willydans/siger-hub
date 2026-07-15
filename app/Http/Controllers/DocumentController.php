@@ -8,7 +8,9 @@ use App\Models\DocumentVersion;
 use App\Models\Bookmark;
 use App\Models\Rating;
 use App\Models\Like;
-use App\Models\UserActivity; // ✨ Tambahkan import ini
+use App\Models\UserActivity;
+use App\Models\Feedback;      // Tambahkan model Feedback
+use App\Models\Notification;  // Tambahkan model Notification
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -198,6 +200,73 @@ class DocumentController extends Controller
         return response()->json([
             'success' => true,
             'bookmarked' => $bookmarked
+        ]);
+    }
+
+    /**
+     * ✨ FITUR BARU: Menerima feedback dari user (rating + komentar)
+     * Jika rating ≤ 3, kirim notifikasi ke Admin.
+     */
+    public function submitFeedback(Request $request, $id)
+    {
+        $article = Article::findOrFail($id);
+        $user = auth()->user();
+
+        // 1. Cegah spam: cek apakah user sudah pernah memberi feedback untuk artikel ini
+        $exists = Feedback::where('user_id', $user->id)
+            ->where('article_id', $id)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'status' => 'already_submitted',
+                'message' => 'Anda sudah memberikan feedback untuk artikel ini.'
+            ]);
+        }
+
+        // 2. Validasi input
+        $request->validate([
+            'rating'  => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:1000',
+        ]);
+
+        // 3. Simpan feedback
+        $feedback = Feedback::create([
+            'article_id'   => $article->id,
+            'user_id'      => $user->id,
+            'feedback_type'=> 'Rating',   // Bisa disesuaikan
+            'status'       => 'Open',
+            'message'      => $request->comment ?? '', // Jika ingin simpan di message juga
+            'rating'       => $request->rating,
+            'comment'      => $request->comment,
+        ]);
+
+        // 4. Catat aktivitas user (opsional)
+        UserActivity::create([
+            'user_id'    => $user->id,
+            'article_id' => $article->id,
+            'type'       => 'Feedback',
+            'description'=> 'Memberikan rating ' . $request->rating . ' bintang pada artikel: ' . $article->title,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        // 5. Jika rating ≤ 3, kirim notifikasi ke Admin
+        if ($request->rating <= 3) {
+            Notification::create([
+                'user_id'    => null, // Null = semua Admin
+                'article_id' => $article->id,
+                'type'       => 'Feedback',
+                'title'      => '👎 Feedback Negatif Diterima',
+                'message'    => 'Pengguna ' . $user->name . ' memberikan rating ' . $request->rating . ' bintang pada artikel "' . $article->title . '".',
+                'url'        => route('admin.feedback'), // Pastikan route ini ada
+                'is_read'    => false,
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Terima kasih atas feedback Anda!'
         ]);
     }
 }

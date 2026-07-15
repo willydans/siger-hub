@@ -3,27 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Models\Feedback;
+use App\Models\Notification; // ✅ Import model Notification
 use Illuminate\Http\Request;
 
 class AdminFeedbackController extends Controller
 {
     public function index()
     {
-        // Mengambil semua feedback beserta relasi article dan user
         $feedbacks = Feedback::with(['article.user', 'user'])
                      ->orderBy('created_at', 'desc')
-                     ->get();
+                     ->paginate(15);
 
         return view('admin-feedback', compact('feedbacks'));
     }
 
-    // Untuk CRUD (Update Status/Reply/Assign)
+    /**
+     * Update status feedback dan kirim notifikasi ke penulis jika diperlukan.
+     */
     public function update(Request $request, $id)
     {
         $feedback = Feedback::findOrFail($id);
-        
-        // Validasi aksi yang dikirim dari dropdown
         $action = $request->input('action');
+
+        // Simpan status lama untuk cek perubahan (opsional)
+        $oldStatus = $feedback->status;
 
         switch ($action) {
             case 'assign':
@@ -37,13 +40,43 @@ class AdminFeedbackController extends Controller
                 break;
             case 'revision':
                 $feedback->status = 'In Progress';
-                // Di sini Anda bisa menambahkan logika untuk notifikasi penulis
                 break;
             default:
                 return back()->with('error', 'Aksi tidak dikenali.');
         }
 
         $feedback->save();
+
+        // ============================================================
+        // ✨ KIRIM NOTIFIKASI KE PENULIS (STAFF) SAAT DITUGASKAN ATAU DIMINTA REVISI
+        // ============================================================
+        $article = $feedback->article;
+        if ($article && $article->user_id) {
+            $author = $article->user; // Staff penulis artikel
+            $url = route('staff.editor.edit', $article->id); // Arahkan ke editor
+
+            if ($action === 'assign') {
+                Notification::create([
+                    'user_id'    => $article->user_id,
+                    'article_id' => $article->id,
+                    'type'       => 'Assignment',
+                    'title'      => '📝 Tugas Baru: Tindak Lanjut Feedback',
+                    'message'    => "Admin telah menugaskan Anda untuk menindaklanjuti feedback dari pengguna pada artikel '{$article->title}'. Silakan perbaiki atau tanggapi.",
+                    'url'        => $url,
+                    'is_read'    => false,
+                ]);
+            } elseif ($action === 'revision') {
+                Notification::create([
+                    'user_id'    => $article->user_id,
+                    'article_id' => $article->id,
+                    'type'       => 'Revision',
+                    'title'      => '🔄 Permintaan Revisi dari Admin',
+                    'message'    => "Admin meminta revisi pada artikel '{$article->title}' berdasarkan feedback yang diterima. Segera lakukan perbaikan.",
+                    'url'        => $url,
+                    'is_read'    => false,
+                ]);
+            }
+        }
 
         return redirect()->route('admin.feedback')->with('success', 'Status feedback berhasil diperbarui!');
     }

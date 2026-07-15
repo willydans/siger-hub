@@ -137,7 +137,7 @@
                     <option value="created_at" {{ request('sort_by') == 'created_at' ? 'selected' : '' }}>Urutkan</option>
                     <option value="created_at" {{ request('sort_by') == 'created_at' ? 'selected' : '' }}>Terbaru</option>
                     <option value="created_at" data-dir="asc" {{ request('sort_by') == 'created_at' && request('sort_dir') == 'asc' ? 'selected' : '' }}>Terlama</option>
-                    <option value="rating" data-dir="desc" {{ request('sort_by') == 'rating' ? 'selected' : '' }}>Rating Tertinggi</option>
+                    <option value="rating_avg" data-dir="desc" {{ request('sort_by') == 'rating_avg' ? 'selected' : '' }}>Rating Tertinggi</option>
                     <option value="views" data-dir="desc" {{ request('sort_by') == 'views' ? 'selected' : '' }}>View Terbanyak</option>
                 </select>
                 <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ml-auto">Terapkan Filter</button>
@@ -197,7 +197,13 @@
                                     <span class="{{ $statusColor[$article->status] ?? 'bg-gray-100 text-gray-600' }} px-2.5 py-1 rounded-full text-[10px] font-bold">{{ ucfirst($article->status) }}</span>
                                 </td>
                                 <td class="px-4 py-4 text-center text-gray-600">{{ number_format($article->views) }}</td>
-                                <td class="px-4 py-4 text-center text-yellow-400 font-medium">{{ number_format($article->rating, 1) }}</td>
+                                <td class="px-4 py-4 text-center text-yellow-400 font-medium">
+                                    {{-- ✅ PERBAIKAN: Gunakan rating_avg dan rating_count --}}
+                                    {{ $article->rating_avg ? number_format($article->rating_avg, 1) : 0 }}
+                                    @if(isset($article->rating_count) && $article->rating_count > 0)
+                                        <span class="block text-[10px] text-gray-400">({{ $article->rating_count }} Rating)</span>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-4 text-gray-600">{{ \Carbon\Carbon::parse($article->created_at)->format('d M Y') }}</td>
                                 <td class="px-4 py-4 text-center">
                                     <div class="relative inline-block">
@@ -211,17 +217,14 @@
                                                 
                                                 <button onclick="openEditModal({{ $article->id }}, @js($article->title), '{{ $article->category }}', '{{ $article->visibility }}')" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit</button>
                                                 
-                                                <!-- 👇 REVISI TERBARU: Menggunakan AJAX/Fetch agar 100% berhasil -->
                                                 <button type="button" onclick="confirmDuplicate({{ $article->id }}, @js($article->title))" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg> Duplicate</button>
 
                                                 <a href="{{ route('staff.articles.preview', $article->id) }}" target="_blank" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Preview</a>
                                                 
-                                                <!-- DOWNLOAD PDF -->
                                                 <a href="{{ route('staff.articles.download-pdf', $article->id) }}" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Download PDF</a>
                                                 
                                                 <button onclick="openDeleteModal({{ $article->id }}, @js($article->title))" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Delete</button>
 
-                                                <!-- LOGIKA ARCHIVE / UNARCHIVE -->
                                                 @if($article->status === 'archived')
                                                     <form action="{{ route('staff.articles.unarchive', $article->id) }}" method="POST">
                                                         @csrf
@@ -430,9 +433,7 @@
             setTimeout(() => { deleteModal.classList.add('hidden'); }, 300);
         }
 
-        /* 👇 REVISI BARU: Fungsi Duplikasi menggunakan SweetAlert & Fetch API */
         function confirmDuplicate(id, title) {
-            // Menggunakan SweetAlert (di atas sudah di-import), atau fallback ke confirm biasa
             Swal.fire({
                 title: 'Duplikasi Artikel?',
                 text: 'Apakah Anda yakin ingin menduplikasi artikel "' + title + '" menjadi draft baru?',
@@ -444,7 +445,6 @@
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Ambil CSRF Token dari form manapun yang ada di halaman (contoh #bulkForm)
                     const token = document.querySelector('#bulkForm input[name="_token"]').value;
                     
                     fetch(`/staff/articles/duplicate/${id}`, {
@@ -458,7 +458,7 @@
                     .then(response => {
                         if (response.ok) {
                             Swal.fire('Berhasil!', 'Artikel berhasil diduplikasi.', 'success')
-                                .then(() => window.location.reload()); // Reload page untuk menampilkan copy
+                                .then(() => window.location.reload());
                         } else {
                             response.json().then(data => {
                                 Swal.fire('Gagal!', data.message || 'Terjadi kesalahan server.', 'error');

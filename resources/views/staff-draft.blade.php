@@ -92,6 +92,7 @@
             <a href="{{ route('staff.articles') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <i class="fas fa-file-alt w-5 h-5"></i> Artikel Saya
             </a>
+            <!-- DRAFT ACTIVE -->
             <a href="{{ route('staff.draft') }}" class="flex items-center gap-3 bg-gray-800/50 text-white px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border border-gray-700">
                 <i class="fas fa-pen-square w-5 h-5"></i> Draft
             </a>

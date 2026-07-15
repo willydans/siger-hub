@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Models\Notification; // Tambahkan Model Notification
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -10,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 class AdminStorageController extends Controller
 {
     /**
-     * Menampilkan halaman Storage dengan data dinamis.
+     * Menampilkan halaman Storage dengan data dinamis dan notifikasi otomatis.
      */
     public function index()
     {
@@ -79,16 +80,13 @@ class AdminStorageController extends Controller
                 'size_human' => $this->formatBytes($size),
             ];
 
-            // --- ✨ PERBAIKAN DETEKSI ORPHAN ---
+            // Deteksi Orphan
             $isUsed = false;
-            $normalizedFile = $this->normalizePath($file); // Normalisasi path fisik
+            $normalizedFile = $this->normalizePath($file); 
 
             foreach ($usedPaths as $usedPath) {
-                $normalizedUsed = $this->normalizePath($usedPath); // Normalisasi path dari database
+                $normalizedUsed = $this->normalizePath($usedPath); 
                 
-                // Logika pencocokan:
-                // 1. Sama persis
-                // 2. Path di database berakhir dengan nama file fisik
                 if ($normalizedFile === $normalizedUsed || str_ends_with($normalizedUsed, '/' . $normalizedFile)) {
                     $isUsed = true;
                     break;
@@ -113,7 +111,7 @@ class AdminStorageController extends Controller
         // Batasi jumlah file orphan yang ditampilkan di UI agar tidak berat
         $orphanFilesDisplay = array_slice($orphanFiles, 0, 15);
 
-        // --- 4. Data untuk Kartu Statistik ---
+        // --- 4. Data untuk Kartu Statistik (Nextcloud Dihapus) ---
         $laravelSize = $this->formatBytes($totalSize);
         $totalFileCount = count($allFiles);
         $pdfCount = $fileExtensions['pdf'] ?? 0;
@@ -121,11 +119,39 @@ class AdminStorageController extends Controller
         $wordCount = ($fileExtensions['doc'] ?? 0) + ($fileExtensions['docx'] ?? 0);
         $imageCount = ($fileExtensions['jpg'] ?? 0) + ($fileExtensions['jpeg'] ?? 0) + ($fileExtensions['png'] ?? 0) + ($fileExtensions['gif'] ?? 0) + ($fileExtensions['webp'] ?? 0);
 
-        // Statistik Nextcloud (Placeholder sampai integrasi Nextcloud selesai)
-        $nextcloudSize = '31 GB';
+        // --- ✨ FITUR BARU: Cek Kapasitas Storage Lokal & Kirim Notifikasi jika Penuh ---
+        $diskPath = storage_path('app/public');
+        if (function_exists('disk_total_space') && is_dir($diskPath)) {
+            $totalSpace = disk_total_space($diskPath);
+            $freeSpace = disk_free_space($diskPath);
+            if ($totalSpace > 0) {
+                $usedPercentage = (($totalSpace - $freeSpace) / $totalSpace) * 100;
+                
+                // Jika kapasitas > 90%, kirim notifikasi ke admin
+                if ($usedPercentage > 90) {
+                    // Cek duplikasi (jika notifikasi belum dibaca, jangan spam)
+                    $existing = Notification::where('type', 'System')
+                        ->where('is_read', false)
+                        ->where('title', 'like', '%Storage Lokal Hampir Penuh%')
+                        ->first();
+
+                    if (!$existing) {
+                        Notification::create([
+                            'user_id' => null, // Notifikasi untuk semua admin
+                            'article_id' => null,
+                            'type' => 'System',
+                            'title' => '⚠️ Storage Lokal Hampir Penuh',
+                            'message' => "Kapasitas penyimpanan server (direktori public) telah mencapai " . round($usedPercentage, 2) . "%. Segera lakukan reklamasi file orphan atau bersihkan file tidak terpakai!",
+                            'url' => route('admin.storage'),
+                            'is_read' => false,
+                        ]);
+                    }
+                }
+            }
+        }
 
         return view('admin-storage', compact(
-            'laravelSize', 'nextcloudSize', 'totalFileCount',
+            'laravelSize', 'totalFileCount',
             'pdfCount', 'videoCount', 'wordCount', 'imageCount',
             'topFiles', 'orphanFilesDisplay', 'orphanFiles'
         ));
@@ -209,8 +235,7 @@ class AdminStorageController extends Controller
     }
 
     /**
-     * ✨ HELPER: Normalisasi path file agar konsisten antara database dan physical disk.
-     * Menghapus protokol, domain, dan prefix /storage/ atau storage/.
+     * HELPER: Normalisasi path file agar konsisten antara database dan physical disk.
      */
     private function normalizePath($path)
     {

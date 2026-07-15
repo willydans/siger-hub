@@ -9,10 +9,6 @@ class Feedback extends Model
 {
     use HasFactory;
 
-    /**
-     * ✅ PERBAIKAN PENTING: Paksa Laravel memakai tabel 'feedbacks' (jamak)
-     * karena kita baru saja membuat migrasi dengan nama tabel tersebut.
-     */
     protected $table = 'feedbacks';
 
     protected $fillable = [
@@ -21,19 +17,15 @@ class Feedback extends Model
         'feedback_type',
         'status',
         'message',
+        'rating',
+        'comment',
     ];
 
-    /**
-     * Relasi ke artikel yang diberi feedback
-     */
     public function article()
     {
         return $this->belongsTo(Article::class);
     }
 
-    /**
-     * Relasi ke user yang memberikan feedback
-     */
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -171,7 +171,6 @@
                     <div class="pt-2">
                         <p class="text-sm text-gray-600 leading-relaxed">
                             <span class="font-semibold text-gray-700 block mb-1 text-xs">Catatan:</span>
-                            {{-- Menampilkan preview singkat catatan pertama (jika JSON) --}}
                             @php
                                 $firstNote = is_array($notes = json_decode($revision->revision_notes, true)) && isset($notes[0]) ? $notes[0]['note'] : 'Tidak ada catatan spesifik.';
                             @endphp
@@ -326,7 +325,7 @@
                     document.getElementById('modal-notes-container').innerHTML = notesHtml;
 
                     // Update URL Aksi Tombol
-                    const editorUrl = `/staff/editor?id=${data.id}`;
+                    const editorUrl = `/staff/editor/${data.id}`; // Perbaikan: gunakan route edit
                     document.getElementById('btn-editor').href = editorUrl;
                     document.getElementById('btn-perbaiki').href = editorUrl;
                     document.getElementById('btn-submit').action = `/staff/revision/${data.id}/submit`;

@@ -152,7 +152,7 @@
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 fade-in-up" style="animation-delay: 0.1s;">
             <div>
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Search Log</h1>
-                <p class="text-sm text-gray-500 mt-1">Tujuan: Semua keyword yang diketik user disimpan. Misalnya user mencari VPN, Firewall, Email, Server, Mikrotik. Semuanya masuk database.</p>
+                <p class="text-sm text-gray-500 mt-1">Memantau semua kata kunci pencarian yang dilakukan pengguna sebagai bahan analisis kebutuhan konten.</p>
             </div>
         </div>
 
@@ -223,7 +223,6 @@
                         <tr class="hover:bg-gray-50/80 transition-colors duration-200">
                             <td class="px-4 py-3 font-medium text-gray-900">{{ $log->query }}</td>
                             <td class="px-4 py-3 text-gray-600">{{ $log->user ? $log->user->name : 'Guest' }}</td>
-                            {{-- ✨ PERBAIKAN PENTING: Mengambil nama role melalui relasi, dengan fallback '-' --}}
                             <td class="px-4 py-3 text-gray-600">{{ $log->user ? optional($log->user->role)->name : '-' }}</td>
                             <td class="px-4 py-3 text-gray-600">{{ $log->user ? $log->user->opd : '-' }}</td>
                             <td class="px-4 py-3 text-gray-600">{{ $log->created_at->format('H:i') }}</td>
@@ -254,7 +253,7 @@
             <!-- Keyword Tanpa Hasil -->
             <div class="lg:col-span-1 bg-white border border-gray-200 rounded-xl shadow-sm p-6">
                 <h3 class="font-bold text-gray-800 text-lg mb-2">Keyword Tanpa Hasil</h3>
-                <p class="text-xs text-gray-500 mb-4">Nah ini keren. Misalnya "Firewall Fortigate", 0 hasil masuk list.</p>
+                <p class="text-xs text-gray-500 mb-4">Daftar kata kunci yang tidak menghasilkan artikel, membantu mengidentifikasi celah pengetahuan.</p>
                 <ul class="space-y-4">
                     @forelse($zeroResults as $zero)
                     <li class="flex flex-col border-b border-gray-100 pb-3">
@@ -268,7 +267,6 @@
                                 @csrf
                                 <input type="hidden" name="keyword" value="{{ $zero->query }}">
                                 <select name="staff_id" class="text-[10px] border border-gray-300 rounded py-1 px-2 bg-white mr-2">
-                                    {{-- ✨ PERBAIKAN: Mencari staff berdasarkan nama role di tabel roles dengan whereHas --}}
                                     @foreach(\App\Models\User::whereHas('role', fn($q) => $q->where('name', 'staff'))->get() as $staff)
                                         <option value="{{ $staff->id }}">{{ $staff->name }}</option>
                                     @endforeach
@@ -289,6 +287,7 @@
             <!-- Search Berdasarkan OPD -->
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
                 <h3 class="font-bold text-gray-800 text-lg mb-4">Search Berdasarkan OPD</h3>
+                <p class="text-xs text-gray-500 mb-2">Analisis kata kunci pencarian berdasarkan OPD, membantu mengetahui kebutuhan pengetahuan setiap unit.</p>
                 <div class="space-y-4">
                     @forelse($opdData as $opd => $queries)
                     <div>
@@ -302,7 +301,6 @@
                     @empty
                     <p class="text-xs text-gray-500 text-center">Belum ada data pencarian berdasarkan OPD.</p>
                     @endforelse
-                    <p class="text-xs text-gray-400 mt-2 italic">Admin tahu tiap OPD butuh knowledge apa.</p>
                 </div>
             </div>
 
@@ -310,8 +308,8 @@
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-6">
                 <div>
                     <h3 class="font-bold text-gray-800 text-lg mb-3">Search Berdasarkan Role</h3>
+                    <p class="text-xs text-gray-500 mb-2">Distribusi pencarian berdasarkan peran pengguna.</p>
                     <div class="flex flex-col gap-2 text-sm">
-                        {{-- ✨ PERBAIKAN: Variabel $role->role sudah berasal dari roles.name --}}
                         @forelse($roleData as $role)
                         <div class="flex justify-between border-b border-gray-100 pb-1">
                             <span class="text-gray-600">{{ ucfirst($role->role) }}</span>
@@ -320,11 +318,11 @@
                         @empty
                         <div class="text-gray-500 text-center text-xs py-2">Belum ada data.</div>
                         @endforelse
-                        <p class="text-xs text-gray-400 mt-2 italic">Karena kebutuhan mereka berbeda.</p>
                     </div>
                 </div>
                 <div>
                     <h3 class="font-bold text-gray-800 text-lg mb-3">Search Berdasarkan Device</h3>
+                    <p class="text-xs text-gray-500 mb-2">Proporsi perangkat yang digunakan untuk melakukan pencarian.</p>
                     <div class="flex flex-col gap-2 text-sm">
                         <div class="flex justify-between border-b border-gray-100 pb-1">
                             <span class="text-gray-600">📱 Mobile</span>
@@ -338,7 +336,6 @@
                             <span class="text-gray-600">📟 Tablet</span>
                             <span class="font-bold text-gray-800">{{ round(($deviceData['Tablet'] / max(1, $totalSearch)) * 100) }}%</span>
                         </div>
-                        <p class="text-xs text-gray-400 mt-2 italic">Kalau ternyata 80% pengguna pakai HP, berarti UI mobile harus diprioritaskan.</p>
                     </div>
                 </div>
             </div>
@@ -351,7 +348,7 @@
             <!-- Success Rate Doughnut Chart -->
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
                 <h3 class="font-bold text-gray-800 text-lg mb-4">Search Success Rate</h3>
-                <p class="text-xs text-gray-500 mb-4">Ini jarang ada. Persentase pencarian yang berhasil vs tidak ditemukan.</p>
+                <p class="text-xs text-gray-500 mb-4">Persentase pencarian yang berhasil vs tidak ditemukan.</p>
                 <div class="flex flex-col md:flex-row items-center gap-6">
                     <div class="w-full md:w-1/2 h-48 relative">
                         <canvas id="successRateChart"></canvas>
@@ -377,7 +374,7 @@
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 bg-gray-50/50">
                     <h3 class="font-bold text-gray-800 text-sm">Search Analytics</h3>
-                    <p class="text-[10px] text-gray-500">Admin bisa lihat Keyword, Jumlah Search, Klik, CTR, Artikel Dibaca.</p>
+                    <p class="text-[10px] text-gray-500">Ringkasan performa setiap kata kunci, termasuk jumlah klik dan CTR.</p>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">

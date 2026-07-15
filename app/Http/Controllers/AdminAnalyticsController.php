@@ -7,6 +7,8 @@ use App\Models\Feedback;
 use App\Models\SearchLog;
 use App\Models\UserActivity;
 use App\Models\User;
+use App\Models\Bookmark; // ✅ Tambahkan Bookmark
+use App\Models\Comment;  // ✅ Tambahkan Comment
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -20,16 +22,19 @@ class AdminAnalyticsController extends Controller
         $start = $dateRange['start'];
         $end   = $dateRange['end'];
 
-        // --- Statistik Kartu ---
+        // --- Statistik Kartu (Dinamis dari Database) ---
         $stats = [
             'views'       => Article::sum('views'),
             'downloads'   => Article::sum('downloads'),
-            'bookmarks'   => 0, // Sesuaikan jika ada model Bookmark
-            'comments'    => Article::sum('comments_count'),
-            'rating'      => round(Article::avg('rating_avg'), 1),
+            'bookmarks'   => Bookmark::count(), // ✅ Dinamis dari tabel bookmarks
+            'comments'    => Comment::count(), // ✅ Dinamis dari tabel comments
+            'rating'      => round(Article::whereNotNull('rating_avg')->avg('rating_avg'), 1) ?: 0,
             'feedback'    => Feedback::count(),
-            'keyword'     => SearchLog::count(), // Total pencarian
-            'active_users'=> UserActivity::whereBetween('created_at', [$start, $end])->distinct('user_id')->count(),
+            'keyword'     => SearchLog::count(),
+            'active_users'=> UserActivity::whereBetween('created_at', [$start, $end])
+                            ->whereNotNull('user_id') // ✅ Hanya user yang login
+                            ->distinct('user_id')
+                            ->count(),
         ];
 
         // --- Heatmap (Aktivitas per jam) ---
@@ -42,12 +47,15 @@ class AdminAnalyticsController extends Controller
                     ->limit(4)
                     ->get();
 
-        // --- Knowledge Gap (Query yang sering dicari tapi tidak ada artikel dengan judul mirip) ---
+        // --- Knowledge Gap (Query yang sering dicari tapi tidak ada artikel yang membahasnya) ---
         $knowledgeGaps = $this->getKnowledgeGaps($topSearches, 3);
 
         return view('admin-analytics', compact('stats', 'hourlyData', 'topSearches', 'knowledgeGaps', 'filter'));
     }
 
+    /**
+     * Helper untuk menentukan rentang tanggal berdasarkan filter.
+     */
     private function getDateRange($filter)
     {
         $now = Carbon::now();
@@ -63,6 +71,9 @@ class AdminAnalyticsController extends Controller
         }
     }
 
+    /**
+     * Helper untuk mendapatkan data aktivitas per jam (0-23).
+     */
     private function getHourlyActivity($start, $end)
     {
         $data = array_fill(0, 24, 0);
@@ -79,14 +90,17 @@ class AdminAnalyticsController extends Controller
     }
 
     /**
-     * Mendapatkan gap pengetahuan dari top search
+     * Mendapatkan gap pengetahuan dari top search dengan mengecek judul DAN konten artikel.
      */
     private function getKnowledgeGaps($topSearches, $limit = 3)
     {
         $gaps = [];
         foreach ($topSearches as $search) {
-            // Cek apakah ada artikel dengan judul yang mengandung kata kunci query
-            $articleCount = Article::where('title', 'like', '%' . $search->query . '%')->count();
+            // ✅ Cek apakah ada artikel dengan judul ATAU konten yang mengandung kata kunci query
+            $articleCount = Article::where('title', 'like', '%' . $search->query . '%')
+                           ->orWhere('content', 'like', '%' . $search->query . '%')
+                           ->count();
+
             if ($articleCount == 0) {
                 $gaps[] = [
                     'keyword' => $search->query,
@@ -96,14 +110,7 @@ class AdminAnalyticsController extends Controller
             if (count($gaps) >= $limit) break;
         }
 
-        // Jika masih kurang, isi dengan dummy
-        while (count($gaps) < $limit) {
-            $gaps[] = [
-                'keyword' => 'Contoh Gap ' . (count($gaps)+1),
-                'searches' => 0,
-            ];
-        }
-
+        // ✅ Kembalikan array kosong jika tidak ada gap, view akan menanganinya dengan @empty
         return $gaps;
     }
 }

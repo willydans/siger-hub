@@ -3,36 +3,34 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Models\Comment;
+use App\Models\Like;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Carbon\Carbon;
 
 class StaffProfileController extends Controller
 {
-    // Menampilkan halaman profil staff
     public function index()
     {
         $user = auth()->user();
+        $userId = $user->id;
 
-        // --- 1. Statistik Pencapaian ---
         $stats = [
-            'total_articles' => Article::where('user_id', $user->id)->count(),
-            'published'      => Article::where('user_id', $user->id)->where('status', 'published')->count(),
-            'views'          => Article::where('user_id', $user->id)->sum('views'),
-            'downloads'      => Article::where('user_id', $user->id)->sum('downloads'),
-            'likes'          => Article::where('user_id', $user->id)->sum('likes_count'),
-            'rating'         => Article::where('user_id', $user->id)->avg('rating_avg'),
-            'comments'       => Article::where('user_id', $user->id)->sum('comments_count'),
+            'total_articles' => Article::where('user_id', $userId)->count(),
+            'published'      => Article::where('user_id', $userId)->where('status', 'published')->count(),
+            'views'          => Article::where('user_id', $userId)->sum('views'),
+            'downloads'      => Article::where('user_id', $userId)->sum('downloads'),
+            'likes'          => Like::whereHas('article', fn($q) => $q->where('user_id', $userId))->count(),
+            'comments'       => Comment::whereHas('article', fn($q) => $q->where('user_id', $userId))->count(),
+            'rating'         => Article::where('user_id', $userId)->avg('rating_avg'),
         ];
         
-        // --- 2. Timeline Aktivitas (mengambil 5 artikel terbaru yang diupdate) ---
-        $recentActivities = Article::where('user_id', $user->id)
+        $recentActivities = Article::where('user_id', $userId)
             ->orderBy('updated_at', 'desc')
             ->take(5)
             ->get();
 
-        // --- 3. Badge Logic (Pencapaian) ---
         $badges = [
             'top_contributor'   => $stats['total_articles'] >= 5,
             'knowledge_master'  => $stats['total_articles'] >= 20,
@@ -43,7 +41,6 @@ class StaffProfileController extends Controller
         return view('staff-profile', compact('user', 'stats', 'recentActivities', 'badges'));
     }
 
-    // Update data profil staff
     public function update(Request $request)
     {
         $user = auth()->user();
@@ -59,10 +56,7 @@ class StaffProfileController extends Controller
             'password'  => 'nullable|string|min:8|confirmed',
         ]);
 
-        // Siapkan data untuk diupdate
         $data = $request->except(['password', 'password_confirmation']);
-        
-        // Update password jika diisi
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }

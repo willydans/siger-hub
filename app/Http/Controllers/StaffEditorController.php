@@ -9,6 +9,7 @@ use App\Models\Subcategory;
 use App\Models\Opd;
 use App\Models\Tag;
 use App\Models\User;
+use App\Models\Notification; // 📌 Tambahkan Model Notification Custom
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -27,12 +28,20 @@ class StaffEditorController extends Controller
         return view('staff-editor', compact('categories', 'subcategories', 'opds', 'tags'));
     }
 
+    /**
+     * 📌 PERBAIKAN: Proteksi Edit. Jika status bukan 'draft', lempar ke halaman list.
+     */
     public function edit($id)
     {
         $article = Article::where('user_id', auth()->id())->find($id);
 
         if (!$article) {
             return redirect()->route('staff.articles')->with('error', 'Artikel tidak ditemukan atau Anda tidak memiliki akses.');
+        }
+
+        // 🛑 Cegah akses edit jika sudah disubmit ke admin
+        if ($article->status !== 'draft') {
+            return redirect()->route('staff.articles')->with('error', 'Artikel sudah dikirim ke Admin untuk review. Anda tidak dapat mengeditnya saat ini.');
         }
 
         $categories = Category::all();
@@ -96,9 +105,17 @@ class StaffEditorController extends Controller
         return redirect()->route('staff.editor.edit', $article->id)->with('success', 'Draft artikel berhasil disimpan!');
     }
 
+    /**
+     * 📌 PERBAIKAN: Proteksi Update. Jika status bukan 'draft', lempar ke halaman list.
+     */
     public function update(Request $request, $id)
     {
         $article = Article::where('user_id', auth()->id())->findOrFail($id);
+
+        // 🛑 Cegah update jika sudah disubmit ke admin
+        if ($article->status !== 'draft') {
+            return redirect()->route('staff.articles')->with('error', 'Tidak dapat memperbarui artikel yang sudah dalam proses review Admin.');
+        }
 
         $request->validate([
             'title'       => 'required|string|max:255',
@@ -149,17 +166,25 @@ class StaffEditorController extends Controller
         return redirect()->back()->with('success', 'Artikel berhasil diperbarui!');
     }
 
+    /**
+     * 📌 PERBAIKAN: Kirim Notifikasi menggunakan Model Notification Custom.
+     * Artikel berubah status menjadi 'pending'. Staff tidak bisa mengedit lagi.
+     */
     public function submitApproval($id)
     {
         $article = Article::where('user_id', auth()->id())->where('status', 'draft')->findOrFail($id);
         $article->update(['status' => 'pending']);
 
-        $admins = User::role('admin')->get();
-        foreach ($admins as $admin) {
-            if (class_exists('\App\Notifications\ArticleSubmittedNotification')) {
-                $admin->notify(new \App\Notifications\ArticleSubmittedNotification($article, auth()->user()));
-            }
-        }
+        // ✨ KIRIM NOTIFIKASI KE ADMIN
+        Notification::create([
+            'user_id'    => null, // Null = untuk semua Admin
+            'article_id' => $article->id,
+            'type'       => 'Approval',
+            'title'      => '📝 Draft Baru Dikirim untuk Review',
+            'message'    => 'Staff ' . auth()->user()->name . ' telah mengirimkan draft berjudul "' . $article->title . '" untuk diperiksa dan disetujui.',
+            'url'        => route('admin.pending-approval'), // Tautan ke halaman Pending Approval
+            'is_read'    => false,
+        ]);
 
         UserActivity::create([
             'user_id'    => auth()->id(),
@@ -170,12 +195,11 @@ class StaffEditorController extends Controller
             'user_agent' => request()->userAgent(),
         ]);
 
-        return redirect()->route('staff.dashboard')->with('success', 'Artikel berhasil dikirim ke Admin untuk review!');
+        // 🔄 Redirect kembali ke list artikel atau dashboard setelah submit
+        return redirect()->route('staff.articles')->with('success', 'Artikel berhasil dikirim ke Admin untuk review! Menunggu persetujuan.');
     }
 
     // ✅ FIX: field yang dikirim CKEditor namanya "upload", bukan "file".
-    // Sebelumnya validate() mengecek "file" yang tidak pernah ada di request ini,
-    // jadi validasi selalu gagal duluan sebelum sempat pakai fallback ke "upload".
     public function uploadImage(Request $request)
     {
         $request->validate([
@@ -211,13 +235,6 @@ class StaffEditorController extends Controller
         }
     }
 
-    /**
-     * ✅ PERBAIKAN AI ASSISTANT MENGGUNAKAN GOOGLE GEMINI API
-     *
-     * DITAMBAHKAN: instruksi per-action supaya hasil AI singkat & rapi
-     * (tanpa basa-basi tambahan), sehingga bisa langsung "Diterapkan" ke
-     * field form terkait dari sisi frontend (lihat tombol "Terapkan" di modal).
-     */
     public function aiAssistant(Request $request)
     {
         $request->validate([
@@ -235,7 +252,6 @@ class StaffEditorController extends Controller
         $model = 'gemini-2.5-flash';
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
-        // Instruksi tambahan per jenis aksi, supaya output AI konsisten & mudah diterapkan otomatis ke form
         $actionInstructions = [
             'Ringkas Artikel'        => 'Buat ringkasan singkat (maksimal 4 kalimat) dari artikel di atas dalam bentuk paragraf biasa, tanpa basa-basi pembuka seperti "Berikut ringkasannya".',
             'Generate Keyword'       => 'Berikan HANYA daftar 5-8 kata kunci SEO yang relevan, dipisah koma, tanpa penjelasan tambahan, tanpa penomoran, tanpa tanda kutip.',
@@ -263,8 +279,6 @@ class StaffEditorController extends Controller
                     'generationConfig' => [
                         'temperature' => 0.6,
                         'maxOutputTokens' => 2048,
-                        // FIX: samakan dengan autoFillMetadata() - matikan thinking budget
-                        // supaya token tidak habis untuk "mikir" dan hasil tidak terpotong.
                         'thinkingConfig' => [
                             'thinkingBudget' => 0,
                         ],
@@ -301,16 +315,6 @@ class StaffEditorController extends Controller
         }
     }
 
-    /**
-     * ✅ BARU: Auto-Isi Informasi Dasar & Metadata SEO menggunakan AI.
-     *
-     * AI menganalisa isi artikel lalu menyarankan category/subcategory/opd_unit
-     * (dicocokkan HANYA dengan data yang benar-benar ada di database, ditolak
-     * kalau AI mengarang nilai baru), tags, meta_keywords, meta_description,
-     * dan estimated_read_time. Hasilnya dikirim sebagai JSON supaya frontend
-     * bisa mengisi form secara otomatis, tapi tetap bisa diubah manual oleh user
-     * (frontend hanya mengisi field yang masih kosong).
-     */
     public function autoFillMetadata(Request $request)
     {
         $request->validate([
@@ -366,10 +370,6 @@ PROMPT;
                     'temperature' => 0.4,
                     'maxOutputTokens' => 2048,
                     'responseMimeType' => 'application/json',
-                    // FIX: gemini-2.5-flash aktifkan "thinking" secara default yang ikut
-                    // memakan jatah maxOutputTokens untuk proses berpikir internal, sehingga
-                    // JSON hasil akhir bisa terpotong/kosong. Matikan budget-nya supaya token
-                    // sepenuhnya dipakai untuk output JSON yang kita butuhkan.
                     'thinkingConfig' => [
                         'thinkingBudget' => 0,
                     ],
@@ -393,7 +393,6 @@ PROMPT;
             $clean = trim(preg_replace('/```json|```/', '', $text));
             $parsed = json_decode($clean, true);
 
-            // FIX: fallback kalau AI membungkus JSON dengan teks tambahan di luar blok {...}
             if (json_last_error() !== JSON_ERROR_NONE && preg_match('/\{.*\}/s', $clean, $matches)) {
                 $parsed = json_decode($matches[0], true);
             }
@@ -403,8 +402,6 @@ PROMPT;
                 return response()->json(['error' => 'Gagal memproses hasil AI. Coba lagi.'], 500);
             }
 
-            // Validasi ulang: pastikan category/subcategory/opd yang disarankan AI
-            // benar-benar ada di database, supaya AI tidak "mengarang" opsi baru.
             if (!empty($parsed['category']) && !$categories->contains($parsed['category'])) {
                 $parsed['category'] = null;
             }

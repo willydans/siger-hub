@@ -439,13 +439,23 @@ B --> C[End]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm out
                         <i class="fas fa-eye"></i> Preview
                     </button>
 
+                    <!-- ============================================ -->
+                    <!-- ✅ PERUBAHAN PENTING: LOGIKA TOMBOL SUBMIT   -->
+                    <!-- ============================================ -->
                     @if(isset($article))
-                        <form action="{{ route('staff.editor.submit', $article->id) }}" method="POST" id="submitForm" class="w-full">
-                            @csrf
-                            <button type="button" onclick="confirmSubmit()" class="w-full bg-gold text-darkbg font-bold py-3 px-4 rounded-lg text-sm hover:bg-goldhover transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-                                <i class="fas fa-check-circle"></i> Submit Approval
-                            </button>
-                        </form>
+                        @if($article->status === 'draft')
+                            <form action="{{ route('staff.editor.submit', $article->id) }}" method="POST" id="submitForm" class="w-full">
+                                @csrf
+                                <button type="button" onclick="confirmSubmit()" class="w-full bg-gold text-darkbg font-bold py-3 px-4 rounded-lg text-sm hover:bg-goldhover transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                                    <i class="fas fa-check-circle"></i> Submit Approval
+                                </button>
+                            </form>
+                        @else
+                            {{-- Jika sudah disubmit (Pending), jangan tampilkan tombol submit, tapi info status --}}
+                            <div class="w-full bg-blue-50 border border-blue-200 text-blue-800 text-center py-3 px-4 rounded-lg text-sm font-bold flex items-center justify-center gap-2">
+                                <i class="fas fa-clock"></i> Artikel sedang dalam proses review Admin. Menunggu persetujuan.
+                            </div>
+                        @endif
                     @else
                         <button type="button" onclick="Swal.fire('Info', 'Silakan simpan draft terlebih dahulu sebelum melakukan Submit Approval!', 'info')" class="w-full bg-gold/50 text-darkbg/50 cursor-not-allowed font-bold py-3 px-4 rounded-lg text-sm shadow-md flex items-center justify-center gap-2">
                             <i class="fas fa-check-circle"></i> Submit Approval

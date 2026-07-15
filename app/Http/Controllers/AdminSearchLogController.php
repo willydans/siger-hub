@@ -5,9 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\SearchLog;
 use App\Models\User;
 use App\Models\Article;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Illuminate\Support\Str; // Tambahkan untuk generate UUID
+use Illuminate\Support\Facades\DB;
 
 class AdminSearchLogController extends Controller
 {
@@ -52,7 +53,7 @@ class AdminSearchLogController extends Controller
         // --- 6. Search Berdasarkan Role ---
         $roleData = SearchLog::join('users', 'search_logs.user_id', '=', 'users.id')
             ->join('roles', 'users.role_id', '=', 'roles.id')
-            ->select('roles.name as role', \DB::raw('count(*) as total'))
+            ->select('roles.name as role', DB::raw('count(*) as total'))
             ->groupBy('roles.name')
             ->orderByDesc('total')
             ->get();
@@ -98,7 +99,7 @@ class AdminSearchLogController extends Controller
     }
 
     /**
-     * ✨ REVISI UTAMA: Menugaskan staff untuk membuat artikel & mengirim notifikasi.
+     * Menugaskan staff untuk membuat artikel & mengirim notifikasi.
      */
     public function assign(Request $request)
     {
@@ -110,20 +111,14 @@ class AdminSearchLogController extends Controller
         $staff = User::find($request->staff_id);
         $keyword = $request->keyword;
 
-        // 1. Simpan notifikasi ke tabel `notifications` agar muncul di halaman Staff
-        $staff->notifications()->create([
-            'id' => Str::uuid(), // Laravel Notification wajib menggunakan UUID
-            'type' => 'assignment', // Tipe khusus untuk penugasan
-            'notifiable_type' => get_class($staff),
-            'notifiable_id' => $staff->id,
-            'data' => json_encode([
-                'title' => 'Tugas Artikel Baru dari Admin',
-                'message' => "Anda ditugaskan untuk membuat dokumentasi terkait keyword: '{$keyword}'. Silakan buka editor untuk memulai.",
-                'link' => route('staff.editor'), // Arahkan ke halaman Tulis Artikel Baru
-            ]),
-            'read_at' => null,
-            'created_at' => now(),
-            'updated_at' => now(),
+        Notification::create([
+            'user_id'    => $staff->id,
+            'article_id' => null,
+            'type'       => 'Assignment',
+            'title'      => '📝 Tugas Artikel Baru dari Admin',
+            'message'    => "Anda ditugaskan untuk membuat dokumentasi terkait keyword: '{$keyword}'. Silakan buka editor untuk memulai.",
+            'url'        => route('staff.editor'),
+            'is_read'    => false,
         ]);
 
         return redirect()->back()->with('success', "Artikel untuk keyword '{$keyword}' telah ditugaskan ke {$staff->name}!");

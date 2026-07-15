@@ -21,7 +21,7 @@ class StaffArticleController extends Controller
     {
         $userId = auth()->id();
 
-        $allowedSortColumns = ['created_at', 'rating', 'views', 'title'];
+        $allowedSortColumns = ['created_at', 'rating_avg', 'views', 'title'];
         $allowedSortDirs = ['asc', 'desc'];
 
         $sortBy = in_array($request->sort_by, $allowedSortColumns) ? $request->sort_by : 'created_at';
@@ -102,7 +102,7 @@ class StaffArticleController extends Controller
     }
 
     /**
-     * REVISI UTAMA: Update lengkap dengan logika pengisian published_at otomatis.
+     * Update lengkap dengan logika pengisian published_at otomatis.
      */
     public function update(Request $request, $id)
     {
@@ -114,10 +114,9 @@ class StaffArticleController extends Controller
             'category'   => 'required|string|max:100',
             'visibility' => ['required', Rule::in(['public', 'internal', 'restricted', 'private'])],
             'tags'       => 'nullable|string',
-            'status'     => 'nullable|in:draft,published,review,revision,archived', // Tambahkan validasi status
+            'status'     => 'nullable|in:draft,published,review,revision,archived',
         ]);
 
-        // Siapkan data yang akan diupdate
         $dataToUpdate = [
             'title'      => $request->title,
             'content'    => $request->content,
@@ -126,7 +125,6 @@ class StaffArticleController extends Controller
             'tags'       => $request->tags,
         ];
 
-        // ✨ LOGIKA BARU: Jika status berubah menjadi published dan published_at kosong, isi otomatis!
         if ($request->has('status')) {
             $dataToUpdate['status'] = $request->status;
             if ($request->status === 'published' && is_null($article->published_at)) {
@@ -177,7 +175,7 @@ class StaffArticleController extends Controller
     // --- Method Aksi Lainnya (Quick Update, Duplicate, Archive, dll) ---
 
     /**
-     * REVISI UTAMA: Quick Update dengan logika pengisian published_at otomatis.
+     * Quick Update dengan logika pengisian published_at otomatis.
      */
     public function quickUpdate(Request $request, $id)
     {
@@ -187,17 +185,15 @@ class StaffArticleController extends Controller
             'title'      => 'required|string|max:255',
             'category'   => 'required|string|max:100',
             'visibility' => ['required', Rule::in(['public', 'internal', 'restricted', 'private'])],
-            'status'     => 'nullable|in:draft,published,review,revision,archived', // Tambahkan validasi status
+            'status'     => 'nullable|in:draft,published,review,revision,archived',
         ]);
 
-        // Siapkan data yang akan diupdate
         $dataToUpdate = [
             'title'      => $request->title,
             'category'   => $request->category,
             'visibility' => $request->visibility,
         ];
 
-        // ✨ LOGIKA BARU: Jika status berubah menjadi published dan published_at kosong, isi otomatis!
         if ($request->has('status')) {
             $dataToUpdate['status'] = $request->status;
             if ($request->status === 'published' && is_null($article->published_at)) {
@@ -219,6 +215,9 @@ class StaffArticleController extends Controller
         return back()->with('success', 'Artikel berhasil diperbarui!');
     }
 
+    /**
+     * ✨ REVISI PENTING: Duplikasi sekarang mereset rating_avg dan rating_count menjadi 0!
+     */
     public function duplicate($id)
     {
         $original = Article::where('user_id', auth()->id())->findOrFail($id);
@@ -229,7 +228,8 @@ class StaffArticleController extends Controller
                 $newArticle->title = $original->title . ' (Copy)';
                 $newArticle->status = 'draft';
                 $newArticle->views = 0;
-                $newArticle->rating = 0;
+                $newArticle->rating_avg = 0; // ✅ Reset rata-rata rating
+                $newArticle->rating_count = 0; // ✅ Reset jumlah rating
                 $newArticle->slug = Str::slug($original->title . ' ' . uniqid());
                 $newArticle->created_at = now();
                 $newArticle->updated_at = now();

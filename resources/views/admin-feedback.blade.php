@@ -31,7 +31,6 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Sidebar Mobile */
         #sidebar-mobile { transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; }
         #sidebar-overlay { transition: opacity 0.3s ease-in-out; }
         .submenu { transition: all 0.3s ease-in-out; overflow: hidden; }
@@ -63,7 +62,6 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg> Dashboard
             </a>
             
-            <!-- Knowledge Management -->
             <div>
                 <button onclick="toggleSubmenu('submenu-knowledge')" class="w-full flex items-center justify-between text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                     <div class="flex items-center gap-3">
@@ -96,7 +94,6 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg> Search Log
             </a>
 
-            <!-- Feedback (Aktif) -->
             <a href="{{ route('admin.feedback') }}" class="flex items-center gap-3 bg-gray-800/50 text-white px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border border-gray-700">
                 <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> Feedback
             </a>
@@ -153,20 +150,19 @@
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 fade-in-up" style="animation-delay: 0.1s;">
             <div>
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Feedback</h1>
-                <p class="text-sm text-gray-500 mt-1">Setelah user memberi 👎, masuk sini. Kelola keluhan dan masukan pengguna.</p>
+                <p class="text-sm text-gray-500 mt-1">Setelah user memberikan rating dan komentar, data akan masuk di sini. Feedback dengan rating rendah akan diberi highlight.</p>
             </div>
         </div>
 
-        <!-- Table Feedback Container -->
-        <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden fade-in-up" style="animation-delay: 0.3s;">
-            <div class="overflow-x-auto">
+        <div class="bg-white border border-gray-200 rounded-xl shadow-sm fade-in-up" style="animation-delay: 0.3s;">
+            <div class="overflow-x-auto"> <!-- Scroll horizontal tetap aman di sini -->
                 <table class="w-full text-left text-sm">
                     <thead class="bg-gray-50 text-[11px] uppercase text-gray-500 font-bold border-b border-gray-200 whitespace-nowrap">
                         <tr>
                             <th class="px-4 py-4 w-10"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></th>
                             <th class="px-4 py-4 min-w-[180px]">Artikel</th>
-                            <th class="px-4 py-4 min-w-[120px]">Penulis</th>
-                            <th class="px-4 py-4 min-w-[180px]">Feedback</th>
+                            <th class="px-4 py-4 min-w-[120px]">Dari User</th>
+                            <th class="px-4 py-4 min-w-[200px]">Rating & Komentar</th>
                             <th class="px-4 py-4 min-w-[120px]">Tanggal</th>
                             <th class="px-4 py-4 min-w-[120px]">Status</th>
                             <th class="px-4 py-4 text-center min-w-[60px]">Action</th>
@@ -174,7 +170,8 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @forelse($feedbacks as $feedback)
-                        <tr class="hover:bg-gray-50/80 transition-colors duration-200">
+                        {{-- Beri highlight merah untuk rating rendah (<= 3) --}}
+                        <tr class="hover:bg-gray-50/80 transition-colors duration-200 {{ $feedback->rating && $feedback->rating <= 3 ? 'bg-red-50/50 border-l-4 border-red-400' : '' }}">
                             <td class="px-4 py-4"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
                             
                             <!-- Data Artikel -->
@@ -182,27 +179,30 @@
                                 {{ $feedback->article ? $feedback->article->title : 'Artikel Telah Dihapus' }}
                             </td>
                             
-                            <!-- Data Penulis Artikel -->
+                            <!-- Data User yang memberi feedback -->
                             <td class="px-4 py-4 text-gray-600">
-                                {{ $feedback->article && $feedback->article->user ? $feedback->article->user->name : '-' }}
+                                {{ $feedback->user ? $feedback->user->name : 'Pengguna Umum (Guest)' }}
                             </td>
                             
-                            <!-- Jenis Feedback dengan badge warna -->
+                            <!-- Rating & Komentar -->
                             <td class="px-4 py-4">
-                                @php
-                                    $typeColors = [
-                                        'Kurang Lengkap' => 'bg-red-100 text-red-700',
-                                        'Sudah Kadaluarsa' => 'bg-yellow-100 text-yellow-700',
-                                        'Sulit Dipahami' => 'bg-blue-100 text-blue-700',
-                                        'Informasi Tidak Sesuai' => 'bg-orange-100 text-orange-700',
-                                    ];
-                                    $typeColor = $typeColors[$feedback->feedback_type] ?? 'bg-gray-100 text-gray-700';
-                                @endphp
-                                <span class="{{ $typeColor }} px-2 py-1 rounded-full text-[10px] font-medium">{{ $feedback->feedback_type }}</span>
+                                <div class="flex items-center gap-1 text-sm mb-1">
+                                    @if($feedback->rating)
+                                        @for($i=1; $i<=5; $i++)
+                                            <span class="{{ $i <= $feedback->rating ? 'text-yellow-500' : 'text-gray-300' }}">★</span>
+                                        @endfor
+                                        <span class="text-[10px] text-gray-500 ml-2">({{ $feedback->rating }} / 5)</span>
+                                    @else
+                                        <span class="text-gray-400 text-[10px]">Tidak ada rating</span>
+                                    @endif
+                                </div>
+                                <p class="text-xs text-gray-600 max-w-[200px] leading-relaxed break-words">
+                                    {{ $feedback->comment ? '"' . Str::limit($feedback->comment, 80) . '"' : '-' }}
+                                </p>
                             </td>
                             
                             <!-- Tanggal -->
-                            <td class="px-4 py-4 text-gray-600">{{ $feedback->created_at->format('d M Y') }}</td>
+                            <td class="px-4 py-4 text-gray-600">{{ $feedback->created_at->format('d M Y H:i') }}</td>
                             
                             <!-- Status dengan badge warna -->
                             <td class="px-4 py-4">
@@ -219,14 +219,16 @@
                                 <span class="{{ $statusColor }} px-2.5 py-1 rounded-full text-[10px] font-bold">{{ $feedback->status }}</span>
                             </td>
                             
-                            <!-- Dropdown Action -->
+                            <!-- Action -->
                             <td class="px-4 py-4 text-center relative">
                                 <div class="relative inline-block">
-                                    <button onclick="toggleDropdown(this)" class="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                                    {{-- ✅ FIX: data-menu-target menyimpan id unik dropdown-nya, dipakai JS
+                                         untuk menemukan menu meskipun nanti dipindah (portal) ke <body> --}}
+                                    <button type="button" onclick="toggleDropdown(this)" data-menu-target="dropdown-menu-{{ $feedback->id }}" class="dropdown-toggle-btn text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
                                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
                                     </button>
                                     
-                                    <div class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-20 origin-top-right scale-95 opacity-0">
+                                    <div id="dropdown-menu-{{ $feedback->id }}" class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-50 origin-top-right scale-95 opacity-0">
                                         <div class="py-1">
                                             <!-- Assign Action -->
                                             <form action="{{ route('admin.feedback.update', $feedback->id) }}" method="POST">
@@ -287,9 +289,9 @@
                     </tbody>
                 </table>
             </div>
-            <!-- Pagination (Jika perlu) -->
+            <!-- Pagination -->
             <div class="px-4 py-3 border-t border-gray-200">
-                {{-- {{ $feedbacks->links() }} --}}
+                {{ $feedbacks->links() }}
             </div>
         </div>
     </main>
@@ -327,42 +329,112 @@
             }
         }
 
+        /* =========================================================================
+           ✅ FIX: DROPDOWN ACTION DI TABEL FEEDBACK
+           Sebelumnya dropdown "tenggelam"/terpotong karena parent tabel pakai
+           class overflow-x-auto — begitu overflow-x di-set, browser otomatis
+           ikut meng-clip overflow-y juga (ini perilaku standar CSS, bukan bug
+           Tailwind). Dropdown yang position:absolute di baris² bawah/kanan jadi
+           tidak bisa diklik penuh.
+
+           Solusinya: begitu dropdown dibuka, pindahkan (portal) elemennya ke
+           <body> dengan position:fixed, dengan posisi dihitung langsung dari
+           lokasi tombol titik-tiga di layar. Dengan begitu dropdown tidak lagi
+           berada di dalam container yang overflow-nya ke-clip, dan otomatis
+           reposisi kalau halaman di-scroll/resize selagi terbuka.
+           ========================================================================= */
         function toggleDropdown(button) {
-            const menu = button.parentElement.querySelector('.dropdown-menu');
+            const menu = document.getElementById(button.dataset.menuTarget);
+            if (!menu) return;
+
             const isHidden = menu.classList.contains('hidden');
-            
+
+            // Tutup dropdown lain yang mungkin masih terbuka
             document.querySelectorAll('.dropdown-menu').forEach(m => {
-                if (m !== menu) {
-                    m.classList.add('hidden');
-                    m.classList.remove('scale-100', 'opacity-100');
-                    m.classList.add('scale-95', 'opacity-0');
-                }
+                if (m !== menu) closeDropdownMenu(m);
             });
-            
+
             if (isHidden) {
-                menu.classList.remove('hidden');
-                setTimeout(() => {
-                    menu.classList.remove('scale-95', 'opacity-0');
-                    menu.classList.add('scale-100', 'opacity-100');
-                }, 10);
+                openDropdownMenu(button, menu);
             } else {
-                menu.classList.remove('scale-100', 'opacity-100');
-                menu.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => {
-                    menu.classList.add('hidden');
-                }, 100);
+                closeDropdownMenu(menu);
             }
         }
 
+        function openDropdownMenu(button, menu) {
+            // Portal ke <body> sekali saja (dropdown akan tetap di body untuk toggle berikutnya)
+            if (!menu.dataset.portaled) {
+                menu.dataset.portaled = 'true';
+                document.body.appendChild(menu);
+                menu.style.position = 'fixed';
+                menu.style.zIndex = '9999';
+            }
+
+            positionDropdown(button, menu);
+            menu.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                menu.classList.remove('scale-95', 'opacity-0');
+                menu.classList.add('scale-100', 'opacity-100');
+            });
+
+            // Reposisi otomatis selama dropdown terbuka (scroll tabel / resize window)
+            const reposition = () => positionDropdown(button, menu);
+            menu._repositionHandler = reposition;
+            window.addEventListener('scroll', reposition, true);
+            window.addEventListener('resize', reposition);
+        }
+
+        function closeDropdownMenu(menu) {
+            if (menu.classList.contains('hidden')) return;
+            menu.classList.remove('scale-100', 'opacity-100');
+            menu.classList.add('scale-95', 'opacity-0');
+            if (menu._repositionHandler) {
+                window.removeEventListener('scroll', menu._repositionHandler, true);
+                window.removeEventListener('resize', menu._repositionHandler);
+                menu._repositionHandler = null;
+            }
+            setTimeout(() => {
+                menu.classList.add('hidden');
+            }, 100);
+        }
+
+        function positionDropdown(button, menu) {
+            const rect = button.getBoundingClientRect();
+            const menuWidth = menu.offsetWidth || 192; // w-48 = 192px
+            const menuHeight = menu.offsetHeight || 220;
+            const margin = 8;
+
+            let left = rect.right - menuWidth;
+            let top = rect.bottom + 6;
+
+            // Jaga supaya tidak keluar dari tepi kiri/kanan layar
+            if (left < margin) left = margin;
+            if (left + menuWidth > window.innerWidth - margin) {
+                left = window.innerWidth - menuWidth - margin;
+            }
+
+            // Kalau ruang di bawah tombol tidak cukup, tampilkan di atas tombol
+            if (top + menuHeight > window.innerHeight - margin) {
+                top = rect.top - menuHeight - 6;
+            }
+            if (top < margin) top = margin;
+
+            menu.style.top = top + 'px';
+            menu.style.left = left + 'px';
+        }
+
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('.relative')) {
-                document.querySelectorAll('.dropdown-menu').forEach(m => {
-                    m.classList.remove('scale-100', 'opacity-100');
-                    m.classList.add('scale-95', 'opacity-0');
-                    setTimeout(() => {
-                        m.classList.add('hidden');
-                    }, 100);
-                });
+            const isToggleButton = e.target.closest('.dropdown-toggle-btn');
+            const isInsideMenu = e.target.closest('.dropdown-menu');
+            if (!isToggleButton && !isInsideMenu) {
+                document.querySelectorAll('.dropdown-menu').forEach(m => closeDropdownMenu(m));
+            }
+        });
+
+        // Tutup dropdown otomatis kalau user menekan Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.dropdown-menu').forEach(m => closeDropdownMenu(m));
             }
         });
 
