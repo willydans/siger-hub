@@ -29,7 +29,16 @@ class StaffEditorController extends Controller
     }
 
     /**
-     * 📌 PERBAIKAN: Proteksi Edit. Jika status bukan 'draft', lempar ke halaman list.
+     * 📌 PERBAIKAN UTAMA: Sebelumnya HANYA status 'draft' yang boleh dibuka
+     * di Editor Lengkap. Akibatnya, artikel berstatus 'revision' — yang
+     * justru PALING butuh dibuka & diedit ulang — selalu ditolak dan
+     * dilempar balik ke halaman "Manajemen Artikel Saya" dengan pesan
+     * error, padahal staff belum sempat melihat editornya sama sekali.
+     *
+     * Sekarang: status 'draft' MAUPUN 'revision' diizinkan masuk ke
+     * editor. Status lain (pending, published, archived) tetap diblokir
+     * karena memang tidak boleh diedit langsung saat sedang direview
+     * atau sudah publish.
      */
     public function edit($id)
     {
@@ -39,9 +48,8 @@ class StaffEditorController extends Controller
             return redirect()->route('staff.articles')->with('error', 'Artikel tidak ditemukan atau Anda tidak memiliki akses.');
         }
 
-        // 🛑 Cegah akses edit jika sudah disubmit ke admin
-        if ($article->status !== 'draft') {
-            return redirect()->route('staff.articles')->with('error', 'Artikel sudah dikirim ke Admin untuk review. Anda tidak dapat mengeditnya saat ini.');
+        if (!in_array($article->status, ['draft', 'revision'])) {
+            return redirect()->route('staff.articles')->with('error', 'Artikel sedang dalam proses review Admin atau sudah dipublikasikan. Anda tidak dapat mengeditnya saat status ini.');
         }
 
         $categories = Category::all();
@@ -106,15 +114,21 @@ class StaffEditorController extends Controller
     }
 
     /**
-     * 📌 PERBAIKAN: Proteksi Update. Jika status bukan 'draft', lempar ke halaman list.
+     * 📌 PERBAIKAN: sama seperti edit(), sekarang mengizinkan update untuk
+     * status 'draft' MAUPUN 'revision'. Perlu dicatat: method ini TIDAK
+     * mengubah kolom `status` sama sekali (lihat $data di bawah — tidak
+     * ada key 'status'), jadi artikel berstatus 'revision' akan TETAP
+     * berstatus 'revision' setelah disimpan di sini. Perubahan status
+     * (mis. kembali ke 'pending') baru terjadi saat staff menekan tombol
+     * "Ajukan Ulang ke Admin" di halaman editor, yang memanggil route
+     * staff.revision.submit (lihat StaffRevisionController::submitAgain).
      */
     public function update(Request $request, $id)
     {
         $article = Article::where('user_id', auth()->id())->findOrFail($id);
 
-        // 🛑 Cegah update jika sudah disubmit ke admin
-        if ($article->status !== 'draft') {
-            return redirect()->route('staff.articles')->with('error', 'Tidak dapat memperbarui artikel yang sudah dalam proses review Admin.');
+        if (!in_array($article->status, ['draft', 'revision'])) {
+            return redirect()->route('staff.articles')->with('error', 'Tidak dapat memperbarui artikel yang sudah dalam proses review Admin atau sudah dipublikasikan.');
         }
 
         $request->validate([
@@ -167,7 +181,7 @@ class StaffEditorController extends Controller
     }
 
     /**
-     * 📌 PERBAIKAN: Kirim Notifikasi menggunakan Model Notification Custom.
+     * 📌 Kirim Notifikasi menggunakan Model Notification Custom.
      * Artikel berubah status menjadi 'pending'. Staff tidak bisa mengedit lagi.
      */
     public function submitApproval($id)
@@ -195,7 +209,6 @@ class StaffEditorController extends Controller
             'user_agent' => request()->userAgent(),
         ]);
 
-        // 🔄 Redirect kembali ke list artikel atau dashboard setelah submit
         return redirect()->route('staff.articles')->with('success', 'Artikel berhasil dikirim ke Admin untuk review! Menunggu persetujuan.');
     }
 

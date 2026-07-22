@@ -33,7 +33,6 @@
         .fade-in-new-comment { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Print */
         @media print {
             #navbar, #right-sidebar, #action-bar, #comment-section, #ai-toggle-btn, #footer, #feedback-modal { display: none !important; }
             main { width: 100% !important; }
@@ -42,7 +41,7 @@
 </head>
 <body class="font-sans antialiased text-textmain bg-white">
 
-    <!-- NAVBAR -->
+    <!-- ========== NAVBAR ========== -->
     <nav id="navbar" class="bg-white text-gray-800 py-4 px-8 flex justify-between items-center border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='/'">
             <div class="w-8 h-8 bg-gold rounded text-darkbg flex items-center justify-center font-bold">S</div>
@@ -62,7 +61,7 @@
             @auth
                 <div class="relative group">
                     <button class="flex items-center gap-2 text-gray-700 hover:text-navy transition-colors duration-300 focus:outline-none">
-                        {{-- ✅ PERBAIKAN 1: Gunakan optional() untuk Auth user di Navbar --}}
+                        {{-- Avatar dengan fallback --}}
                         <img src="{{ optional(Auth::user())->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(optional(Auth::user())->name ?? 'Guest') . '&background=f3f4f6&color=333' }}" 
                              alt="Avatar" 
                              class="w-8 h-8 rounded-full border border-gray-200 group-hover:border-gold transition-all duration-300">
@@ -71,7 +70,9 @@
                     </button>
                     <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right group-hover:scale-100 scale-95 z-50 overflow-hidden">
                         <div class="py-1">
-                            <a href="{{ route('user.profil') }}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors duration-200">
+                            {{-- Link profil menyesuaikan role --}}
+                            @php $profileRoute = auth()->user()->role == 'staff' ? route('staff.profil') : route('user.profil'); @endphp
+                            <a href="{{ $profileRoute }}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors duration-200">
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                 Profil Saya
                             </a>
@@ -94,7 +95,7 @@
         </div>
     </nav>
 
-    <!-- MAIN CONTENT WRAPPER -->
+    <!-- ========== MAIN CONTENT WRAPPER ========== -->
     <div class="max-w-[1400px] mx-auto px-8 py-8 flex flex-col lg:flex-row gap-12">
         
         <!-- LEFT COLUMN -->
@@ -140,7 +141,9 @@
                             <div class="flex flex-col">
                                 <div class="flex items-center gap-2">
                                     <span class="font-bold text-gray-900 text-[13px]">{{ $article->user->name ?? 'Admin' }}</span>
-                                    <a href="{{ route('user.profil') }}" class="inline-flex items-center gap-1 text-[11px] text-navy bg-blue-50 hover:bg-blue-100 transition-colors duration-200 px-2 py-0.5 rounded-full border border-blue-200">
+                                    {{-- Link "Lihat Profil" untuk penulis --}}
+                                    @php $authorProfileRoute = ($article->user->role ?? '') == 'staff' ? route('staff.profil', $article->user->id) : route('user.profil', $article->user->id); @endphp
+                                    <a href="{{ $authorProfileRoute }}" class="inline-flex items-center gap-1 text-[11px] text-navy bg-blue-50 hover:bg-blue-100 transition-colors duration-200 px-2 py-0.5 rounded-full border border-blue-200">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                         Lihat Profil
                                     </a>
@@ -160,7 +163,7 @@
                     </div>
                 </div>
 
-                <!-- ACTION BAR (Backend Integrated) -->
+                <!-- ACTION BAR -->
                 <div id="action-bar" class="mt-6 pt-6 border-t border-gray-100 flex flex-wrap items-center gap-3 sm:gap-4">
                     @auth
                         @php $isBookmarked = \App\Models\Bookmark::where('user_id', auth()->id())->where('article_id', $article->id)->exists(); @endphp
@@ -191,7 +194,7 @@
                         </div>
                     @endauth
 
-                    <!-- Share Popup Tooltip -->
+                    <!-- Share -->
                     <div class="relative group/share inline-block">
                         <button id="btn-share" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-all duration-300">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
@@ -223,7 +226,7 @@
             </article>
 
             <!-- ============================================== -->
-            <!-- BAGIAN KOMENTAR (GABUNGAN: Tampilan Deep Reply + Backend AJAX) -->
+            <!-- KOMENTAR (Deep Reply + AJAX)                    -->
             <!-- ============================================== -->
             <section id="comment-section" class="mt-12 pt-8 border-t border-gray-200">
                 <div class="flex items-center justify-between mb-6">
@@ -233,7 +236,6 @@
                 @auth
                 <!-- Form Komentar Utama -->
                 <div class="flex flex-col sm:flex-row gap-4 mb-8">
-                    {{-- ✅ PERBAIKAN 2: Gunakan optional() untuk Auth user di Form Komentar Utama --}}
                     <img src="{{ optional(Auth::user())->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(optional(Auth::user())->name ?? 'Guest') . '&background=f3f4f6' }}" class="w-10 h-10 rounded-full flex-shrink-0 border border-gray-200">
                     <div class="flex-1 flex flex-col gap-3">
                         <textarea id="comment-input" placeholder="Tulis komentar Anda..." class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent transition-all duration-300 h-20 bg-white shadow-sm"></textarea>
@@ -264,7 +266,7 @@
                             
                             <div id="comment-content-{{ $comment->id }}" class="text-sm text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-xl border border-gray-100">{{ $comment->content }}</div>
                             
-                            <!-- Form Edit Komentar Utama -->
+                            <!-- Form Edit -->
                             <div id="edit-form-container-{{ $comment->id }}" class="hidden mt-2">
                                 <textarea id="edit-input-{{ $comment->id }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent h-20 bg-white shadow-sm">{{ $comment->content }}</textarea>
                                 <div class="flex gap-2 mt-2 justify-end">
@@ -288,7 +290,6 @@
                             <!-- Form Balasan untuk Komentar Utama -->
                             <div id="reply-form-container-{{ $comment->id }}" class="hidden mt-3 pl-4">
                                 <div class="flex gap-3">
-                                    {{-- ✅ PERBAIKAN 3: Gunakan optional() untuk Auth user di Form Balasan (Baris 289 dulu) --}}
                                     <img src="{{ optional(Auth::user())->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(optional(Auth::user())->name ?? 'Guest') . '&background=f3f4f6' }}" class="w-8 h-8 rounded-full flex-shrink-0 border border-gray-200">
                                     <div class="flex-1 flex gap-2">
                                         <input type="text" id="reply-input-{{ $comment->id }}" placeholder="Tulis balasan..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-all duration-300">
@@ -299,7 +300,7 @@
                             </div>
 
                             <!-- ================================================== -->
-                            <!-- BALASAN LEVEL 1 (Replies) -->
+                            <!-- BALASAN LEVEL 1 (Replies)                        -->
                             <!-- ================================================== -->
                             @if($comment->replies->count() > 0)
                             <div class="mt-3 pl-4 border-l-2 border-gray-200 space-y-4">
@@ -344,7 +345,7 @@
                                         <!-- Form Balasan untuk Reply Level 1 -->
                                         <div id="reply-form-container-{{ $reply->id }}" class="hidden mt-2">
                                             <div class="flex gap-3">
-                                                <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name ?? 'Guest') . '&background=f3f4f6' }}" class="w-6 h-6 rounded-full flex-shrink-0 border border-gray-200">
+                                                <img src="{{ optional(Auth::user())->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(optional(Auth::user())->name ?? 'Guest') . '&background=f3f4f6' }}" class="w-6 h-6 rounded-full flex-shrink-0 border border-gray-200">
                                                 <div class="flex-1 flex gap-2">
                                                     <input type="text" id="reply-input-{{ $reply->id }}" placeholder="Tulis balasan..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-all duration-300">
                                                     <button onclick="submitReply({{ $reply->id }}, {{ $article->id }})" class="bg-navy hover:bg-gray-800 text-white text-xs font-medium px-4 py-2 rounded-lg transition-all duration-300">Kirim</button>
@@ -354,7 +355,7 @@
                                         </div>
 
                                         <!-- ================================================== -->
-                                        <!-- ✅ DEEP REPLY LEVEL 2 (Balasan dari Balasan) -->
+                                        <!-- DEEP REPLY LEVEL 2 (Balasan dari Balasan)         -->
                                         <!-- ================================================== -->
                                         @if($reply->replies->count() > 0)
                                         <div class="mt-2 pl-4 border-l-2 border-gray-200 space-y-2">
@@ -399,7 +400,7 @@
                                                     <!-- Form Balasan Deep Reply -->
                                                     <div id="reply-form-container-{{ $deepReply->id }}" class="hidden mt-2">
                                                         <div class="flex gap-3">
-                                                            <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name ?? 'Guest') . '&background=f3f4f6' }}" class="w-6 h-6 rounded-full flex-shrink-0 border border-gray-200">
+                                                            <img src="{{ optional(Auth::user())->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(optional(Auth::user())->name ?? 'Guest') . '&background=f3f4f6' }}" class="w-6 h-6 rounded-full flex-shrink-0 border border-gray-200">
                                                             <div class="flex-1 flex gap-2">
                                                                 <input type="text" id="reply-input-{{ $deepReply->id }}" placeholder="Tulis balasan..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-all duration-300">
                                                                 <button onclick="submitReply({{ $deepReply->id }}, {{ $article->id }})" class="bg-navy hover:bg-gray-800 text-white text-xs font-medium px-4 py-2 rounded-lg transition-all duration-300">Kirim</button>
@@ -431,7 +432,7 @@
 
         </main>
 
-        <!-- RIGHT COLUMN -->
+        <!-- ========== RIGHT SIDEBAR ========== -->
         <aside id="right-sidebar" class="w-full lg:w-1/3 xl:w-[30%]">
             <div class="sticky top-24 space-y-6">
                 <div class="flex flex-col gap-3">
@@ -488,12 +489,9 @@
         </aside>
     </div>
 
-    <!-- ============================================ -->
-    <!-- ✨ MODAL FEEDBACK (SAAT KELUAR HALAMAN)        -->
-    <!-- ============================================ -->
+    <!-- ========== MODAL FEEDBACK ========== -->
     <div id="feedback-modal" class="fixed inset-0 z-[9999] hidden bg-gray-900/70 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden transform scale-95 transition-transform duration-300" id="feedback-modal-box">
-            <!-- Header Modal -->
             <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-5 text-white relative">
                 <button onclick="closeFeedbackModal(false)" class="absolute top-4 right-4 hover:bg-white/20 rounded-full p-1 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -505,7 +503,6 @@
                 <p class="text-sm text-indigo-100 mt-1">Pendapat Anda sangat berarti untuk pengembangan artikel ini.</p>
             </div>
 
-            <!-- Body Modal -->
             <div class="p-6 space-y-5">
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">Seberapa puas Anda dengan artikel ini?</label>
@@ -533,7 +530,6 @@
                 </div>
             </div>
 
-            <!-- Footer Modal -->
             <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-end gap-3">
                 <button onclick="closeFeedbackModal(false)" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                     Nanti Saja
@@ -546,7 +542,7 @@
         </div>
     </div>
 
-    <!-- FOOTER (Tetap sama) -->
+    <!-- ========== FOOTER ========== -->
     <footer id="footer" class="bg-[#0B1120] text-white py-16 mt-12 border-t border-gray-800">
         <div class="max-w-[1400px] mx-auto px-8 grid grid-cols-1 md:grid-cols-4 gap-12">
             <div class="col-span-1">
@@ -585,10 +581,10 @@
         </div>
     </footer>
 
-    <!-- SCRIPT INTERAKTIF -->
+    <!-- ========== SCRIPT ========== -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // ========== SHARE COPY LINK ==========
+            // ===== SHARE COPY LINK =====
             window.copyShareLink = function() {
                 const input = document.getElementById('share-url-input');
                 if(input) {
@@ -604,7 +600,7 @@
                 }
             }
 
-            // ========== RATING AJAX ==========
+            // ===== RATING AJAX =====
             window.submitRating = function(articleId, rating) {
                 fetch(`/document/${articleId}/rate`, {
                     method: 'POST',
@@ -625,7 +621,7 @@
                 });
             }
 
-            // ========== LIKE ARTIKEL AJAX ==========
+            // ===== LIKE ARTIKEL =====
             window.toggleLike = function(articleId) {
                 fetch(`/document/${articleId}/like`, {
                     method: 'POST',
@@ -648,7 +644,7 @@
                 });
             }
 
-            // ========== BOOKMARK AJAX ==========
+            // ===== BOOKMARK =====
             window.toggleBookmark = function(articleId) {
                 fetch(`/document/${articleId}/bookmark`, {
                     method: 'POST',
@@ -672,7 +668,7 @@
                 });
             }
 
-            // ========== KOMENTAR: LIKE/UNLIKE COMMENT ==========
+            // ===== LIKE KOMENTAR =====
             window.handleLike = function(commentId) {
                 fetch(`/comments/${commentId}/like`, {
                     method: 'POST',
@@ -695,7 +691,7 @@
                 });
             }
 
-            // ========== TOGGLE REPLY FORM ==========
+            // ===== TOGGLE REPLY FORM =====
             window.toggleReplyForm = function(commentId, targetUsername) {
                 const container = document.getElementById(`reply-form-container-${commentId}`);
                 container.classList.toggle('hidden');
@@ -708,7 +704,7 @@
                 }
             }
 
-            // ========== SUBMIT REPLY ==========
+            // ===== SUBMIT REPLY =====
             window.submitReply = function(parentId, articleId) {
                 const input = document.getElementById(`reply-input-${parentId}`);
                 if(!input) return;
@@ -728,7 +724,7 @@
                 .catch(error => console.error('Error:', error));
             }
 
-            // ========== SUBMIT MAIN COMMENT ==========
+            // ===== SUBMIT MAIN COMMENT =====
             const mainSubmitBtn = document.getElementById('btn-submit-comment');
             const mainInput = document.getElementById('comment-input');
             if(mainSubmitBtn) {
@@ -749,7 +745,7 @@
                 });
             }
 
-            // ========== TOGGLE EDIT ==========
+            // ===== TOGGLE EDIT =====
             window.toggleEdit = function(commentId) {
                 const contentDiv = document.getElementById(`comment-content-${commentId}`);
                 const editForm = document.getElementById(`edit-form-container-${commentId}`);
@@ -762,7 +758,7 @@
                 }
             }
 
-            // ========== BATAL EDIT ==========
+            // ===== BATAL EDIT =====
             window.cancelEdit = function(commentId) {
                 const contentDiv = document.getElementById(`comment-content-${commentId}`);
                 const editForm = document.getElementById(`edit-form-container-${commentId}`);
@@ -770,7 +766,7 @@
                 editForm.classList.add('hidden');
             }
 
-            // ========== SUBMIT EDIT ==========
+            // ===== SUBMIT EDIT =====
             window.submitEdit = function(commentId) {
                 const input = document.getElementById(`edit-input-${commentId}`);
                 const content = input.value.trim();
@@ -796,7 +792,7 @@
                 .catch(error => console.error('Error:', error));
             }
 
-            // ========== DELETE COMMENT ==========
+            // ===== DELETE COMMENT =====
             window.deleteComment = function(commentId) {
                 if (confirm('Apakah Anda yakin ingin menghapus komentar ini?')) {
                     fetch(`/comments/${commentId}`, {
@@ -813,27 +809,22 @@
             }
 
             // ============================================================
-            // ✨ FITUR BARU: LOGIKA MODAL FEEDBACK (HANYA UNTUK USER LOGIN)
+            // MODAL FEEDBACK (HANYA UNTUK USER LOGIN)
             // ============================================================
             @auth
             const articleId = {{ $article->id }};
             const feedbackKeyShown = 'feedback_shown_' + articleId;
             const feedbackKeySubmitted = 'feedback_submitted_' + articleId;
 
-            // Cek jika sudah pernah submit, jangan munculkan lagi
             if (!localStorage.getItem(feedbackKeySubmitted)) {
-                // Tangkap semua klik link di halaman
                 const allLinks = document.querySelectorAll('a');
                 let pendingUrl = null;
 
                 allLinks.forEach(link => {
                     link.addEventListener('click', function(e) {
-                        // Jika modal sudah pernah ditampilkan, abaikan
                         if (localStorage.getItem(feedbackKeyShown)) {
                             return;
                         }
-
-                        // Cegah navigasi, tampilkan modal
                         e.preventDefault();
                         pendingUrl = this.href;
                         openFeedbackModal();
@@ -871,7 +862,7 @@
                     }, 300);
                 }
 
-                // Logic Rating Bintang
+                // Rating bintang
                 const stars = document.querySelectorAll('#star-rating span');
                 const ratingInput = document.getElementById('feedback-rating');
                 const ratingText = document.getElementById('rating-text');
@@ -881,7 +872,6 @@
                         const val = parseInt(this.getAttribute('data-value'));
                         ratingInput.value = val;
                         updateStars(val);
-                        
                         const labels = ['', 'Sangat Buruk', 'Buruk', 'Cukup', 'Baik', 'Sangat Baik'];
                         ratingText.textContent = labels[val];
                     });
@@ -910,7 +900,7 @@
                     });
                 }
 
-                // Submit Feedback via AJAX
+                // Submit feedback
                 window.submitFeedback = function() {
                     const rating = parseInt(ratingInput.value);
                     if (rating === 0) {
@@ -935,7 +925,6 @@
                     .then(data => {
                         if (data.status === 'success') {
                             localStorage.setItem(feedbackKeySubmitted, 'true');
-                            // Toast sukses sederhana
                             const toast = document.createElement('div');
                             toast.className = 'fixed bottom-5 right-5 z-[9999] bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300';
                             toast.innerHTML = '<span class="font-bold">Terima kasih!</span> Feedback Anda telah dikirim.';

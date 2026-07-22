@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- ✅ PERBAIKAN: Judul Halaman menjadi Dinamis -->
     <title>{{ $pageTitle ?? 'All Articles' }} - AKSARA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -46,8 +45,13 @@
             transition: transform 0.1s ease, opacity 0.1s ease;
             position: fixed !important; 
             z-index: 9999 !important;
-            width: 12rem; 
+            width: 12rem;
+            /* ✅ PERBAIKAN: batasi tinggi & aktifkan scroll internal kalau menu lebih tinggi dari sisa ruang viewport */
+            max-height: 60vh;
+            overflow-y: auto;
         }
+        .dropdown-menu::-webkit-scrollbar { width: 4px; }
+        .dropdown-menu::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
 <body class="font-sans antialiased text-textmain bg-lightbg flex h-screen overflow-hidden">
@@ -79,7 +83,6 @@
                     <svg class="w-4 h-4 transition-transform duration-200" id="arrow-knowledge" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 
-                <!-- ✅ PERBAIKAN: Menambahkan Active State pada Menu -->
                 <div id="submenu-knowledge" class="submenu hidden pl-9 space-y-1 mt-1">
                     <a href="{{ route('admin.all-articles') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors {{ request()->routeIs('admin.all-articles') ? 'text-white' : '' }}">• All Articles</a>
                     <a href="{{ route('admin.pending-approval') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors flex items-center justify-between {{ request()->routeIs('admin.pending-approval') ? 'text-white' : '' }}">• Pending Approval <span class="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">23</span></a>
@@ -117,9 +120,7 @@
             <a href="{{ route('admin.storage') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7h-4.586a2 2 0 01-1.414-.586l-1.172-1.172a2 2 0 00-1.414-.586H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7z"></path></svg> Storage
             </a>
-            <a href="{{ route('admin.settings') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Settings
-            </a>
+           
             <a href="{{ route('admin.backup') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Backup & Restore
             </a>
@@ -159,7 +160,6 @@
         <!-- Header Section -->
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 fade-in-up" style="animation-delay: 0.1s;">
             <div>
-                <!-- ✅ PERBAIKAN: Menggunakan variabel dinamis dari Controller -->
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-900">{{ $pageTitle ?? 'All Articles' }}</h1>
                 <p class="text-sm text-gray-500 mt-1">{{ $statusLabel ?? 'Semua artikel' }} seluruh pegawai. Kelola, review, dan pantau status publikasi.</p>
             </div>
@@ -274,19 +274,27 @@
                                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
                                     </button>
                                     
-                                    <!-- PERBAIKAN: Dropdown tidak lagi menggunakan absolute right-0 mt-2, posisi diatur oleh JS -->
                                     <div class="dropdown-menu hidden w-48 bg-white border border-gray-200 rounded-lg shadow-xl scale-95 opacity-0">
                                         <div class="py-1">
-                                            
-                                            <!-- ✅ VIEW (Menggunakan route admin.articles.show) -->
-                                            <a href="{{ route('admin.articles.show', $article->id) }}" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View
-                                            </a>
 
-                                            <!-- ✅ EDIT (Menggunakan AJAX Modal) -->
+                                            @if($article->status === 'revision')
+                                                {{-- ✅ Khusus status Revision: View membuka modal alasan revisi --}}
+                                                <button type="button" onclick="openRevisionModal({{ $article->id }})" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View
+                                                </button>
+                                            @else
+                                                {{-- ✅ VIEW (Menggunakan route admin.articles.show) --}}
+                                                <a href="{{ route('admin.articles.show', $article->id) }}" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View
+                                                </a>
+                                            @endif
+
+                                            @unless($article->status === 'revision')
+                                            {{-- ✅ EDIT (Menggunakan AJAX Modal) — disembunyikan untuk status Revision --}}
                                             <button onclick="openEditModal({{ $article->id }})" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit
                                             </button>
+                                            @endunless
                                             
                                             @if($article->status === 'pending')
                                             <!-- ✅ APPROVE -->
@@ -308,7 +316,7 @@
                                                 <button type="submit" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg> Archive</button>
                                             </form>
                                             @else
-                                            <!-- ✅ RESTORE (Diubah menjadi LINK GET agar cocok dengan route yang sudah diperbaiki) -->
+                                            <!-- ✅ RESTORE -->
                                             <a href="{{ route('admin.articles.restore', $article->id) }}" onclick="return confirm('Apakah Anda yakin ingin memulihkan artikel ini?')" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Restore
                                             </a>
@@ -321,16 +329,18 @@
                                                 <button type="submit" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Delete</button>
                                             </form>
 
-                                            <!-- ✅ HISTORY (Mengarah ke route admin.articles.history spesifik artikel) -->
+                                            <!-- ✅ HISTORY -->
                                             <a href="{{ route('admin.articles.history', $article->id) }}" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> History
                                             </a>
 
-                                            <!-- ✅ DUPLICATE -->
+                                            @unless($article->status === 'revision')
+                                            <!-- ✅ DUPLICATE — disembunyikan untuk status Revision -->
                                             <form action="{{ route('admin.articles.duplicate', $article->id) }}" method="POST" class="block">
                                                 @csrf
                                                 <button type="submit" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg> Duplicate</button>
                                             </form>
+                                            @endunless
                                         </div>
                                     </div>
                                 </div>
@@ -405,6 +415,48 @@
         </div>
     </div>
 
+    {{-- ✅ Modal Detail Alasan Revisi (khusus baris berstatus 'revision') --}}
+    <div id="revisionDetailModal" class="fixed inset-0 z-50 hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center opacity-0" style="transition: opacity 0.3s ease;">
+        <div id="revisionModalBox" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 opacity-0" style="transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.3s ease;">
+            <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="p-1.5 bg-red-100 text-red-600 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h3 class="font-bold text-gray-900 text-lg">Detail Alasan Revisi</h3>
+                </div>
+                <button onclick="closeRevisionModal()" class="text-gray-400 hover:text-gray-700 focus:outline-none">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-5">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                    <span id="revisionModalTitle" class="text-base font-bold text-gray-900">Memuat...</span>
+                    <span class="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-bold">Revision</span>
+                </div>
+                <div id="revisionModalNotes" class="space-y-4"></div>
+            </div>
+
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <p class="text-[11px] text-gray-400 w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0">Aksi:</p>
+                <div class="flex flex-wrap justify-end gap-2 w-full sm:w-auto">
+                    <a id="revisionBtnShow" href="#" class="flex-1 sm:flex-none border border-blue-500 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 min-w-[130px]">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        Lihat Artikel Lengkap
+                    </a>
+                    <form id="revisionBtnRestore" action="" method="POST" class="flex-1 sm:flex-none min-w-[130px]" onsubmit="return confirm('Batalkan revisi ini? Artikel akan dikembalikan ke status Draft.');">
+                        @csrf
+                        <button type="submit" class="w-full sm:w-auto bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center justify-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            Batalkan Revisi
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- Toggle Sidebar Mobile ---
         function toggleSidebar() {
@@ -439,11 +491,20 @@
             }
         }
 
-        // ✅ PERBAIKAN LOGIC DROPDOWN DENGAN POSISI FIXED
+        // ✅ PERBAIKAN UTAMA: dropdown sekarang cek batas viewport.
+        // Sebelumnya posisi selalu dihitung "rect.bottom + 8" (selalu ke bawah tombol)
+        // tanpa peduli apakah ruang di bawah cukup. Kalau tombol ada di baris
+        // paling bawah tabel, menu jadi terpotong di luar layar dan — karena
+        // position:fixed — tidak ikut ke-scroll bareng body, sehingga terlihat
+        // "gak bisa discroll". Sekarang: kalau ruang di bawah tidak cukup untuk
+        // seluruh tinggi menu, dropdown otomatis dibuka ke ATAS tombol. Kalau
+        // menu tetap lebih tinggi dari viewport (banyak item + layar pendek),
+        // dropdown akan otomatis discroll sendiri lewat CSS max-height + overflow-y:auto
+        // yang sudah ditambahkan di style .dropdown-menu.
         function toggleDropdown(button) {
             const menu = button.parentElement.querySelector('.dropdown-menu');
             const isHidden = menu.classList.contains('hidden');
-            
+
             // Tutup semua dropdown lain terlebih dahulu
             document.querySelectorAll('.dropdown-menu').forEach(m => {
                 if (m !== menu) {
@@ -454,40 +515,75 @@
             });
 
             if (isHidden) {
-                // Hitung posisi tombol relatif terhadap viewport
-                const rect = button.getBoundingClientRect();
-                // Tentukan posisi dropdown (di bawah tombol, sejajar kanan tombol)
-                // Lebar dropdown = 12rem (192px), jarak 8px dari tombol
-                const top = rect.bottom + window.scrollY + 8;
-                const left = rect.right + window.scrollX - 192 + 8;
-                
-                menu.style.top = top + 'px';
-                menu.style.left = left + 'px';
+                positionDropdown(button, menu);
 
                 menu.classList.remove('hidden');
                 setTimeout(() => {
                     menu.classList.remove('scale-95', 'opacity-0');
                     menu.classList.add('scale-100', 'opacity-100');
                 }, 10);
+
+                // Reposisi ulang kalau user scroll / resize window selagi menu terbuka
+                const reposition = () => positionDropdown(button, menu);
+                menu._repositionHandler = reposition;
+                window.addEventListener('scroll', reposition, true);
+                window.addEventListener('resize', reposition);
             } else {
-                menu.classList.remove('scale-100', 'opacity-100');
-                menu.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => {
-                    menu.classList.add('hidden');
-                }, 100);
+                closeDropdownMenu(menu);
             }
+        }
+
+        function positionDropdown(button, menu) {
+            const rect = button.getBoundingClientRect();
+            const margin = 8;
+            const menuWidth = menu.offsetWidth || 192;
+
+            // Batasi dulu tinggi maksimum menu berdasarkan ruang yang tersedia,
+            // supaya kalaupun dibuka ke bawah/atas, dia tidak pernah keluar viewport.
+            const spaceBelow = window.innerHeight - rect.bottom - margin;
+            const spaceAbove = rect.top - margin;
+            const naturalHeight = menu.scrollHeight;
+
+            let top, maxHeight;
+
+            if (naturalHeight <= spaceBelow || spaceBelow >= spaceAbove) {
+                // Buka ke bawah tombol
+                top = rect.bottom + 8;
+                maxHeight = Math.max(spaceBelow - 8, 120);
+            } else {
+                // Tidak cukup ruang di bawah → buka ke atas tombol
+                maxHeight = Math.max(spaceAbove - 8, 120);
+                top = Math.max(rect.top - Math.min(naturalHeight, maxHeight) - 8, margin);
+            }
+
+            let left = rect.right - menuWidth;
+            if (left < margin) left = margin;
+            if (left + menuWidth > window.innerWidth - margin) {
+                left = window.innerWidth - menuWidth - margin;
+            }
+
+            menu.style.top = top + 'px';
+            menu.style.left = left + 'px';
+            menu.style.maxHeight = maxHeight + 'px';
+        }
+
+        function closeDropdownMenu(menu) {
+            menu.classList.remove('scale-100', 'opacity-100');
+            menu.classList.add('scale-95', 'opacity-0');
+            if (menu._repositionHandler) {
+                window.removeEventListener('scroll', menu._repositionHandler, true);
+                window.removeEventListener('resize', menu._repositionHandler);
+                menu._repositionHandler = null;
+            }
+            setTimeout(() => {
+                menu.classList.add('hidden');
+            }, 100);
         }
 
         // Tutup dropdown jika klik di luar area dropdown maupun tombol pembuka
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.relative')) {
-                document.querySelectorAll('.dropdown-menu').forEach(m => {
-                    m.classList.remove('scale-100', 'opacity-100');
-                    m.classList.add('scale-95', 'opacity-0');
-                    setTimeout(() => {
-                        m.classList.add('hidden');
-                    }, 100);
-                });
+                document.querySelectorAll('.dropdown-menu').forEach(m => closeDropdownMenu(m));
             }
         });
 
@@ -507,6 +603,84 @@
                     document.getElementById('editVersion').value = data.version || '';
                     document.getElementById('editModal').classList.remove('hidden');
                 });
+        }
+
+        // Modal Detail Revisi — memakai endpoint getArticleJson() controller (route: admin.articles.json)
+        const revisionModal = document.getElementById('revisionDetailModal');
+        const revisionModalBox = document.getElementById('revisionModalBox');
+
+        function openRevisionModal(id) {
+            fetch(`/admin/articles/json/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('revisionModalTitle').innerText = data.title || 'Artikel';
+
+                    let notes = {};
+                    if (data.revision_notes) {
+                        notes = typeof data.revision_notes === 'string'
+                            ? (JSON.parse(data.revision_notes || '{}') || {})
+                            : data.revision_notes;
+                    }
+
+                    let html = '';
+                    if (notes && Object.keys(notes).length > 0) {
+                        html += `
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3">
+                                <h4 class="font-bold text-sm text-blue-800 mb-2 flex items-center gap-2">📋 Detail Permintaan Revisi</h4>
+                                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-700">
+                                    <div><span class="font-semibold text-gray-500">Judul:</span> ${notes.title_revision || '-'}</div>
+                                    <div><span class="font-semibold text-gray-500">Isi:</span> ${notes.content_revision || '-'}</div>
+                                    <div><span class="font-semibold text-gray-500">Lampiran:</span> ${notes.attachments_revision || '-'}</div>
+                                    <div><span class="font-semibold text-gray-500">Kategori:</span> ${notes.category_revision || '-'}</div>
+                                    <div><span class="font-semibold text-gray-500">Tag:</span> ${notes.tags_revision || '-'}</div>
+                                    <div><span class="font-semibold text-gray-500">Thumbnail:</span> ${notes.thumbnail_revision || '-'}</div>
+                                    <div class="col-span-2"><span class="font-semibold text-gray-500">Lainnya:</span> ${notes.others_revision || '-'}</div>
+                                </div>
+                            </div>`;
+
+                        const priorityClass = notes.priority === 'Tinggi' ? 'text-red-600' : (notes.priority === 'Sedang' ? 'text-yellow-600' : 'text-green-600');
+                        html += `
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-3 flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-bold text-xs text-yellow-800">Prioritas</h4>
+                                    <p class="text-sm font-bold ${priorityClass}">${notes.priority || 'Sedang'}</p>
+                                </div>
+                                <div class="text-right">
+                                    <h4 class="font-bold text-xs text-yellow-800">Deadline</h4>
+                                    <p class="text-sm font-bold text-blue-600">${notes.deadline || '7 Hari'}</p>
+                                </div>
+                            </div>`;
+
+                        if (notes.note) {
+                            html += `
+                                <div class="bg-white border border-gray-200 rounded-lg p-4">
+                                    <h4 class="font-bold text-sm flex items-center gap-2">📝 Catatan Admin</h4>
+                                    <p class="text-sm mt-1 text-gray-700">${notes.note}</p>
+                                </div>`;
+                        }
+                    } else {
+                        html = `<p class="text-sm text-gray-500 text-center py-2">Tidak ada catatan revisi spesifik.</p>`;
+                    }
+                    document.getElementById('revisionModalNotes').innerHTML = html;
+                    document.getElementById('revisionBtnShow').href = `/admin/articles/view/${id}`;
+                    document.getElementById('revisionBtnRestore').action = `/admin/articles/restore/${id}`;
+
+                    revisionModal.classList.remove('hidden');
+                    setTimeout(() => {
+                        revisionModal.classList.remove('opacity-0');
+                        revisionModalBox.classList.remove('scale-95', 'opacity-0');
+                        revisionModalBox.classList.add('scale-100', 'opacity-100');
+                    }, 10);
+                })
+                .catch(() => showToast('Gagal memuat detail revisi.', 'error'));
+        }
+
+        function closeRevisionModal() {
+            revisionModalBox.classList.remove('scale-100', 'opacity-100');
+            revisionModalBox.classList.add('scale-95', 'opacity-0');
+            revisionModal.classList.remove('opacity-100');
+            revisionModal.classList.add('opacity-0');
+            setTimeout(() => revisionModal.classList.add('hidden'), 300);
         }
 
         function showToast(message, type = 'success') {

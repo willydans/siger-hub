@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Category;
 use App\Models\Opd;
 use App\Models\ActivityLog;
+use App\Models\Notification; // ✅ Tambahkan model Notification
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -14,16 +15,22 @@ class AdminArticleController extends Controller
 {
     /**
      * Menampilkan daftar artikel dengan filter dan sorting.
+     * Jika status = 'deleted', tampilkan artikel yang sudah di-soft delete.
      */
     public function index(Request $request, $status = null)
     {
         $query = Article::with('user')->orderBy('created_at', 'desc');
 
+        if ($status === 'deleted') {
+            $articles = $query->onlyTrashed()->paginate(10)->appends($request->except('page'));
+            return view('admin-delete', compact('articles'));
+        }
+
         if ($status) {
             $query->where('status', $status);
         }
 
-        // Filter pencarian dan dropdown
+        // Filter
         if ($request->filled('search')) {
             $query->where('title', 'like', '%' . $request->search . '%');
         }
@@ -49,7 +56,6 @@ class AdminArticleController extends Controller
             $query->where('version', $request->version);
         }
 
-        // Sorting
         $sort = $request->get('sort', 'latest');
         if ($sort === 'oldest') {
             $query->orderBy('created_at', 'asc');
@@ -63,12 +69,10 @@ class AdminArticleController extends Controller
 
         $articles = $query->paginate(10)->appends($request->except('page'));
 
-        // Data untuk dropdown filter
         $users = User::orderBy('name')->get();
         $categories = Category::orderBy('name')->get();
         $opds = Opd::orderBy('name')->get();
 
-        // Menentukan judul dan view berdasarkan status
         $pageTitle = 'All Articles';
         $statusLabel = 'Semua artikel';
         $viewFile = 'admin-all-articles';
@@ -84,7 +88,6 @@ class AdminArticleController extends Controller
             ];
             $statusLabel = $labelMap[$status] ?? ucfirst($status);
             $pageTitle = $statusLabel . ' Articles';
-            // Jika status pending, kita gunakan view khusus
             if ($status === 'pending') {
                 $viewFile = 'admin-pending-approval';
             }
@@ -93,25 +96,17 @@ class AdminArticleController extends Controller
         return view($viewFile, compact('articles', 'users', 'categories', 'opds', 'status', 'pageTitle', 'statusLabel'));
     }
 
-    /**
-     * Mengambil data artikel untuk keperluan edit via AJAX.
-     */
     public function edit($id)
     {
         $article = Article::findOrFail($id);
         return response()->json($article);
     }
 
-    /**
-     * Memperbarui data artikel (judul, kategori, status, visibility, versi).
-     * Menambahkan logika otomatis isi published_at jika status berubah menjadi published.
-     */
     public function update(Request $request, $id)
     {
         $article = Article::findOrFail($id);
         $data = $request->only(['title', 'category', 'status', 'visibility', 'version']);
 
-        // ✨ Jika status diubah menjadi 'published' dan published_at kosong, isi otomatis
         if ($request->has('status') && $request->status === 'published' && is_null($article->published_at)) {
             $data['published_at'] = now();
         }
@@ -120,32 +115,41 @@ class AdminArticleController extends Controller
         return redirect()->route('admin.all-articles')->with('success', 'Artikel berhasil diperbarui.');
     }
 
-    /**
-     * Menghapus artikel (soft delete).
-     */
     public function destroy($id)
     {
         $article = Article::findOrFail($id);
+        $title = $article->title;
         $article->delete();
-        return redirect()->route('admin.all-articles')->with('success', 'Artikel berhasil dihapus.');
+
+        ActivityLog::create([
+            'subject_id'   => $article->id,
+            'subject_type' => 'App\Models\Article',
+            'causer_id'    => auth()->id(),
+            'description'  => "Artikel '{$title}' dipindahkan ke Recycle Bin.",
+        ]);
+
+        // (Opsional) Kirim notifikasi ke staff bahwa artikel dihapus sementara
+        // Notification::create([...]);
+
+        return redirect()->back()->with('success', "Artikel '{$title}' berhasil dipindahkan ke Recycle Bin.");
     }
 
     /**
      * Menyetujui artikel (ubah status dari pending menjadi published).
-     * ✨ PERBAIKAN UTAMA: Otomatis mengisi published_at jika kosong.
+     * ✅ Kirim notifikasi ke staff.
      */
     public function approve($id)
     {
         $article = Article::findOrFail($id);
-        
-        $data = ['status' => 'published'];
+        $data = [
+            'status' => 'published',
+            'reviewed_by_user_id' => auth()->id(),
+        ];
         if (is_null($article->published_at)) {
             $data['published_at'] = now();
         }
-        
         $article->update($data);
 
-        // Catat activity log
         ActivityLog::create([
             'subject_id'   => $article->id,
             'subject_type' => 'App\Models\Article',
@@ -154,16 +158,32 @@ class AdminArticleController extends Controller
             'properties'   => json_encode(['old_status' => 'pending', 'new_status' => 'published']),
         ]);
 
+        // ✨ Notifikasi ke Staff
+        Notification::create([
+            'user_id'    => $article->user_id,
+            'article_id' => $article->id,
+            'type'       => 'Approval',
+            'title'      => '✅ Artikel Disetujui',
+            'message'    => "Artikel '{$article->title}' telah disetujui dan dipublikasikan oleh Admin.",
+            'url'        => route('staff.articles'),
+            'is_read'    => false,
+        ]);
+
         return redirect()->back()->with('success', 'Artikel berhasil disetujui dan dipublikasikan.');
     }
 
     /**
      * Menolak artikel (ubah status menjadi revision).
+     * ✅ Kirim notifikasi ke staff.
      */
     public function reject($id)
     {
         $article = Article::findOrFail($id);
-        $article->update(['status' => 'revision']);
+        $article->update([
+            'status' => 'revision',
+            'reviewed_by_user_id' => auth()->id(),
+        ]);
+
         ActivityLog::create([
             'subject_id'   => $article->id,
             'subject_type' => 'App\Models\Article',
@@ -171,39 +191,97 @@ class AdminArticleController extends Controller
             'description'  => 'Artikel ditolak oleh admin',
             'properties'   => json_encode(['old_status' => 'pending', 'new_status' => 'revision']),
         ]);
+
+        // ✨ Notifikasi ke Staff
+        Notification::create([
+            'user_id'    => $article->user_id,
+            'article_id' => $article->id,
+            'type'       => 'Revision',
+            'title'      => '🔄 Artikel Ditolak & Perlu Revisi',
+            'message'    => "Artikel '{$article->title}' ditolak dan diminta revisi oleh Admin. Silakan perbaiki dan kirim ulang.",
+            'url'        => route('staff.revision'),
+            'is_read'    => false,
+        ]);
+
         return redirect()->back()->with('success', 'Artikel ditolak dan dikembalikan ke revisi.');
     }
 
-    /**
-     * Mengarsipkan artikel.
-     */
     public function archive($id)
     {
         $article = Article::findOrFail($id);
         $article->update(['status' => 'archived']);
+
+        // ✨ Notifikasi ke Staff
+        Notification::create([
+            'user_id'    => $article->user_id,
+            'article_id' => $article->id,
+            'type'       => 'System',
+            'title'      => '📦 Artikel Diarsipkan',
+            'message'    => "Artikel '{$article->title}' telah diarsipkan oleh Admin.",
+            'url'        => route('staff.articles'),
+            'is_read'    => false,
+        ]);
+
         return redirect()->back()->with('success', 'Artikel berhasil diarsipkan.');
     }
 
     /**
-     * Memulihkan artikel dari arsip (kembali ke draft).
+     * Restore: Memulihkan artikel dari Recycle Bin dan mengubah status menjadi draft.
+     * ✅ Kirim notifikasi ke staff.
      */
     public function restore($id)
     {
         $article = Article::withTrashed()->findOrFail($id);
+        $title = $article->title;
         $article->restore();
         $article->status = 'draft';
         $article->save();
 
-        return redirect()->route('admin.all-articles')->with('success', 'Artikel berhasil dipulihkan!');
+        ActivityLog::create([
+            'subject_id'   => $article->id,
+            'subject_type' => 'App\Models\Article',
+            'causer_id'    => auth()->id(),
+            'description'  => "Artikel '{$title}' dipulihkan dari Recycle Bin.",
+        ]);
+
+        // ✨ Notifikasi ke Staff
+        Notification::create([
+            'user_id'    => $article->user_id,
+            'article_id' => $article->id,
+            'type'       => 'System',
+            'title'      => '♻️ Artikel Dipulihkan',
+            'message'    => "Artikel '{$title}' telah dikembalikan ke Draft oleh Admin.",
+            'url'        => route('staff.draft'),
+            'is_read'    => false,
+        ]);
+
+        return redirect()->route('admin.delete')->with('success', "Artikel '{$title}' berhasil dipulihkan ke Draft.");
     }
 
-    /**
-     * Menduplikasi artikel menjadi draft baru.
-     */
+    public function forceDelete($id)
+    {
+        $article = Article::withTrashed()->findOrFail($id);
+        $title = $article->title;
+
+        if ($article->thumbnail) {
+            \Storage::disk('public')->delete($article->thumbnail);
+        }
+
+        $article->forceDelete();
+
+        ActivityLog::create([
+            'subject_id'   => $article->id,
+            'subject_type' => 'App\Models\Article',
+            'causer_id'    => auth()->id(),
+            'description'  => "Artikel '{$title}' dihapus permanen.",
+        ]);
+
+        return redirect()->route('admin.delete')->with('success', "Artikel '{$title}' berhasil dihapus permanen.");
+    }
+
     public function duplicate($id)
     {
         $original = Article::findOrFail($id);
-        
         $new = $original->replicate();
         $new->title = $original->title . ' (Copy)';
         $new->slug = Str::slug($new->title) . '-' . uniqid();
@@ -214,22 +292,15 @@ class AdminArticleController extends Controller
         return redirect()->back()->with('success', 'Artikel berhasil diduplikasi.');
     }
 
-    /**
-     * Menampilkan detail artikel di halaman Admin.
-     */
     public function show($id)
     {
         $article = Article::withTrashed()->findOrFail($id);
         return view('admin.articles.show', compact('article'));
     }
 
-    /**
-     * Menampilkan riwayat perubahan spesifik untuk artikel tersebut.
-     */
     public function history($id)
     {
         $article = Article::withTrashed()->findOrFail($id);
-        
         $history = ActivityLog::where('subject_id', $id)
                     ->where('subject_type', 'App\Models\Article')
                     ->orderBy('created_at', 'desc')
@@ -238,9 +309,6 @@ class AdminArticleController extends Controller
         return view('admin.articles.history', compact('article', 'history'));
     }
 
-    /**
-     * Mengambil data artikel dalam format JSON untuk modal review.
-     */
     public function getArticleJson($id)
     {
         $article = Article::with('user')->findOrFail($id);
@@ -248,22 +316,51 @@ class AdminArticleController extends Controller
     }
 
     /**
-     * Mengirim permintaan revisi (catatan revisi)
+     * Mengirim permintaan revisi (menyimpan seluruh detail form revisi).
+     * ✅ Kirim notifikasi ke staff.
      */
     public function revision(Request $request, $id)
     {
         $article = Article::findOrFail($id);
-        $note = $request->input('note', '');
-        // Update status menjadi revision
-        $article->update(['status' => 'revision']);
-        // Catat activity log dengan catatan revisi
+
+        $revisionData = $request->only([
+            'title_revision',
+            'content_revision',
+            'attachments_revision',
+            'category_revision',
+            'tags_revision',
+            'thumbnail_revision',
+            'others_revision',
+            'priority',
+            'deadline',
+            'note',
+        ]);
+
+        $article->update([
+            'status'              => 'revision',
+            'reviewed_by_user_id' => auth()->id(),
+            'revision_notes'      => json_encode($revisionData),
+        ]);
+
         ActivityLog::create([
             'subject_id'   => $article->id,
             'subject_type' => 'App\Models\Article',
             'causer_id'    => auth()->id(),
-            'description'  => 'Admin meminta revisi: ' . $note,
-            'properties'   => json_encode(['note' => $note]),
+            'description'  => 'Admin meminta revisi: ' . ($revisionData['note'] ?: '-'),
+            'properties'   => json_encode($revisionData),
         ]);
-        return response()->json(['message' => 'Permintaan revisi berhasil dikirim']);
+
+        // ✨ Notifikasi ke Staff
+        Notification::create([
+            'user_id'    => $article->user_id,
+            'article_id' => $article->id,
+            'type'       => 'Revision',
+            'title'      => '📝 Admin Meminta Revisi',
+            'message'    => "Admin meminta revisi untuk artikel '{$article->title}'. Silakan cek detail revisi di halaman Revision.",
+            'url'        => route('staff.revision'),
+            'is_read'    => false,
+        ]);
+
+        return response()->json(['message' => 'Permintaan revisi berhasil dikirim ke penulis.']);
     }
 }

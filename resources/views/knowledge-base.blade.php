@@ -58,6 +58,16 @@
         {{-- AUTH --}}
         <div>
             @auth
+                {{-- ✨ PERBAIKAN: Tentukan route profil berdasarkan Role User --}}
+                @php
+                    $user = Auth::user();
+                    $roleName = optional($user->role)->name;
+                    $profileLink = match($roleName) {
+                        'staff' => route('staff.profile'),
+                        'admin' => route('admin.dashboard'),
+                        default => route('user.profil'),
+                    };
+                @endphp
                 <div class="relative group">
                     <button class="flex items-center gap-2 text-white hover:text-gold transition-colors duration-300 focus:outline-none">
                         <img src="{{ Auth::user()->avatar ? (str_starts_with(Auth::user()->avatar, 'http') ? Auth::user()->avatar : Storage::url(Auth::user()->avatar)) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=EAB308&color=0f172a' }}"
@@ -72,7 +82,8 @@
                                 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200
                                 transform origin-top-right group-hover:scale-100 scale-95 z-50 overflow-hidden">
                         <div class="py-1">
-                            <a href="{{ route('user.profil') }}"
+                            {{-- ✨ PERBAIKAN: Gunakan variabel $profileLink --}}
+                            <a href="{{ $profileLink }}"
                                class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

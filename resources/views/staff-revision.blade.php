@@ -71,10 +71,13 @@
         </div>
 
         <div class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-            <a href="/" class="flex items-center justify-center gap-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 hover:text-blue-300 border border-blue-500/30 px-3 py-2.5 rounded-lg text-xs font-bold transition-colors mb-6 shadow-sm hover:scale-[1.02] duration-200">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                Lihat Portal Publik
-            </a>
+           <!-- Tombol Portal Publik -->
+<a href="{{ route('portal') }}" target="_blank" 
+   class="flex items-center justify-center gap-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 hover:text-blue-300 border border-blue-500/30 px-3 py-2.5 rounded-lg text-xs font-bold transition-colors mb-6 shadow-sm hover:scale-[1.02] duration-200"
+   title="Buka portal publik di tab baru">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+    Portal Publik
+</a>
 
             <p class="px-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Konten</p>
             
@@ -90,7 +93,6 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Draft
             </a>
             
-            <!-- Revision sekarang aktif -->
             <a href="{{ route('staff.revision') }}" class="flex items-center gap-3 bg-gray-800/50 text-white px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border border-gray-700">
                 <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Revision
             </a>
@@ -117,7 +119,6 @@
                     <span class="text-[10px] text-gray-400">Kontributor</span>
                 </div>
             </div>
-            <!-- Logout Form Dinamis -->
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
                 <button type="submit" class="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 py-2 rounded-lg text-xs font-medium border border-gray-700 transition cursor-pointer">Keluar</button>
@@ -134,7 +135,6 @@
         </script>
         @endif
 
-        <!-- Mobile Toggle Sidebar -->
         <div class="flex justify-between items-center mb-6 md:hidden">
             <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-900 p-2 -ml-2 rounded-lg hover:bg-gray-100">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -142,21 +142,39 @@
             <h2 class="text-xl font-bold text-gray-900">Revisi Artikel</h2>
         </div>
 
-        <!-- Header Halaman Revision -->
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4 fade-in-up delay-1">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Daftar Revisi Artikel</h1>
-                <p class="text-sm text-gray-500 mt-1">berisi revisi yang diberikan dari admin terhadap artikel yang disubmit.</p>
+                <p class="text-sm text-gray-500 mt-1">Berisi revisi yang diberikan dari admin terhadap artikel yang disubmit.</p>
             </div>
         </div>
 
-        <!-- Daftar Kartu Revisi Dinamis -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @forelse($revisions as $revision)
+            @php
+                // ✅ TAMBAHAN: decode sekali di sini supaya bisa dipakai untuk
+                // badge Prioritas & Deadline langsung di kartu, tanpa perlu
+                // buka modal dulu.
+                $notesData = json_decode($revision->revision_notes, true) ?: [];
+                $firstNote = $notesData['note'] ?? 'Tidak ada catatan spesifik.';
+                $priority  = $notesData['priority'] ?? 'Sedang';
+                $deadline  = $notesData['deadline'] ?? '7 Hari';
+                $priorityColor = match($priority) {
+                    'Tinggi' => 'bg-red-100 text-red-700',
+                    'Rendah' => 'bg-green-100 text-green-700',
+                    default  => 'bg-yellow-100 text-yellow-700',
+                };
+            @endphp
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 flex flex-col hover-lift fade-in-up delay-2">
-                <div class="flex justify-between items-start mb-2">
+                <div class="flex justify-between items-start mb-2 gap-2">
                     <h3 class="font-bold text-gray-900 text-lg leading-tight">{{ $revision->title }}</h3>
-                    <span class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Revision</span>
+                    <span class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">Revision</span>
+                </div>
+
+                <!-- ✅ TAMBAHAN: badge Prioritas & Deadline langsung terlihat di kartu -->
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="{{ $priorityColor }} text-[10px] font-bold px-2 py-0.5 rounded-full">Prioritas: {{ $priority }}</span>
+                    <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Deadline: {{ $deadline }}</span>
                 </div>
                 
                 <div class="space-y-2 flex-1 mb-4">
@@ -171,15 +189,11 @@
                     <div class="pt-2">
                         <p class="text-sm text-gray-600 leading-relaxed">
                             <span class="font-semibold text-gray-700 block mb-1 text-xs">Catatan:</span>
-                            @php
-                                $firstNote = is_array($notes = json_decode($revision->revision_notes, true)) && isset($notes[0]) ? $notes[0]['note'] : 'Tidak ada catatan spesifik.';
-                            @endphp
                             {{ Str::limit($firstNote, 80) }}
                         </p>
                     </div>
                 </div>
 
-                <!-- Action Buttons -->
                 <div class="mt-auto pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2">
                     <button onclick="openModal({{ $revision->id }})" class="flex-1 p-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors flex items-center justify-center gap-1 text-xs font-medium border border-gray-200">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> Lihat Detail
@@ -195,10 +209,8 @@
         </div>
     </main>
 
-    <!-- MODAL: CATATAN REVISI (DINAMIS) -->
     <div id="revision-modal" class="fixed inset-0 z-50 hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center opacity-0 visibility-hidden">
         <div id="modal-box" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 opacity-0">
-            <!-- Header Modal -->
             <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                 <div class="flex items-center gap-2">
                     <div class="p-1.5 bg-red-100 text-red-600 rounded-lg">
@@ -211,38 +223,29 @@
                 </button>
             </div>
             
-            <!-- Body Modal -->
             <div class="p-6 space-y-5">
                 <div class="flex items-center justify-between border-b border-gray-100 pb-2">
                     <span id="modal-title" class="text-base font-bold text-gray-900">Loading...</span>
                     <span class="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-bold">Revision</span>
                 </div>
 
-                <!-- Daftar Poin Revisi Dinamis -->
                 <div id="modal-notes-container" class="space-y-4">
                     <!-- Akan diisi oleh Javascript -->
                 </div>
             </div>
 
-            <!-- Footer Modal (Aksi Staff Dinamis) -->
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-end gap-3">
-                <p class="text-[11px] text-gray-400 w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0">Staff dapat melakukan aksi berikut:</p>
-                <div class="flex flex-wrap gap-2 w-full sm:w-auto justify-center sm:justify-end">
-                    
-                    <!-- Tombol Open Editor -->
-                    <a id="btn-editor" href="#" class="flex-1 sm:flex-none border border-blue-500 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1">
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <p class="text-[11px] text-gray-400 w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0">Aksi:</p>
+                <div class="flex flex-wrap justify-end gap-2 w-full sm:w-auto">
+                    <a id="btn-editor" href="#" class="flex-1 sm:flex-none border border-blue-500 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 min-w-[110px]">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         Open Editor
                     </a>
-                    
-                    <!-- Tombol Perbaiki (Dianggap juga membuka editor untuk memperbaiki) -->
-                    <a id="btn-perbaiki" href="#" class="flex-1 sm:flex-none bg-gold text-darkbg hover:bg-goldhover px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center justify-center gap-1">
+                    <a id="btn-perbaiki" href="#" class="flex-1 sm:flex-none bg-gold text-darkbg hover:bg-goldhover px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center justify-center gap-1 min-w-[110px]">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Perbaiki
-                    </button>
-
-                    <!-- Tombol Submit Again (Ubah status menjadi pending) -->
-                    <form id="btn-submit" action="" method="POST" class="flex-1 sm:flex-none">
+                    </a>
+                    <form id="btn-submit" action="" method="POST" class="flex-1 sm:flex-none min-w-[110px]">
                         @csrf
                         <button type="submit" class="w-full sm:w-auto bg-darkbg text-white hover:bg-gray-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center justify-center gap-1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -255,7 +258,6 @@
     </div>
 
     <script>
-        // --- Logic Toggle Sidebar Mobile ---
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar-mobile');
             const overlay = document.getElementById('sidebar-overlay');
@@ -276,7 +278,6 @@
             }
         }
 
-        // --- Logic Toast Notification ---
         function showToast(message) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -289,48 +290,67 @@
             }, 3000);
         }
 
-        // --- Logic Modal Revision (AJAX Dinamis) ---
         const modal = document.getElementById('revision-modal');
         const modalBox = document.getElementById('modal-box');
 
         function openModal(id) {
-            // Fetch data dari server via AJAX
             fetch(`/staff/revision/${id}/details`)
                 .then(response => response.json())
                 .then(data => {
-                    // Isi Judul Modal
                     document.getElementById('modal-title').innerText = data.title;
                     
-                    // Render Poin Catatan Revisi
                     let notesHtml = '';
-                    const colors = [
-                        'bg-orange-50 border-orange-200 text-orange-800',
-                        'bg-red-50 border-red-200 text-red-800',
-                        'bg-blue-50 border-blue-200 text-blue-800'
-                    ];
-                    
-                    if (data.notes && data.notes.length > 0) {
-                        data.notes.forEach((note, index) => {
-                            const colorClass = colors[index % colors.length];
+                    if (data.notes && typeof data.notes === 'object' && Object.keys(data.notes).length > 0) {
+                        // 1. Detail Revisi (Dropdowns)
+                        notesHtml += `
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3">
+                                <h4 class="font-bold text-sm text-blue-800 mb-2 flex items-center gap-2">📋 Detail Permintaan Revisi</h4>
+                                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-700">
+                                    <div><span class="font-semibold text-gray-500">Judul:</span> ${data.notes.title_revision || '-'}</div>
+                                    <div><span class="font-semibold text-gray-500">Isi:</span> ${data.notes.content_revision || '-'}</div>
+                                    <div><span class="font-semibold text-gray-500">Lampiran:</span> ${data.notes.attachments_revision || '-'}</div>
+                                    <div><span class="font-semibold text-gray-500">Kategori:</span> ${data.notes.category_revision || '-'}</div>
+                                    <div><span class="font-semibold text-gray-500">Tag:</span> ${data.notes.tags_revision || '-'}</div>
+                                    <div><span class="font-semibold text-gray-500">Thumbnail:</span> ${data.notes.thumbnail_revision || '-'}</div>
+                                    <div class="col-span-2"><span class="font-semibold text-gray-500">Lainnya:</span> ${data.notes.others_revision || '-'}</div>
+                                </div>
+                            </div>
+                        `;
+
+                        // 2. Prioritas & Deadline
+                        const priorityClass = data.notes.priority === 'Tinggi' ? 'text-red-600' : (data.notes.priority === 'Sedang' ? 'text-yellow-600' : 'text-green-600');
+                        notesHtml += `
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-3 flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-bold text-xs text-yellow-800">Prioritas</h4>
+                                    <p class="text-sm font-bold ${priorityClass}">${data.notes.priority || 'Sedang'}</p>
+                                </div>
+                                <div class="text-right">
+                                    <h4 class="font-bold text-xs text-yellow-800">Deadline</h4>
+                                    <p class="text-sm font-bold text-blue-600">${data.notes.deadline || '7 Hari'}</p>
+                                </div>
+                            </div>
+                        `;
+
+                        // 3. Catatan Admin
+                        if (data.notes.note) {
                             notesHtml += `
-                                <div class="${colorClass} border rounded-lg p-4">
-                                    <h4 class="font-bold text-sm flex items-center gap-2">${note.title || 'Catatan'}</h4>
-                                    <p class="text-sm mt-1 ml-6">${note.note}</p>
+                                <div class="bg-white border border-gray-200 rounded-lg p-4">
+                                    <h4 class="font-bold text-sm flex items-center gap-2">📝 Catatan dari Admin</h4>
+                                    <p class="text-sm mt-1 text-gray-700">${data.notes.note}</p>
                                 </div>
                             `;
-                        });
+                        }
                     } else {
                         notesHtml = `<p class="text-sm text-gray-500 text-center py-2">Tidak ada catatan revisi spesifik.</p>`;
                     }
                     document.getElementById('modal-notes-container').innerHTML = notesHtml;
 
-                    // Update URL Aksi Tombol
-                    const editorUrl = `/staff/editor/${data.id}`; // Perbaikan: gunakan route edit
+                    const editorUrl = `/staff/editor/${data.id}`;
                     document.getElementById('btn-editor').href = editorUrl;
                     document.getElementById('btn-perbaiki').href = editorUrl;
                     document.getElementById('btn-submit').action = `/staff/revision/${data.id}/submit`;
 
-                    // Tampilkan Modal dengan Animasi
                     modal.classList.remove('hidden');
                     setTimeout(() => {
                         modal.classList.remove('opacity-0', 'visibility-hidden');

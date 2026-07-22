@@ -31,6 +31,10 @@ use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\AiAssistantController;
+
+// ✨ TAMBAHKAN IMPORT PORTAL CONTROLLER (akan kita buat)
+use App\Http\Controllers\PortalController;
+
 use Illuminate\Http\Request;
 
 /*
@@ -39,6 +43,10 @@ use Illuminate\Http\Request;
 |--------------------------------------------------------------------------
 */
 Route::get('/', [HomeController::class, 'index'])->name('home.public');
+
+// ✨ ROUTE PORTAL PUBLIK KHUSUS (TANPA REDIRECT) UNTUK STAFF & ADMIN
+Route::get('/portal', [PortalController::class, 'index'])->name('portal');
+
 Route::get('/knowledge-base', [KnowledgeBaseController::class, 'index'])->name('knowledge-base');
 Route::get('/document/sop-siber', function () { return view('document-detail'); });
 
@@ -48,7 +56,7 @@ Route::get('/document/{slug}', [DocumentController::class, 'show'])->name('docum
 // ✨ Route AI Chatbot
 Route::post('/api/ai/chat', [AiAssistantController::class, 'chat'])->name('api.ai.chat');
 
-// ✨ TAMBAHAN BARU: Route untuk mencatat klik artikel dari hasil pencarian (Search Log)
+// ✨ Route untuk mencatat klik artikel dari hasil pencarian (Search Log)
 Route::post('/api/track-click', function (Request $request) {
     $validated = $request->validate([
         'query' => 'required|string',
@@ -67,7 +75,7 @@ Route::post('/api/track-click', function (Request $request) {
     }
 
     return response()->json(['status' => 'ok']);
-})->middleware('web'); // Middleware web memastikan CSRF token terverifikasi
+})->middleware('web');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -126,7 +134,7 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'verified.otp', 'rol
     Route::post('/articles/bulk-action', [StaffArticleController::class, 'bulkAction'])->name('articles.bulkAction');
 
     Route::get('/articles/download/{id}', [StaffArticleController::class, 'downloadPdf'])->name('articles.download-pdf');
-    
+
     Route::get('/articles/{id}', [StaffArticleController::class, 'show'])->name('articles.show');
     Route::delete('/articles/{id}', [StaffArticleController::class, 'destroy'])->name('articles.destroy');
 
@@ -190,12 +198,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified.otp', 'rol
     Route::post('/articles/approve/{id}', [AdminArticleController::class, 'approve'])->name('articles.approve');
     Route::post('/articles/reject/{id}', [AdminArticleController::class, 'reject'])->name('articles.reject');
     Route::post('/articles/archive/{id}', [AdminArticleController::class, 'archive'])->name('articles.archive');
-    Route::get('/articles/restore/{id}', [AdminArticleController::class, 'restore'])->name('articles.restore');
+
+    Route::match(['get', 'post'], '/articles/restore/{id}', [AdminArticleController::class, 'restore'])->name('articles.restore');
+
     Route::post('/articles/duplicate/{id}', [AdminArticleController::class, 'duplicate'])->name('articles.duplicate');
     Route::get('/articles/view/{id}', [AdminArticleController::class, 'show'])->name('articles.show');
     Route::get('/articles/history/{id}', [AdminArticleController::class, 'history'])->name('articles.history');
     Route::get('/articles/json/{id}', [AdminArticleController::class, 'getArticleJson'])->name('articles.json');
     Route::post('/articles/revision/{id}', [AdminArticleController::class, 'revision'])->name('articles.revision');
+
+    Route::delete('/articles/force-delete/{id}', [AdminArticleController::class, 'forceDelete'])->name('articles.forceDelete');
 
     // Backup, User, Category, Analytics, Settings dll...
     Route::get('/backup', [AdminBackupController::class, 'index'])->name('backup');
@@ -212,12 +224,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified.otp', 'rol
     Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
     Route::post('/users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('users.toggleStatus');
     Route::post('/users/{user}/reset-password', [AdminUserController::class, 'resetPassword'])->name('users.resetPassword');
-
-    Route::post('/roles', [AdminUserController::class, 'storeRole'])->name('roles.store');
-    Route::get('/roles/{role}/edit', [AdminUserController::class, 'editRole'])->name('roles.edit');
-    Route::put('/roles/{role}', [AdminUserController::class, 'updateRole'])->name('roles.update');
-    Route::delete('/roles/{role}', [AdminUserController::class, 'destroyRole'])->name('roles.destroy');
-    Route::post('/permissions/toggle', [AdminUserController::class, 'togglePermission'])->name('permissions.toggle');
 
     Route::get('/analytics', [AdminAnalyticsController::class, 'index'])->name('analytics');
     Route::view('/reports', 'admin-reports')->name('reports');
@@ -260,22 +266,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified.otp', 'rol
 |--------------------------------------------------------------------------
 */
 Route::prefix('user')->name('user.')->middleware(['auth', 'verified.otp', 'role:user'])->group(function () {
-    // Halaman Dashboard/Profil Utama (Memuat semua data History, Bookmark, Notif)
     Route::get('/profil', [UserProfileController::class, 'index'])->name('profil');
-    
-    // Update Profil & Password
+
     Route::put('/profil/update', [UserProfileController::class, 'updateProfile'])->name('profile.update');
     Route::put('/profil/password', [UserProfileController::class, 'updatePassword'])->name('profile.password');
 
-    // History Actions
     Route::delete('/history/{id}', [UserProfileController::class, 'deleteHistory'])->name('history.delete');
     Route::delete('/history', [UserProfileController::class, 'clearHistory'])->name('history.clear');
 
-    // Bookmark Actions
     Route::post('/bookmarks/toggle', [UserProfileController::class, 'toggleBookmark'])->name('bookmarks.toggle');
     Route::delete('/bookmarks/{id}', [UserProfileController::class, 'deleteBookmark'])->name('bookmarks.delete');
 
-    // Notification Actions
     Route::post('/notifications/{id}/read', [UserProfileController::class, 'markNotificationAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [UserProfileController::class, 'markAllNotificationsAsRead'])->name('notifications.readAll');
     Route::delete('/notifications/{id}', [UserProfileController::class, 'deleteNotification'])->name('notifications.delete');

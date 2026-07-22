@@ -5,14 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Str; // Tambahkan ini untuk Str::limit
+use Illuminate\Support\Str;
 
 class Article extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /**
+     * Kolom yang boleh diisi (mass assignment).
+     */
     protected $fillable = [
         'user_id',
+        'reviewed_by_user_id', // ✅ Tambahkan kolom ini agar bisa diisi saat Admin melakukan Review
         'category',
         'subcategory',
         'opd_unit',
@@ -44,38 +48,70 @@ class Article extends Model
         'likes',
         'bookmarks',
         'likes_count',
-        'comments_count'
+        'comments_count',
+        'revision_notes', // ✅ PERBAIKAN: kolom ini sebelumnya tidak ada di
+                           // $fillable, jadi setiap kali AdminArticleController
+                           // ::revision() memanggil $article->update([...
+                           // 'revision_notes' => ...]), Laravel diam-diam
+                           // membuang field ini tanpa error — makanya selalu
+                           // tersimpan sebagai null walau request-nya sukses.
     ];
 
+    /**
+     * Casting tipe data.
+     */
     protected $casts = [
-        'tags' => 'array',
-        'attachments' => 'array',
-        'relations' => 'array',
-        'rating_avg' => 'float',
-        'rating' => 'integer',
-        'published_at' => 'datetime',
-        'progress' => 'integer',
-        'valid_from' => 'date',
-        'valid_until' => 'date'
+        'tags'          => 'array',
+        'attachments'   => 'array',
+        'relations'     => 'array',
+        'rating_avg'    => 'float',
+        'rating'        => 'integer',
+        'published_at'  => 'datetime',
+        'progress'      => 'integer',
+        'valid_from'    => 'date',
+        'valid_until'   => 'date',
+        'deleted_at'    => 'datetime', // ✅ tambahan eksplisit untuk konsistensi
     ];
 
     // ========== RELATIONSHIPS ==========
 
+    /**
+     * Relasi ke user (penulis).
+     * Didefinisikan eksplisit dengan foreign key 'user_id'.
+     */
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
+    /**
+     * ✅ Relasi ke user (Admin yang memberikan review / revisi).
+     * Foreign key-nya adalah 'reviewed_by_user_id'.
+     */
+    public function reviewedBy()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by_user_id');
+    }
+
+    /**
+     * Relasi many-to-many ke tag.
+     */
     public function tags()
     {
         return $this->belongsToMany(Tag::class, 'article_tag');
     }
 
+    /**
+     * Relasi ke kategori (menggunakan kolom category sebagai foreign key).
+     */
     public function category()
     {
         return $this->belongsTo(Category::class, 'category', 'name');
     }
 
+    /**
+     * Relasi ke komentar.
+     */
     public function comments()
     {
         return $this->hasMany(Comment::class);
@@ -84,7 +120,7 @@ class Article extends Model
     // ========== ACCESSORS ==========
 
     /**
-     * Fallback version if null.
+     * Menampilkan versi dengan fallback.
      */
     public function getVersionAttribute($value)
     {
@@ -92,8 +128,7 @@ class Article extends Model
     }
 
     /**
-     * Nama penulis / admin, aman jika user tidak ada.
-     * Di template bisa langsung pakai: $article->author_name
+     * Nama penulis (aman jika user null).
      */
     public function getAuthorNameAttribute()
     {
@@ -101,7 +136,7 @@ class Article extends Model
     }
 
     /**
-     * Format tanggal publikasi sesuai kebutuhan template.
+     * Tanggal dibuat dengan format d M Y.
      */
     public function getCreatedAtFormattedAttribute()
     {
@@ -109,32 +144,41 @@ class Article extends Model
     }
 
     /**
-     * Format tanggal publish khusus jika pakai published_at.
+     * Tanggal publikasi dengan format d M Y.
      */
     public function getPublishedAtFormattedAttribute()
     {
         return $this->published_at ? $this->published_at->format('d M Y') : 'Belum dipublikasikan';
     }
 
-    // ✨ PERBAIKAN UTAMA DI SINI
     /**
-     * Accessor untuk kolom excerpt.
-     * Jika kosong, ambil 120 karakter pertama dari konten (tanpa tag HTML).
+     * Cuplikan (excerpt) – otomatis diambil dari konten jika kosong.
      */
     public function getExcerptAttribute($value)
     {
         if (!empty($value)) {
             return $value;
         }
-
-        // Hapus tag HTML (<p>, <strong>, dll) lalu potong 120 karakter
         return Str::limit(strip_tags($this->content), 120);
+    }
+
+    /**
+     * (Opsional) URL thumbnail yang sudah siap pakai.
+     */
+    public function getThumbnailUrlAttribute()
+    {
+        if (!empty($this->thumbnail)) {
+            return str_starts_with($this->thumbnail, 'http')
+                ? $this->thumbnail
+                : asset('storage/' . $this->thumbnail);
+        }
+        return asset('images/placeholder-article.png');
     }
 
     // ========== SCOPES ==========
 
     /**
-     * Artikel yang sudah dipublikasikan.
+     * Scope artikel yang sudah dipublikasikan.
      */
     public function scopePublished($query)
     {
@@ -142,7 +186,7 @@ class Article extends Model
     }
 
     /**
-     * Filter berdasarkan kategori.
+     * Scope filter berdasarkan kategori.
      */
     public function scopeByCategory($query, $category)
     {
@@ -150,7 +194,7 @@ class Article extends Model
     }
 
     /**
-     * Filter berdasarkan bahasa.
+     * Scope filter berdasarkan bahasa.
      */
     public function scopeByLanguage($query, $language)
     {
@@ -158,15 +202,17 @@ class Article extends Model
     }
 
     /**
-     * Hanya artikel yang masih berlaku.
+     * Scope artikel yang masih berlaku (valid_from – valid_until).
      */
     public function scopeValid($query)
     {
         $now = now();
-        return $query->where(function ($q) use ($now) {
-            $q->whereNull('valid_from')->orWhere('valid_from', '<=', $now);
-        })->where(function ($q) use ($now) {
-            $q->whereNull('valid_until')->orWhere('valid_until', '>=', $now);
-        });
+        return $query
+            ->where(function ($q) use ($now) {
+                $q->whereNull('valid_from')->orWhere('valid_from', '<=', $now);
+            })
+            ->where(function ($q) use ($now) {
+                $q->whereNull('valid_until')->orWhere('valid_until', '>=', $now);
+            });
     }
 }

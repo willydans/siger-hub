@@ -11,13 +11,12 @@ class Notification extends Model
 
     /**
      * Nama tabel yang digunakan oleh model ini.
-     * Pastikan sesuai dengan nama tabel di database Anda.
      */
     protected $table = 'notifications';
 
     /**
      * Kolom yang boleh diisi (Mass Assignable).
-     * Sangat penting agar data `title`, `message`, `type` tersimpan dengan benar!
+     * Pastikan semua kolom di sini sesuai dengan migrasi tabel `notifications`.
      */
     protected $fillable = [
         'user_id',
@@ -30,6 +29,14 @@ class Notification extends Model
     ];
 
     /**
+     * Jika Anda ingin menerapkan praktik keamanan terbaik, gunakan $guarded
+     * sebagai pelindung agar tidak ada field yang tidak terdaftar di $fillable
+     * yang bisa diisi secara massal (alternatif dari $fillable).
+     * (Opsional, tidak mengubah fungsi saat ini)
+     */
+    // protected $guarded = [];
+
+    /**
      * Casting tipe data.
      * Memastikan 'is_read' selalu diakses sebagai boolean (true/false).
      */
@@ -39,6 +46,7 @@ class Notification extends Model
 
     /**
      * Relasi ke model User (Penerima notifikasi).
+     * Digunakan untuk eager loading: `Notification::with('user')`
      */
     public function user()
     {
@@ -47,6 +55,7 @@ class Notification extends Model
 
     /**
      * Relasi ke model Article (Jika notifikasi berkaitan dengan artikel tertentu).
+     * Digunakan untuk eager loading: `Notification::with('article')`
      */
     public function article()
     {

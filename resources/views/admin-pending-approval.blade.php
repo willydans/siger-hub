@@ -38,8 +38,17 @@
         .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
         #review-modal { transition: opacity 0.3s ease, visibility 0.3s ease; }
         #modal-box { transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease; }
-        #revision-form-container { transition: all 0.4s ease-in-out; max-height: 0; opacity: 0; overflow: hidden; }
-        #revision-form-container.open { max-height: 2000px; opacity: 1; }
+        #revision-form-container { 
+            transition: all 0.4s ease-in-out; 
+            max-height: 0; 
+            opacity: 0; 
+            overflow: hidden; 
+        }
+        #revision-form-container.open { 
+            max-height: 800px; 
+            opacity: 1; 
+            overflow: visible; 
+        }
         .sidebar-scroll::-webkit-scrollbar { width: 4px; }
         .sidebar-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
         .sidebar-scroll { scrollbar-width: thin; }
@@ -47,10 +56,8 @@
 </head>
 <body class="font-sans antialiased text-textmain bg-lightbg flex h-screen overflow-hidden">
 
-    <!-- Mobile Overlay -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden opacity-0" onclick="toggleSidebar()"></div>
 
-    <!-- SIDEBAR -->
     <aside id="sidebar-mobile" class="w-64 bg-darkbg text-gray-300 flex flex-col border-r border-gray-800 shadow-2xl z-40 fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 flex-shrink-0 sidebar-scroll">
         <div class="h-16 flex items-center gap-3 px-6 border-b border-gray-800">
             <div class="w-8 h-8 bg-gold rounded text-darkbg flex items-center justify-center font-bold text-lg">A</div>
@@ -108,9 +115,7 @@
             <a href="{{ route('admin.storage') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7h-4.586a2 2 0 01-1.414-.586l-1.172-1.172a2 2 0 00-1.414-.586H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7z"></path></svg> Storage
             </a>
-            <a href="{{ route('admin.settings') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Settings
-            </a>
+           
             <a href="{{ route('admin.backup') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Backup & Restore
             </a>
@@ -140,7 +145,6 @@
             <script>document.addEventListener('DOMContentLoaded', function() { showToast('{{ session('error') }}', 'error'); });</script>
         @endif
 
-        <!-- Mobile Toggle Sidebar -->
         <div class="flex justify-between items-center mb-6 md:hidden">
             <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-900 p-2 -ml-2 rounded-lg hover:bg-gray-100">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -148,7 +152,6 @@
             <h2 class="text-xl font-bold text-gray-900">{{ $pageTitle }}</h2>
         </div>
 
-        <!-- Header Section -->
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 fade-in-up" style="animation-delay: 0.1s;">
             <div>
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-900">{{ $pageTitle }}</h1>
@@ -156,7 +159,6 @@
             </div>
         </div>
 
-        <!-- Summary Card -->
         <div class="bg-red-50 border border-red-200 rounded-xl p-6 mb-8 flex items-center justify-between flex-wrap gap-4 fade-in-up" style="animation-delay: 0.2s;">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-xl font-bold">{{ $articles->total() }}</div>
@@ -168,7 +170,6 @@
             <span class="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full">Pending</span>
         </div>
 
-        <!-- Articles Grid / List -->
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 fade-in-up" style="animation-delay: 0.3s;">
             @forelse($articles as $article)
             <div onclick="openReviewModal({{ $article->id }})" class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col hover-lift cursor-pointer transition-all duration-200">
@@ -203,19 +204,15 @@
             @endforelse
         </div>
 
-        <!-- Pagination -->
         <div class="mt-6">
             {{ $articles->links() }}
         </div>
     </main>
 
-    <!-- ============================================== -->
-    <!-- MODAL: REVIEW ARTIKEL                          -->
-    <!-- ============================================== -->
+    <!-- MODAL: REVIEW ARTIKEL -->
     <div id="review-modal" class="fixed inset-0 z-50 hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center opacity-0 visibility-hidden">
-        <div id="modal-box" class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden transform scale-95 opacity-0 flex flex-col h-[90vh] mx-4 md:mx-auto">
+        <div id="modal-box" class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl transform scale-95 opacity-0 flex flex-col h-[90vh] mx-4 md:mx-auto">
             
-            <!-- Header Modal -->
             <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center flex-shrink-0">
                 <div class="flex items-center gap-2">
                     <div class="p-1.5 bg-red-100 text-red-600 rounded-lg">
@@ -228,12 +225,8 @@
                 </button>
             </div>
             
-            <!-- Body Modal (2 Columns) -->
             <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
-                
-                <!-- KIRI: Tampilan Artikel -->
                 <div class="w-full md:w-2/3 p-6 overflow-y-auto border-r border-gray-100 flex flex-col gap-4" id="article-preview">
-                    <!-- Content akan diisi oleh JavaScript -->
                     <div class="animate-pulse">
                         <div class="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
                         <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
@@ -244,10 +237,7 @@
                     </div>
                 </div>
 
-                <!-- KANAN: Panel Review -->
                 <div class="w-full md:w-1/3 p-6 overflow-y-auto bg-gray-50/50 flex flex-col gap-6">
-                    
-                    <!-- Informasi Penulis & Kategori -->
                     <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm" id="article-info">
                         <h4 class="text-[10px] font-bold text-gray-500 uppercase mb-3">Informasi Dasar</h4>
                         <div class="grid grid-cols-2 gap-3 text-xs">
@@ -266,15 +256,12 @@
                         </div>
                     </div>
 
-                    <!-- Komentar Admin -->
                     <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                         <label class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">Komentar Admin</label>
                         <textarea id="admin-comment" rows="2" placeholder="Tambahkan catatan untuk penulis..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none outline-none focus:border-gold focus:ring-1 focus:ring-gold transition"></textarea>
                     </div>
 
-                    <!-- 3 Tombol Aksi Utama -->
                     <div class="flex flex-col gap-2 mt-auto">
-                        <!-- Approve -->
                         <form id="form-approve" method="POST" action="">
                             @csrf
                             <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg text-sm transition-colors shadow-sm hover:shadow flex items-center justify-center gap-2">
@@ -288,7 +275,6 @@
                             Revision
                         </button>
                         
-                        <!-- Reject -->
                         <form id="form-reject" method="POST" action="">
                             @csrf
                             <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg text-sm transition-colors shadow-sm hover:shadow flex items-center justify-center gap-2">
@@ -307,75 +293,76 @@
                         </h4>
                         
                         <div class="space-y-4">
-                            <!-- Dropdowns (simulasi, bisa disesuaikan) -->
+                            <!-- Dropdowns -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Judul</label>
-                                    <select class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs outline-none focus:border-gold">
-                                        <option>Perbaikan Judul</option>
-                                        <option>Biarkan Sama</option>
+                                    <select id="rev-title" class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs outline-none focus:border-gold">
+                                        <option value="Perbaikan Judul">Perbaikan Judul</option>
+                                        <option value="Biarkan Sama">Biarkan Sama</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Isi</label>
-                                    <select class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs outline-none focus:border-gold">
-                                        <option>Revisi Paragraf</option>
-                                        <option>Tambah Referensi</option>
+                                    <select id="rev-content" class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs outline-none focus:border-gold">
+                                        <option value="Revisi Paragraf">Revisi Paragraf</option>
+                                        <option value="Tambah Referensi">Tambah Referensi</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Lampiran</label>
-                                    <select class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs outline-none focus:border-gold">
-                                        <option>Upload PDF Baru</option>
-                                        <option>Hapus Lampiran Lama</option>
+                                    <select id="rev-attachments" class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs outline-none focus:border-gold">
+                                        <option value="Upload PDF Baru">Upload PDF Baru</option>
+                                        <option value="Hapus Lampiran Lama">Hapus Lampiran Lama</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Kategori</label>
-                                    <select class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs outline-none focus:border-gold">
-                                        <option>Ganti Kategori</option>
-                                        <option>Biarkan Sama</option>
+                                    <select id="rev-category" class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs outline-none focus:border-gold">
+                                        <option value="Ganti Kategori">Ganti Kategori</option>
+                                        <option value="Biarkan Sama">Biarkan Sama</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Tag</label>
-                                    <select class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs outline-none focus:border-gold">
-                                        <option>Tambah Tag</option>
-                                        <option>Biarkan Sama</option>
+                                    <select id="rev-tags" class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs outline-none focus:border-gold">
+                                        <option value="Tambah Tag">Tambah Tag</option>
+                                        <option value="Biarkan Sama">Biarkan Sama</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Thumbnail</label>
-                                    <select class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs outline-none focus:border-gold">
-                                        <option>Ganti Gambar</option>
-                                        <option>Biarkan Sama</option>
+                                    <select id="rev-thumbnail" class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs outline-none focus:border-gold">
+                                        <option value="Ganti Gambar">Ganti Gambar</option>
+                                        <option value="Biarkan Sama">Biarkan Sama</option>
                                     </select>
                                 </div>
                                 <div class="col-span-2">
                                     <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Lainnya</label>
-                                    <select class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs outline-none focus:border-gold">
-                                        <option>Perbaikan UI/UX</option>
-                                        <option>Tidak Ada Perubahan Lain</option>
+                                    <select id="rev-others" class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs outline-none focus:border-gold">
+                                        <option value="Perbaikan UI/UX">Perbaikan UI/UX</option>
+                                        <option value="Tidak Ada Perubahan Lain">Tidak Ada Perubahan Lain</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <!-- Prioritas & Deadline -->
+                            <!-- Prioritas -->
                             <div class="border-t border-gray-100 pt-3">
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase mb-2">Prioritas</label>
                                 <div class="flex gap-4 text-xs font-medium">
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="priority" class="text-red-500 focus:ring-red-500"> Tinggi</label>
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="priority" checked class="text-yellow-500 focus:ring-yellow-500"> Sedang</label>
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="priority" class="text-green-500 focus:ring-green-500"> Rendah</label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="priority" value="Tinggi" class="text-red-500 focus:ring-red-500"> Tinggi</label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="priority" value="Sedang" checked class="text-yellow-500 focus:ring-yellow-500"> Sedang</label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="priority" value="Rendah" class="text-green-500 focus:ring-green-500"> Rendah</label>
                                 </div>
                             </div>
 
+                            <!-- Deadline -->
                             <div class="border-t border-gray-100 pt-3">
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase mb-2">Deadline Revisi</label>
                                 <div class="flex gap-4 text-xs font-medium">
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="deadline" class="text-blue-500 focus:ring-blue-500"> 3 Hari</label>
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="deadline" checked class="text-blue-500 focus:ring-blue-500"> 7 Hari</label>
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="deadline" class="text-blue-500 focus:ring-blue-500"> 14 Hari</label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="deadline" value="3 Hari" class="text-blue-500 focus:ring-blue-500"> 3 Hari</label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="deadline" value="7 Hari" checked class="text-blue-500 focus:ring-blue-500"> 7 Hari</label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="deadline" value="14 Hari" class="text-blue-500 focus:ring-blue-500"> 14 Hari</label>
                                 </div>
                             </div>
 
@@ -395,14 +382,11 @@
                     <!-- END BAGIAN REVISI -->
 
                 </div>
-                <!-- END PANEL KANAN -->
-
             </div>
         </div>
     </div>
 
     <script>
-        // --- Toggle Sidebar Mobile ---
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar-mobile');
             const overlay = document.getElementById('sidebar-overlay');
@@ -423,7 +407,6 @@
             }
         }
 
-        // --- Toggle Sidebar Dropdowns ---
         function toggleSubmenu(id) {
             const el = document.getElementById(id);
             const arrow = document.getElementById('arrow-' + id.split('-')[1]);
@@ -436,23 +419,19 @@
             }
         }
 
-        // --- Logic Modal Review ---
         const modal = document.getElementById('review-modal');
         const modalBox = document.getElementById('modal-box');
         let currentArticleId = null;
 
         function openReviewModal(id) {
             currentArticleId = id;
-            // Reset form revisi
             const revContainer = document.getElementById('revision-form-container');
             revContainer.classList.remove('open');
             document.getElementById('admin-comment').value = '';
             
-            // Fetch data artikel via AJAX
             fetch(`/admin/articles/json/${id}`)
                 .then(response => response.json())
                 .then(data => {
-                    // Update modal dengan data
                     document.getElementById('article-preview').innerHTML = `
                         <h2 class="text-2xl font-bold text-gray-900">${data.title}</h2>
                         <div class="flex items-center gap-3 text-xs text-gray-500 border-b border-gray-100 pb-4">
@@ -466,7 +445,6 @@
                         </div>
                     `;
 
-                    // Update info panel
                     document.getElementById('info-author').textContent = data.user ? data.user.name : '-';
                     document.getElementById('info-category').textContent = data.category || '-';
                     document.getElementById('info-tags').textContent = data.tags || '-';
@@ -475,11 +453,9 @@
                     document.getElementById('info-attachments').textContent = data.attachments_count ? `${data.attachments_count} File` : '-';
                     document.getElementById('info-submitted').textContent = `Diajukan ${new Date(data.created_at).toLocaleString('id-ID')}`;
 
-                    // Set action forms
                     document.getElementById('form-approve').action = `/admin/articles/approve/${id}`;
                     document.getElementById('form-reject').action = `/admin/articles/reject/${id}`;
 
-                    // Tampilkan modal
                     modal.classList.remove('hidden');
                     setTimeout(() => {
                         modal.classList.remove('opacity-0', 'visibility-hidden');
@@ -503,21 +479,6 @@
             }, 300);
         }
 
-        // --- Logic Tombol Approve ---
-        function handleApprove() {
-            if(confirm("Apakah Anda yakin ingin menyetujui artikel ini?")) {
-                document.getElementById('form-approve').submit();
-            }
-        }
-
-        // --- Logic Tombol Reject ---
-        function handleReject() {
-            if(confirm("Apakah Anda yakin ingin menolak artikel ini?")) {
-                document.getElementById('form-reject').submit();
-            }
-        }
-
-        // --- Logic Toggle Form Revisi ---
         let isRevisionOpen = false;
         function toggleRevisionForm() {
             const container = document.getElementById('revision-form-container');
@@ -529,10 +490,20 @@
             }
         }
 
-        // --- Logic Kirim Revisi ---
         function submitRevision() {
-            // Kirim permintaan revisi dengan catatan
-            const note = document.getElementById('revision-note').value;
+            const data = {
+                title_revision: document.getElementById('rev-title').value,
+                content_revision: document.getElementById('rev-content').value,
+                attachments_revision: document.getElementById('rev-attachments').value,
+                category_revision: document.getElementById('rev-category').value,
+                tags_revision: document.getElementById('rev-tags').value,
+                thumbnail_revision: document.getElementById('rev-thumbnail').value,
+                others_revision: document.getElementById('rev-others').value,
+                priority: document.querySelector('input[name="priority"]:checked')?.value || 'Sedang',
+                deadline: document.querySelector('input[name="deadline"]:checked')?.value || '7 Hari',
+                note: document.getElementById('revision-note').value
+            };
+
             if(confirm("Kirim permintaan revisi ke penulis?")) {
                 fetch(`/admin/articles/revision/${currentArticleId}`, {
                     method: 'POST',
@@ -540,25 +511,31 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
-                    body: JSON.stringify({ note: note })
+                    body: JSON.stringify(data)
                 })
-                .then(response => response.json())
+                .then(async response => {
+                    if (!response.ok) {
+                        const text = await response.text();
+                        throw new Error(`Server merespons ${response.status}. Pastikan route & controller sudah terpasang.`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     showToast(data.message || 'Permintaan revisi berhasil dikirim!', 'blue');
                     closeReviewModal();
-                    location.reload(); // Reload untuk update daftar
+                    location.reload();
                 })
                 .catch(error => {
-                    showToast('Gagal mengirim permintaan revisi.', 'red');
+                    console.error('Submit revision error:', error);
+                    showToast(error.message || 'Gagal mengirim permintaan revisi.', 'red');
                 });
             }
         }
 
-        // --- Custom Simple Toast Notification Helper ---
         function showToast(message, color = 'green') {
-            const toastContainer = document.createElement('div');
             const borderColor = color === 'green' ? 'border-green-500' : (color === 'red' ? 'border-red-500' : 'border-blue-500');
             const textColor = color === 'green' ? 'text-green-500' : (color === 'red' ? 'text-red-500' : 'text-blue-500');
+            const toastContainer = document.createElement('div');
             toastContainer.className = `fixed top-5 right-5 z-[9999] bg-white border-l-4 ${borderColor} p-4 rounded-lg shadow-xl transform translate-x-[120%] animate-[slideInRight_0.4s_ease-out_forwards]`;
             toastContainer.innerHTML = `
                 <div class="flex items-center gap-3">
@@ -575,7 +552,6 @@
             }, 3500);
         }
 
-        // Tambahkan style untuk animasi toast jika belum ada
         const styleSheet = document.createElement("style");
         styleSheet.textContent = `
             @keyframes slideInRight {

@@ -31,41 +31,15 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Sidebar Mobile & Dropdown */
-        #sidebar-mobile {
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-        }
-        #sidebar-overlay {
-            transition: opacity 0.3s ease-in-out;
-        }
-        .submenu {
-            transition: all 0.3s ease-in-out;
-            overflow: hidden;
-        }
-        /* Hover Effects */
-        .hover-lift {
-            transition: all 0.2s ease;
-        }
-        .hover-lift:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-        /* Dropdown Menu Animation */
-        .dropdown-menu {
-            transform-origin: top right;
-            transition: transform 0.1s ease, opacity 0.1s ease;
-        }
-        /* Hide scrollbar for cleaner sidebar */
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 4px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 4px;
-        }
-        .sidebar-scroll {
-            scrollbar-width: thin;
-        }
+        #sidebar-mobile { transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; }
+        #sidebar-overlay { transition: opacity 0.3s ease-in-out; }
+        .submenu { transition: all 0.3s ease-in-out; overflow: hidden; }
+        .hover-lift { transition: all 0.2s ease; }
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+        .dropdown-menu { transform-origin: top right; transition: transform 0.1s ease, opacity 0.1s ease; }
+        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        .sidebar-scroll { scrollbar-width: thin; }
     </style>
 </head>
 <body class="font-sans antialiased text-textmain bg-lightbg flex h-screen overflow-hidden">
@@ -73,8 +47,9 @@
     <!-- Mobile Overlay -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden opacity-0" onclick="toggleSidebar()"></div>
 
-        <!-- SIDEBAR (Dipertahankan persis, dengan submenu Deleted yang aktif) -->
+    <!-- SIDEBAR (Sesuai kode Anda) -->
     <aside id="sidebar-mobile" class="w-64 bg-darkbg text-gray-300 flex flex-col border-r border-gray-800 shadow-2xl z-40 fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 flex-shrink-0 sidebar-scroll">
+        <!-- Sidebar Logo -->
         <div class="h-16 flex items-center gap-3 px-6 border-b border-gray-800">
             <div class="w-8 h-8 bg-gold rounded text-darkbg flex items-center justify-center font-bold text-lg">A</div>
             <div class="flex flex-col">
@@ -84,13 +59,10 @@
         </div>
 
         <div class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-            
-            <!-- Dashboard -->
             <a href="/admin/dashboard" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg> Dashboard
             </a>
             
-            <!-- Menu Utama 1: Knowledge Management -->
             <div>
                 <button onclick="toggleSubmenu('submenu-knowledge')" class="w-full flex items-center justify-between text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                     <div class="flex items-center gap-3">
@@ -106,22 +78,17 @@
                     <a href="/admin/revision" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Revision</a>
                     <a href="/admin/published" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Published</a>
                     <a href="/admin/archive" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Archived</a>
-                    <!-- Deleted menjadi link yang aktif di halaman ini -->
                     <a href="/admin/delete" class="block text-white font-medium bg-gray-800/30 rounded px-2 py-1.5 text-[13px] transition-colors">• Deleted</a>
                 </div>
             </div>
 
-            <!-- Menu Utama 2: User Management (Diubah menjadi menu tunggal) -->
             <a href="/admin/users" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> User Management
             </a>
-
-            <!-- Menu Utama 3: Category (Menggantikan Master Data, menu tunggal) -->
             <a href="/admin/category" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg> Category
             </a>
 
-            <!-- Menu Utama 4: Single Links (Rute sudah diperbaiki) -->
             <a href="/admin/analytics" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Analytics
             </a>
@@ -140,9 +107,7 @@
             <a href="/admin/storage" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7h-4.586a2 2 0 01-1.414-.586l-1.172-1.172a2 2 0 00-1.414-.586H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7z"></path></svg> Storage
             </a>
-            <a href="/admin/settings" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Settings
-            </a>
+           
             <a href="/admin/backup" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Backup & Restore
             </a>
@@ -156,11 +121,14 @@
                     <span class="text-[10px] text-gray-400">Super Admin</span>
                 </div>
             </div>
-            <a href="/login" class="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 py-2 rounded-lg text-xs font-medium border border-gray-700 transition">Keluar</a>
+            <form action="/logout" method="POST">
+                @csrf
+                <button type="submit" class="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 py-2 rounded-lg text-xs font-medium border border-gray-700 transition cursor-pointer">Keluar</button>
+            </form>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT (Deleted / Recycle Bin Page) -->
+    <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#F8FAFC] p-4 md:p-8 relative w-full">
         
         <!-- Mobile Toggle Sidebar -->
@@ -175,7 +143,7 @@
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 fade-in-up" style="animation-delay: 0.1s;">
             <div>
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Deleted</h1>
-                <p class="text-sm text-gray-500 mt-1">Recycle Bin.</p>
+                <p class="text-sm text-gray-500 mt-1">Artikel yang dihapus sementara. Anda dapat mengembalikan atau menghapus permanen.</p>
             </div>
         </div>
 
@@ -189,61 +157,66 @@
                             <th class="px-4 py-4 min-w-[220px]">Judul</th>
                             <th class="px-4 py-4 min-w-[120px]">Penulis</th>
                             <th class="px-4 py-4 min-w-[120px]">Kategori</th>
-                            <th class="px-4 py-4 min-w-[120px]">Status</th>
+                            <th class="px-4 py-4 min-w-[120px]">Status Asli</th>
                             <th class="px-4 py-4 min-w-[110px]">Tanggal Dihapus</th>
-                            <th class="px-4 py-4 text-center min-w-[60px]">Action</th>
+                            <th class="px-4 py-4 text-center min-w-[100px]">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
-                        <!-- Row 1 -->
+                        @forelse($articles as $article)
                         <tr class="hover:bg-gray-50/80 transition-colors duration-200">
                             <td class="px-4 py-4"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
-                            <td class="px-4 py-4 font-medium text-gray-900">Dihapus SOP Backup Server 2025</td>
-                            <td class="px-4 py-4 text-gray-600">Rina</td>
-                            <td class="px-4 py-4 text-gray-600">SOP</td>
-                            <td class="px-4 py-4"><span class="bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Deleted</span></td>
-                            <td class="px-4 py-4 text-gray-600">18 Jun 2026</td>
+                            <td class="px-4 py-4 font-medium text-gray-900">{{ $article->title }}</td>
+                            <td class="px-4 py-4 text-gray-600">{{ $article->user->name ?? '-' }}</td>
+                            <td class="px-4 py-4 text-gray-600">{{ $article->category->name ?? '-' }}</td>
+                            <td class="px-4 py-4">
+                                <span class="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full text-[10px] font-bold">
+                                    {{ ucfirst($article->status) }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-4 text-gray-600">{{ $article->deleted_at ? $article->deleted_at->format('d M Y') : '-' }}</td>
                             <td class="px-4 py-4 text-center relative">
                                 <!-- Action Dropdown -->
                                 <div class="relative inline-block">
                                     <button onclick="toggleDropdown(this)" class="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
                                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
                                     </button>
-                                    <!-- Dropdown Content -->
+                                    
                                     <div class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-20 origin-top-right scale-95 opacity-0">
                                         <div class="py-1">
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Restore</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Delete Forever</button>
+                                            <!-- ✅ Restore Action (GET) -->
+                                            <a href="{{ route('admin.articles.restore', $article->id) }}" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                                                Restore
+                                            </a>
+                                            
+                                            <!-- ✅ Force Delete Action (POST/DELETE) -->
+                                            <form action="{{ route('admin.articles.forceDelete', $article->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus permanen artikel ini? Tindakan ini tidak bisa dibatalkan!');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                    Delete Forever
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
                             </td>
                         </tr>
-                        
-                        <!-- Row 2 -->
-                        <tr class="hover:bg-gray-50/80 transition-colors duration-200">
-                            <td class="px-4 py-4"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
-                            <td class="px-4 py-4 font-medium text-gray-900">Dihapus Panduan Laravel 2025</td>
-                            <td class="px-4 py-4 text-gray-600">Andi</td>
-                            <td class="px-4 py-4 text-gray-600">Web Dev</td>
-                            <td class="px-4 py-4"><span class="bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Deleted</span></td>
-                            <td class="px-4 py-4 text-gray-600">10 Jun 2026</td>
-                            <td class="px-4 py-4 text-center relative">
-                                <div class="relative inline-block">
-                                    <button onclick="toggleDropdown(this)" class="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
-                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
-                                    </button>
-                                    <div class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-20 origin-top-right scale-95 opacity-0">
-                                        <div class="py-1">
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Restore</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Delete Forever</button>
-                                        </div>
-                                    </div>
-                                </div>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-500 text-sm">
+                                Recycle Bin kosong. Tidak ada artikel yang dihapus.
                             </td>
                         </tr>
+                        @endforelse
                     </tbody>
                 </table>
+                <!-- Pagination -->
+                <div class="px-4 py-3 border-t border-gray-200">
+                    {{ $articles->links() }}
+                </div>
             </div>
         </div>
     </main>
@@ -273,7 +246,7 @@
         // --- Toggle Sidebar Dropdowns ---
         function toggleSubmenu(id) {
             const el = document.getElementById(id);
-            const arrow = document.getElementById('arrow-' + id.split('-')[1]);
+            const arrow = document.getElementById('arrow-knowledge');
             if (el.classList.contains('hidden')) {
                 el.classList.remove('hidden');
                 if(arrow) arrow.classList.add('rotate-180');
@@ -283,11 +256,11 @@
             }
         }
 
-        // --- Logic Dropdown Action Menu ---
+        // --- Logic Dropdown Action Menu (Di-portal ke body seperti halaman User) ---
         function toggleDropdown(button) {
             const menu = button.parentElement.querySelector('.dropdown-menu');
             const isHidden = menu.classList.contains('hidden');
-            // Close all dropdowns first
+            
             document.querySelectorAll('.dropdown-menu').forEach(m => {
                 if (m !== menu) {
                     m.classList.add('hidden');
@@ -295,6 +268,7 @@
                     m.classList.add('scale-95', 'opacity-0');
                 }
             });
+            
             if (isHidden) {
                 menu.classList.remove('hidden');
                 setTimeout(() => {
@@ -309,7 +283,7 @@
                 }, 100);
             }
         }
-        // Close dropdown when clicking outside
+
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.relative')) {
                 document.querySelectorAll('.dropdown-menu').forEach(m => {

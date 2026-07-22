@@ -71,6 +71,16 @@
         </div>
         <div>
             @auth
+                {{-- ✨ PERBAIKAN: Tentukan route profil berdasarkan Role User --}}
+                @php
+                    $user = Auth::user();
+                    $roleName = optional($user->role)->name;
+                    $profileLink = match($roleName) {
+                        'staff' => route('staff.profile'),
+                        'admin' => route('admin.dashboard'),
+                        default => route('user.profil'),
+                    };
+                @endphp
                 <div class="relative group">
                     <button class="flex items-center gap-2 text-gray-300 hover:text-white transition-colors duration-300 focus:outline-none">
                         <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=EAB308&color=0f172a' }}" 
@@ -81,7 +91,8 @@
                     </button>
                     <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right group-hover:scale-100 scale-95 z-50 overflow-hidden">
                         <div class="py-1">
-                            <a href="{{ route('user.profil') }}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors duration-200">
+                            {{-- ✨ PERBAIKAN: Gunakan variabel $profileLink --}}
+                            <a href="{{ $profileLink }}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors duration-200">
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                 Profil Saya
                             </a>
