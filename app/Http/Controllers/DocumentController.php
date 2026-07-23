@@ -9,8 +9,8 @@ use App\Models\Bookmark;
 use App\Models\Rating;
 use App\Models\Like;
 use App\Models\UserActivity;
-use App\Models\Feedback;      // Tambahkan model Feedback
-use App\Models\Notification;  // Tambahkan model Notification
+use App\Models\Feedback;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -21,16 +21,13 @@ class DocumentController extends Controller
      */
     public function show($slug)
     {
-        // 1. Ambil artikel berdasarkan slug
         $article = Article::with(['user', 'category'])
                     ->where('slug', $slug)
                     ->where('status', 'published')
                     ->firstOrFail();
 
-        // 2. Tambah jumlah views
         $article->increment('views');
 
-        // ✨ CATAT AKTIVITAS: View Document
         UserActivity::create([
             'user_id'    => auth()->check() ? auth()->id() : null,
             'type'       => 'View Document',
@@ -39,22 +36,27 @@ class DocumentController extends Controller
             'user_agent' => request()->userAgent(),
         ]);
 
-        // 3. Ambil Komentar
         $comments = $article->comments()->with('user')->latest()->get();
-
-        // 4. Ambil Riwayat Revisi
         $revisions = DocumentVersion::where('article_id', $article->id)
                     ->orderBy('created_at', 'desc')
                     ->get();
-
-        // 5. Ambil Artikel Terkait
         $relatedArticles = Article::where('category', $article->category)
                     ->where('id', '!=', $article->id)
                     ->where('status', 'published')
                     ->limit(5)
                     ->get();
 
-        return view('document-detail', compact('article', 'comments', 'revisions', 'relatedArticles'));
+        // ✨ Ambil rating user yang sedang login (jika ada)
+        $userRating = null;
+        if (auth()->check()) {
+            $userRating = Rating::where('user_id', auth()->id())
+                                ->where('article_id', $article->id)
+                                ->value('rating');
+        }
+
+        return view('document-detail', compact(
+            'article', 'comments', 'revisions', 'relatedArticles', 'userRating'
+        ));
     }
 
     /**
@@ -64,11 +66,9 @@ class DocumentController extends Controller
     {
         $article = Article::with('user')->findOrFail($id);
 
-        // Tambah views & downloads
         $article->increment('views');
         $article->increment('downloads');
 
-        // ✨ CATAT AKTIVITAS: Download PDF
         UserActivity::create([
             'user_id'    => auth()->check() ? auth()->id() : null,
             'type'       => 'Download PDF',
@@ -95,7 +95,6 @@ class DocumentController extends Controller
             $like->delete();
             $article->decrement('likes_count');
             $liked = false;
-            // ✨ CATAT AKTIVITAS: Unlike
             UserActivity::create([
                 'user_id'    => $user->id,
                 'type'       => 'Unlike Article',
@@ -107,7 +106,6 @@ class DocumentController extends Controller
             Like::create(['user_id' => $user->id, 'article_id' => $article->id]);
             $article->increment('likes_count');
             $liked = true;
-            // ✨ CATAT AKTIVITAS: Like
             UserActivity::create([
                 'user_id'    => $user->id,
                 'type'       => 'Like Article',
@@ -125,7 +123,7 @@ class DocumentController extends Controller
     }
 
     /**
-     * Beri rating artikel.
+     * Beri rating artikel (update atau create).
      */
     public function rate(Request $request, $id)
     {
@@ -133,12 +131,13 @@ class DocumentController extends Controller
         $article = Article::findOrFail($id);
         $user = auth()->user();
 
-        $rating = Rating::updateOrCreate(
+        // ✅ updateOrCreate memastikan hanya satu rating per user per artikel
+        Rating::updateOrCreate(
             ['user_id' => $user->id, 'article_id' => $article->id],
             ['rating' => $request->rating]
         );
 
-        // Update rating rata-rata di tabel articles
+        // Hitung ulang rata-rata dan jumlah rating
         $avgRating = Rating::where('article_id', $article->id)->avg('rating');
         $countRating = Rating::where('article_id', $article->id)->count();
 
@@ -147,7 +146,6 @@ class DocumentController extends Controller
             'rating_count' => $countRating
         ]);
 
-        // ✨ CATAT AKTIVITAS: Rating
         UserActivity::create([
             'user_id'    => $user->id,
             'type'       => 'Rate Article',
@@ -159,7 +157,8 @@ class DocumentController extends Controller
         return response()->json([
             'success' => true,
             'avg' => number_format($avgRating, 1),
-            'count' => $countRating
+            'count' => $countRating,
+            'user_rating' => $request->rating // ✅ kirim balik rating yang dipilih
         ]);
     }
 
@@ -176,7 +175,6 @@ class DocumentController extends Controller
         if ($bookmark) {
             $bookmark->delete();
             $bookmarked = false;
-            // ✨ CATAT AKTIVITAS: Unbookmark
             UserActivity::create([
                 'user_id'    => $user->id,
                 'type'       => 'Unbookmark Article',
@@ -187,7 +185,6 @@ class DocumentController extends Controller
         } else {
             Bookmark::create(['user_id' => $user->id, 'article_id' => $article->id]);
             $bookmarked = true;
-            // ✨ CATAT AKTIVITAS: Bookmark
             UserActivity::create([
                 'user_id'    => $user->id,
                 'type'       => 'Bookmark Article',
@@ -204,7 +201,7 @@ class DocumentController extends Controller
     }
 
     /**
-     * ✨ FITUR BARU: Menerima feedback dari user (rating + komentar)
+     * Menerima feedback dari user (rating + komentar).
      * Jika rating ≤ 3, kirim notifikasi ke Admin.
      */
     public function submitFeedback(Request $request, $id)
@@ -212,7 +209,6 @@ class DocumentController extends Controller
         $article = Article::findOrFail($id);
         $user = auth()->user();
 
-        // 1. Cegah spam: cek apakah user sudah pernah memberi feedback untuk artikel ini
         $exists = Feedback::where('user_id', $user->id)
             ->where('article_id', $id)
             ->exists();
@@ -224,24 +220,21 @@ class DocumentController extends Controller
             ]);
         }
 
-        // 2. Validasi input
         $request->validate([
             'rating'  => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:1000',
         ]);
 
-        // 3. Simpan feedback
-        $feedback = Feedback::create([
+        Feedback::create([
             'article_id'   => $article->id,
             'user_id'      => $user->id,
-            'feedback_type'=> 'Rating',   // Bisa disesuaikan
+            'feedback_type'=> 'Rating',
             'status'       => 'Open',
-            'message'      => $request->comment ?? '', // Jika ingin simpan di message juga
+            'message'      => $request->comment ?? '',
             'rating'       => $request->rating,
             'comment'      => $request->comment,
         ]);
 
-        // 4. Catat aktivitas user (opsional)
         UserActivity::create([
             'user_id'    => $user->id,
             'article_id' => $article->id,
@@ -251,15 +244,14 @@ class DocumentController extends Controller
             'user_agent' => $request->userAgent(),
         ]);
 
-        // 5. Jika rating ≤ 3, kirim notifikasi ke Admin
         if ($request->rating <= 3) {
             Notification::create([
-                'user_id'    => null, // Null = semua Admin
+                'user_id'    => null,
                 'article_id' => $article->id,
                 'type'       => 'Feedback',
                 'title'      => '👎 Feedback Negatif Diterima',
                 'message'    => 'Pengguna ' . $user->name . ' memberikan rating ' . $request->rating . ' bintang pada artikel "' . $article->title . '".',
-                'url'        => route('admin.feedback'), // Pastikan route ini ada
+                'url'        => route('admin.feedback'),
                 'is_read'    => false,
             ]);
         }

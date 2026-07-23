@@ -46,7 +46,6 @@
             position: fixed !important; 
             z-index: 9999 !important;
             width: 12rem;
-            /* ✅ PERBAIKAN: batasi tinggi & aktifkan scroll internal kalau menu lebih tinggi dari sisa ruang viewport */
             max-height: 60vh;
             overflow-y: auto;
         }
@@ -128,7 +127,7 @@
 
         <div class="border-t border-gray-800 p-4">
             <div class="flex items-center gap-3 mb-4">
-                <img src="https://ui-avatars.com/api/?name=Admin+Utama&background=ef4444&color=ffffff" class="w-9 h-9 rounded-full">
+                <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name ?? 'Admin') }}&background=ef4444&color=ffffff" class="w-9 h-9 rounded-full">
                 <div class="flex flex-col">
                     <span class="text-sm font-bold text-white">{{ auth()->user()->name ?? 'Admin' }}</span>
                     <span class="text-[10px] text-gray-400">Super Admin</span>
@@ -163,7 +162,7 @@
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-900">{{ $pageTitle ?? 'All Articles' }}</h1>
                 <p class="text-sm text-gray-500 mt-1">{{ $statusLabel ?? 'Semua artikel' }} seluruh pegawai. Kelola, review, dan pantau status publikasi.</p>
             </div>
-            <a href="{{ route('staff.editor') }}" class="w-full md:w-auto bg-darkbg text-white hover:bg-gray-800 font-bold py-2 px-6 rounded-lg text-sm transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105">
+            <a href="{{ route('admin.editor') }}" class="w-full md:w-auto bg-darkbg text-white hover:bg-gray-800 font-bold py-2 px-6 rounded-lg text-sm transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105">
                 + Tambah Artikel Baru
             </a>
         </div>
@@ -278,31 +277,28 @@
                                         <div class="py-1">
 
                                             @if($article->status === 'revision')
-                                                {{-- ✅ Khusus status Revision: View membuka modal alasan revisi --}}
                                                 <button type="button" onclick="openRevisionModal({{ $article->id }})" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View
                                                 </button>
                                             @else
-                                                {{-- ✅ VIEW (Menggunakan route admin.articles.show) --}}
                                                 <a href="{{ route('admin.articles.show', $article->id) }}" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View
                                                 </a>
                                             @endif
 
+                                            <!-- === PERBAIKAN: SEMUA STATUS (kecuali revision) langsung ke editor lengkap === -->
                                             @unless($article->status === 'revision')
-                                            {{-- ✅ EDIT (Menggunakan AJAX Modal) — disembunyikan untuk status Revision --}}
-                                            <button onclick="openEditModal({{ $article->id }})" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit
-                                            </button>
+                                                <a href="{{ route('admin.editor.edit', $article->id) }}" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                    Edit
+                                                </a>
                                             @endunless
                                             
                                             @if($article->status === 'pending')
-                                            <!-- ✅ APPROVE -->
                                             <form action="{{ route('admin.articles.approve', $article->id) }}" method="POST" class="block">
                                                 @csrf
                                                 <button type="submit" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Approve</button>
                                             </form>
-                                            <!-- ✅ REJECT -->
                                             <form action="{{ route('admin.articles.reject', $article->id) }}" method="POST" class="block">
                                                 @csrf
                                                 <button type="submit" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Reject</button>
@@ -310,32 +306,27 @@
                                             @endif
 
                                             @if($article->status !== 'archived')
-                                            <!-- ✅ ARCHIVE -->
                                             <form action="{{ route('admin.articles.archive', $article->id) }}" method="POST" class="block">
                                                 @csrf
                                                 <button type="submit" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg> Archive</button>
                                             </form>
                                             @else
-                                            <!-- ✅ RESTORE -->
                                             <a href="{{ route('admin.articles.restore', $article->id) }}" onclick="return confirm('Apakah Anda yakin ingin memulihkan artikel ini?')" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Restore
                                             </a>
                                             @endif
 
-                                            <!-- ✅ DELETE -->
                                             <form action="{{ route('admin.articles.destroy', $article->id) }}" method="POST" class="block" onsubmit="return confirm('Hapus artikel ini secara permanen?')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Delete</button>
                                             </form>
 
-                                            <!-- ✅ HISTORY -->
                                             <a href="{{ route('admin.articles.history', $article->id) }}" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> History
                                             </a>
 
                                             @unless($article->status === 'revision')
-                                            <!-- ✅ DUPLICATE — disembunyikan untuk status Revision -->
                                             <form action="{{ route('admin.articles.duplicate', $article->id) }}" method="POST" class="block">
                                                 @csrf
                                                 <button type="submit" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg> Duplicate</button>
@@ -363,7 +354,7 @@
         </div>
     </main>
 
-    <!-- Edit Modal -->
+    <!-- Edit Modal (tidak terpakai, tetap ada untuk kompatibilitas) -->
     <div id="editModal" class="fixed inset-0 z-50 hidden modal-overlay flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 relative animate-fade-in-up">
             <h2 class="text-xl font-bold text-gray-900 mb-4">Edit Artikel</h2>
@@ -415,7 +406,7 @@
         </div>
     </div>
 
-    {{-- ✅ Modal Detail Alasan Revisi (khusus baris berstatus 'revision') --}}
+    {{-- Modal Detail Alasan Revisi --}}
     <div id="revisionDetailModal" class="fixed inset-0 z-50 hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center opacity-0" style="transition: opacity 0.3s ease;">
         <div id="revisionModalBox" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 opacity-0" style="transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.3s ease;">
             <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -491,21 +482,11 @@
             }
         }
 
-        // ✅ PERBAIKAN UTAMA: dropdown sekarang cek batas viewport.
-        // Sebelumnya posisi selalu dihitung "rect.bottom + 8" (selalu ke bawah tombol)
-        // tanpa peduli apakah ruang di bawah cukup. Kalau tombol ada di baris
-        // paling bawah tabel, menu jadi terpotong di luar layar dan — karena
-        // position:fixed — tidak ikut ke-scroll bareng body, sehingga terlihat
-        // "gak bisa discroll". Sekarang: kalau ruang di bawah tidak cukup untuk
-        // seluruh tinggi menu, dropdown otomatis dibuka ke ATAS tombol. Kalau
-        // menu tetap lebih tinggi dari viewport (banyak item + layar pendek),
-        // dropdown akan otomatis discroll sendiri lewat CSS max-height + overflow-y:auto
-        // yang sudah ditambahkan di style .dropdown-menu.
+        // --- DROPDOWN POSITION FIX ---
         function toggleDropdown(button) {
             const menu = button.parentElement.querySelector('.dropdown-menu');
             const isHidden = menu.classList.contains('hidden');
 
-            // Tutup semua dropdown lain terlebih dahulu
             document.querySelectorAll('.dropdown-menu').forEach(m => {
                 if (m !== menu) {
                     m.classList.add('hidden');
@@ -523,7 +504,6 @@
                     menu.classList.add('scale-100', 'opacity-100');
                 }, 10);
 
-                // Reposisi ulang kalau user scroll / resize window selagi menu terbuka
                 const reposition = () => positionDropdown(button, menu);
                 menu._repositionHandler = reposition;
                 window.addEventListener('scroll', reposition, true);
@@ -538,8 +518,6 @@
             const margin = 8;
             const menuWidth = menu.offsetWidth || 192;
 
-            // Batasi dulu tinggi maksimum menu berdasarkan ruang yang tersedia,
-            // supaya kalaupun dibuka ke bawah/atas, dia tidak pernah keluar viewport.
             const spaceBelow = window.innerHeight - rect.bottom - margin;
             const spaceAbove = rect.top - margin;
             const naturalHeight = menu.scrollHeight;
@@ -547,11 +525,9 @@
             let top, maxHeight;
 
             if (naturalHeight <= spaceBelow || spaceBelow >= spaceAbove) {
-                // Buka ke bawah tombol
                 top = rect.bottom + 8;
                 maxHeight = Math.max(spaceBelow - 8, 120);
             } else {
-                // Tidak cukup ruang di bawah → buka ke atas tombol
                 maxHeight = Math.max(spaceAbove - 8, 120);
                 top = Math.max(rect.top - Math.min(naturalHeight, maxHeight) - 8, margin);
             }
@@ -580,7 +556,6 @@
             }, 100);
         }
 
-        // Tutup dropdown jika klik di luar area dropdown maupun tombol pembuka
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.relative')) {
                 document.querySelectorAll('.dropdown-menu').forEach(m => closeDropdownMenu(m));
@@ -591,21 +566,12 @@
             document.getElementById(id).classList.add('hidden');
         }
 
+        // Fungsi openEditModal tidak digunakan lagi (seluruh Edit menggunakan link langsung ke editor)
         function openEditModal(id) {
-            fetch(`/admin/all-articles/${id}/edit`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('editForm').action = `/admin/all-articles/${id}`;
-                    document.getElementById('editTitle').value = data.title;
-                    document.getElementById('editCategory').value = data.category || '';
-                    document.getElementById('editStatus').value = data.status;
-                    document.getElementById('editVisibility').value = data.visibility;
-                    document.getElementById('editVersion').value = data.version || '';
-                    document.getElementById('editModal').classList.remove('hidden');
-                });
+            // fallback: redirect ke editor lengkap
+            window.location.href = "/admin/editor/" + id;
         }
 
-        // Modal Detail Revisi — memakai endpoint getArticleJson() controller (route: admin.articles.json)
         const revisionModal = document.getElementById('revisionDetailModal');
         const revisionModalBox = document.getElementById('revisionModalBox');
 

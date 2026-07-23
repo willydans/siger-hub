@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Role;
+use App\Models\UserActivity;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -73,6 +74,26 @@ class SocialiteController extends Controller
             // Login user dan regenerasi session
             Auth::login($user);
             session()->regenerate();
+
+            // ✅ TAMBAHAN BARU: catat aktivitas login, konsisten dengan
+            // AuthController::login() dan OtpController::verify() yang
+            // sudah mencatat UserActivity type 'Login'. Sebelumnya login
+            // via Google TIDAK PERNAH tercatat sama sekali, jadi modal
+            // "Riwayat Login" di dashboard user selalu kosong untuk akun
+            // yang masuknya lewat Google.
+            try {
+                UserActivity::create([
+                    'user_id'     => $user->id,
+                    'type'        => 'Login',
+                    'description' => $user->name . ' login via Google',
+                    'ip_address'  => request()->ip(),
+                    'user_agent'  => request()->userAgent(),
+                ]);
+            } catch (Exception $e) {
+                // Jangan sampai proses login gagal hanya karena gagal
+                // mencatat aktivitas
+                Log::warning('Gagal mencatat aktivitas login via Google: ' . $e->getMessage());
+            }
 
             // ✅ PERBAIKAN: delegasikan ke AuthController::redirectBasedOnRole()
             // yang sudah benar (pakai $user->role->name), bukan versi lokal

@@ -145,7 +145,7 @@
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 fade-in-up" style="animation-delay: 0.1s;">
             <div>
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Analytics</h1>
-                <p class="text-sm text-gray-500 mt-1">Ini halaman favorit Admin. Pantau trafik, interaksi pengguna, dan gap knowledge sistem.</p>
+                <p class="text-sm text-gray-500 mt-1">Dashboard analitik menyajikan metrik kunci trafik, keterlibatan pengguna, dan celah pengetahuan secara real-time.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2 bg-gray-50 p-1.5 rounded-lg border border-gray-200 w-full md:w-auto">
                 <a href="{{ route('admin.analytics', ['filter' => 'today']) }}" class="px-3 py-1.5 text-xs font-bold {{ $filter === 'today' ? 'bg-white shadow-sm rounded-md text-gray-800 border border-gray-200' : 'text-gray-500 hover:text-gray-800' }} transition-colors">Hari Ini</a>
@@ -220,7 +220,7 @@
             <!-- Knowledge Gap -->
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
                 <h3 class="font-bold text-gray-800 text-lg mb-4 flex items-center gap-2">🧠 Knowledge Gap</h3>
-                <p class="text-xs text-gray-500 mb-4">Yang sering dicari tetapi tidak ada artikelnya. Ini menurutku fitur yang sangat keren karena Admin langsung tahu materi apa yang perlu dibuat.</p>
+                <p class="text-xs text-gray-500 mb-4">Fitur ini mengidentifikasi topik yang sering dicari namun belum tersedia artikelnya.</p>
                 <ul class="space-y-4">
                     @forelse($knowledgeGaps as $gap)
                     <li class="flex justify-between items-center border-b border-gray-100 pb-3">
@@ -231,7 +231,7 @@
                         </div>
                     </li>
                     @empty
-                    <li class="text-center text-gray-500 text-sm py-4">Belum ada gap pengetahuan.</li>
+                    <li class="text-center text-gray-500 text-sm py-4">Belum terdeteksi adanya kebutuhan konten yang belum terpenuhi,Pantau terus untuk melihat potensi topik baru.</li>
                     @endforelse
                 </ul>
             </div>
