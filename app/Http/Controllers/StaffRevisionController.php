@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Models\Notification; 
 use Illuminate\Http\Request;
 
 class StaffRevisionController extends Controller
@@ -43,7 +44,10 @@ class StaffRevisionController extends Controller
         ]);
     }
 
-    // Mengirim ulang draft yang sudah diperbaiki ke Admin
+    /**
+     * Mengirim ulang draft yang sudah diperbaiki ke Admin.
+     * ✨ Sekaligus mengirim notifikasi ke Admin.
+     */
     public function submitAgain($id)
     {
         $article = Article::where('user_id', auth()->id())
@@ -52,6 +56,17 @@ class StaffRevisionController extends Controller
 
         $article->status = 'pending';
         $article->save();
+
+        // ✨ KIRIM NOTIFIKASI KE ADMIN (Tipe Revision)
+        Notification::create([
+            'user_id'    => null, // Null = untuk semua Admin
+            'article_id' => $article->id,
+            'type'       => 'Revision', // Tipe Revision agar admin tahu ini perbaikan
+            'title'      => '🔄 Revisi Artikel Dikirim Ulang',
+            'message'    => 'Staff ' . auth()->user()->name . ' telah mengirimkan perbaikan untuk artikel "' . $article->title . '". Silakan tinjau kembali.',
+            'url'        => route('admin.pending-approval'), // Tautan ke halaman Pending Approval
+            'is_read'    => false,
+        ]);
 
         return redirect()->back()->with('success', 'Artikel berhasil dikirim ulang untuk review.');
     }

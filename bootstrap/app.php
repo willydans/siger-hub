@@ -1,50 +1,66 @@
 <?php
 
 // FILE: bootstrap/app.php
-// Update dari CORS step — tambah alias middleware untuk integrasi frontend
 
-use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Cache\RateLimiting\Limit; // Tambahan dari teman
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
-use Spatie\Permission\Exceptions\UnauthorizedException;
+use Illuminate\Support\Facades\RateLimiter; // Tambahan dari teman
+use Spatie\Permission\Exceptions\UnauthorizedException; // Tambahan dari teman
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__ . '/../routes/web.php',
-        api: __DIR__ . '/../routes/api.php',
-        commands: __DIR__ . '/../routes/console.php',
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    // --- Konfigurasi Middleware ---
     ->withMiddleware(function (Middleware $middleware) {
-
-        // Sanctum stateful domains
+        
+        // ✅ Sanctum stateful domains (Tambahan dari teman)
         $middleware->statefulApi();
 
-        // ── Middleware aliases ─────────────────────────────────────
+        // ✅ Daftarkan alias middleware
         $middleware->alias([
-            // Spatie Permission
+            // Spatie Permission (Tambahan dari teman)
             'role'               => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission'         => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
 
-            // Frontend temanmu — CheckRole cek $user->role (dijembatani accessor)
+            // Middleware custom (Milikmu dan temanmu)
+            // PERHATIAN: 'role' milikmu sebelumnya diubah jadi 'checkrole' agar tidak bentrok dengan Spatie
             'checkrole'          => \App\Http\Middleware\CheckRole::class,
-
-            // Prevent back button setelah logout
             'prevent.back'       => \App\Http\Middleware\PreventBackHistory::class,
+            
+            // Middleware jaga-jaga OTP (Milik asli kamu)
+            'verified.otp'       => \App\Http\Middleware\EnsureEmailIsVerified::class,
         ]);
 
-        // ── Global web middleware ──────────────────────────────────
-        // ShareAppName — inject $appName ke semua view Blade
+        // ✅ Global web middleware (Tambahan dari teman)
         $middleware->web(\App\Http\Middleware\ShareAppName::class);
 
-    })
-    ->withExceptions(function (Exceptions $exceptions) {
+        // 🔥 Percayai semua proxy (Milik asli kamu - untuk ngrok/HTTPS)
+        $middleware->trustProxies(at: '*');
 
-        // Format semua error API jadi JSON konsisten
+        // 🔥 Pengecualian CSRF (Milik asli kamu - upload file)
+        $middleware->validateCsrfTokens(except: [
+            'login',
+            'staff/editor/upload-attachment',
+            'staff/editor/upload-image',
+        ]);
+    })
+    // --- Konfigurasi Exception & Error Handling ---
+    ->withExceptions(function (Exceptions $exceptions): void {
+        
+        // Milik asli kamu: Paksa response API ke JSON
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request) => $request->is('api/*'),
+        );
+
+        // ✅ Tambahan dari teman: Format JSON yang rapi untuk error tertentu
         $exceptions->render(function (UnauthorizedException $e, Request $request) {
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
@@ -91,9 +107,8 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
     })
+    // --- Rate Limiting (Tambahan dari teman) ---
     ->booted(function () {
-
-        // Rate limiting
         RateLimiter::for('auth', function (Request $request) {
             return Limit::perMinute(10)->by($request->ip())->response(function () {
                 return response()->json([
@@ -112,5 +127,4 @@ return Application::configure(basePath: dirname(__DIR__))
         RateLimiter::for('admin-api', function (Request $request) {
             return Limit::perMinute(120)->by($request->user()?->id ?? $request->ip());
         });
-
     })->create();

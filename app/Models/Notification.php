@@ -9,22 +9,36 @@ class Notification extends Model
 {
     use HasFactory;
 
+    /**
+     * Nama tabel yang digunakan oleh model ini.
+     * Pastikan sesuai dengan nama tabel di database Anda.
+     */
+    protected $table = 'notifications';
+
+    /**
+     * Kolom yang boleh diisi (Mass Assignable).
+     * Sangat penting agar data `title`, `message`, `type` tersimpan dengan benar!
+     */
     protected $fillable = [
         'user_id',
         'article_id',
         'type',
         'title',
         'message',
-        'link',
+        'url',
         'is_read',
     ];
 
+    /**
+     * Casting tipe data.
+     * Memastikan 'is_read' selalu diakses sebagai boolean (true/false).
+     */
     protected $casts = [
         'is_read' => 'boolean',
     ];
 
     /**
-     * Relasi ke model User (penerima notifikasi)
+     * Relasi ke model User (Penerima notifikasi).
      */
     public function user()
     {
@@ -32,7 +46,7 @@ class Notification extends Model
     }
 
     /**
-     * Relasi ke model Article (artikel terkait, jika ada)
+     * Relasi ke model Article (Jika notifikasi berkaitan dengan artikel tertentu).
      */
     public function article()
     {

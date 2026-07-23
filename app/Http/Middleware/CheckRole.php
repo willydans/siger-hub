@@ -25,14 +25,11 @@ class CheckRole
 
         $user = Auth::user();
 
-        // 2. Fallback: Jika role user null, set default ke 'user'
-        if (is_null($user->role)) {
-            $user->role = 'user';
-            $user->save();
-        }
+        // 2. Ambil nama role dari relasi (jika ada), fallback 'user'
+        $userRole = $user->role ? $user->role->name : 'user';
 
-        // 3. Cek apakah role user ada di dalam daftar roles yang diizinkan
-        if (!in_array($user->role, $roles)) {
+        // 3. Jika role user tidak ada di daftar yang diizinkan, tolak akses
+        if (!in_array($userRole, $roles)) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 

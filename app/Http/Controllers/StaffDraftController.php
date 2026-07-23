@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\UserActivity;
+use App\Models\Notification; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -51,6 +52,7 @@ class StaffDraftController extends Controller
 
     /**
      * Mengirim draft ke Admin untuk review (Ubah status menjadi 'pending')
+     * ✨ Sekaligus mengirim notifikasi ke Admin.
      */
     public function submit($id)
     {
@@ -69,6 +71,19 @@ class StaffDraftController extends Controller
             'description'=> 'Mengirim draft ke admin untuk review: ' . $article->title,
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
+        ]);
+
+        // ==========================================
+        // ✨ FITUR BARU: Kirim Notifikasi ke Admin
+        // ==========================================
+        Notification::create([
+            'user_id'    => null, // Null berarti notifikasi untuk semua Admin (sesuai logika sistem notifikasi sebelumnya)
+            'article_id' => $article->id,
+            'type'       => 'Approval',
+            'title'      => '📝 Draft Baru Dikirim untuk Review',
+            'message'    => 'Staff ' . auth()->user()->name . ' telah mengirimkan draft berjudul "' . $article->title . '" untuk diperiksa dan disetujui.',
+            'url'        => route('admin.pending-approval'), // Tautan langsung ke halaman Pending Approval Admin
+            'is_read'    => false,
         ]);
 
         return redirect()->back()->with('success', 'Draft "' . $article->title . '" berhasil dikirim untuk review.');
@@ -91,11 +106,9 @@ class StaffDraftController extends Controller
             ->where('status', 'draft')
             ->findOrFail($id);
         
-        // ✅ PERBAIKAN: attachments sudah berupa array karena cast di model
         $hasVideo = false;
         $attachments = $article->attachments;
 
-        // Jika masih berbentuk string (misal data lama), decode manual
         if (is_string($attachments)) {
             $attachments = json_decode($attachments, true);
         }

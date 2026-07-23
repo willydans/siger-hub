@@ -9,5 +9,10 @@ class SearchLog extends Model
     protected $fillable = ['user_id','keyword','result_count','ip_address','searched_at'];
     protected function casts(): array { return ['searched_at' => 'datetime']; }
 
-    public function user() { return $this->belongsTo(User::class); }
+    public function user() { return $this->belongsTo(User::class); 
+    }
+    public function clickedArticle()
+    {
+        return $this->belongsTo(Article::class, 'clicked_article_id');
+    }
 }

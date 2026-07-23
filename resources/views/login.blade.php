@@ -327,6 +327,27 @@
                 <div class="flex-1 p-8 md:p-11 flex items-start justify-center">
                     <div class="w-full max-w-sm">
 
+                        <!-- ✅ NOTIFIKASI DITAMBAHKAN DISINI -->
+                        @if(session('warning'))
+                            <div class="mb-4 p-3 bg-yellow-900/50 border border-yellow-600 rounded-lg text-yellow-200 text-sm text-center">
+                                {{ session('warning') }}
+                            </div>
+                        @endif
+                        @if(session('success'))
+                            <div class="mb-4 p-3 bg-green-900/50 border border-green-600 rounded-lg text-green-200 text-sm text-center">
+                                {{ session('success') }}
+                            </div>
+                        @endif
+                        @if($errors->any())
+                            <div class="mb-4 p-3 bg-red-900/50 border border-red-600 rounded-lg text-red-200 text-sm">
+                                <ul class="list-disc list-inside">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         <!-- TAB SWITCHER -->
                         <div class="relative flex bg-white/5 border border-cardborder rounded-xl p-1 mb-7 gap-1" id="tab-wrap">
                             <div class="tab-pill" id="tab-indicator"></div>
@@ -348,7 +369,7 @@
                                     <p class="text-sm text-gray-400">Masukkan kredensial Anda untuk mengakses sistem.</p>
                                 </div>
 
-                                <!-- ✨ PERBAIKAN: Action form menggunakan secure_url() untuk memaksa HTTPS -->
+                                <!-- ✅ PERBAIKAN: Action form menggunakan route() -->
                                 <form action="{{ route('login') }}" method="POST" class="space-y-4">
                                     @csrf
                                     <!-- Email -->
@@ -395,9 +416,7 @@
                                     </button>
                                 </form>
 
-                                <!-- ========================================== -->
-                                <!-- TAMBAHAN: LOGIN DENGAN GOOGLE -->
-                                <!-- ========================================== -->
+                                <!-- Login Google -->
                                 <div class="relative flex items-center gap-2 my-4">
                                     <div class="flex-1 h-px bg-cardborder"></div>
                                     <span class="text-xs text-gray-500 uppercase">atau</span>
@@ -426,7 +445,7 @@
                                     <p class="text-sm text-gray-400">Daftar untuk berkontribusi pada ekosistem pengetahuan.</p>
                                 </div>
 
-                                <!-- ✨ PERBAIKAN: Action form menggunakan secure_url() untuk memaksa HTTPS -->
+                                <!-- ✅ PERBAIKAN: Action form menggunakan route('register') -->
                                 <form action="{{ route('register') }}" method="POST" class="space-y-3.5">
                                     @csrf
                                     <!-- Nama -->

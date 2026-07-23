@@ -1,78 +1,90 @@
 <?php
 
-// FILE: app/Http/Controllers/SocialiteController.php
-// Versi yang kompatibel dengan Spatie Permission (tidak pakai kolom 'role')
-
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 use Exception;
 
 class SocialiteController extends Controller
 {
+    /**
+     * Redirect pengguna ke halaman login Google.
+     */
     public function redirectToGoogle()
     {
         return Socialite::driver('google')->stateless()->redirect();
     }
 
+    /**
+     * Handle callback dari Google.
+     */
     public function handleGoogleCallback()
     {
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
 
+            // Cari user berdasarkan email
             $user = User::where('email', $googleUser->getEmail())->first();
 
             if (!$user) {
-                // Buat user baru — email langsung terverifikasi karena dari Google
+                // ✅ PERBAIKAN: pakai role_id + relasi Role, KONSISTEN dengan
+                // AuthController::register(). Sebelumnya kode ini mengisi
+                // kolom 'role' string yang kemungkinan besar tidak ada di
+                // skema tabel users kamu (yang dipakai adalah role_id +
+                // tabel roles) — insert semacam itu gagal di level
+                // database, dan exception-nya tertelan jadi pesan generik
+                // "Gagal login dengan Google".
+                $userRole = Role::where('name', 'user')->first();
+
                 $user = User::create([
                     'name'              => $googleUser->getName(),
                     'email'             => $googleUser->getEmail(),
                     'google_id'         => $googleUser->getId(),
                     'password'          => Hash::make(uniqid()),
-                    'email_verified_at' => now(),
-                    'is_active'         => true,
-                    'joined_at'         => now(),
+                    'email_verified_at' => now(), // ✅ Google sudah memverifikasi email ini
+                    'role_id'           => $userRole ? $userRole->id : null,
                 ]);
-
-                // Assign role default via Spatie (bukan kolom 'role')
-                $user->assignRole('user');
-
             } else {
-                // User sudah ada, update google_id kalau belum ada
+                $updates = [];
+
                 if (is_null($user->google_id)) {
-                    $user->update(['google_id' => $googleUser->getId()]);
+                    $updates['google_id'] = $googleUser->getId();
                 }
 
-                // Cek akun aktif
-                if (!$user->is_active) {
-                    return redirect()->route('login')
-                        ->withErrors(['google' => 'Akun Anda telah dinonaktifkan. Hubungi administrator.']);
+                // ✅ TAMBAHAN: kalau user ini sebelumnya daftar manual dan
+                // belum sempat verifikasi OTP (mis. kasus littleenterprise07
+                // yang masih pending), login via Google tetap membuktikan
+                // dia pemilik email itu — jadi langsung tandai terverifikasi
+                // juga, supaya tidak nyangkut selamanya menunggu OTP.
+                if (is_null($user->email_verified_at)) {
+                    $updates['email_verified_at'] = now();
+                }
+
+                if (!empty($updates)) {
+                    $user->update($updates);
                 }
             }
 
+            // Login user dan regenerasi session
             Auth::login($user);
             session()->regenerate();
 
-            // Update last_login_at
-            $user->update(['last_login_at' => now()]);
-
-            return $this->redirectBasedOnRole($user);
+            // ✅ PERBAIKAN: delegasikan ke AuthController::redirectBasedOnRole()
+            // yang sudah benar (pakai $user->role->name), bukan versi lokal
+            // di sini yang membandingkan objek relasi dengan string dan
+            // tidak akan pernah cocok.
+            return app(AuthController::class)->redirectBasedOnRole($user);
 
         } catch (Exception $e) {
-            \Log::error('Google Login Error: ' . $e->getMessage());
-            return redirect()->route('login')
-                ->withErrors(['google' => 'Gagal login dengan Google. Silakan coba lagi.']);
+            // Log error untuk debugging — cek storage/logs/laravel.log
+            // untuk pesan aslinya kalau error ini muncul lagi.
+            Log::error('Google Login Error: ' . $e->getMessage());
+            return redirect()->route('login')->withErrors(['google' => 'Gagal login dengan Google. Silakan coba lagi.']);
         }
-    }
-
-    // Pakai getRoleAttribute accessor dari User model
-    private function redirectBasedOnRole($user)
-    {
-        if ($user->role === 'admin') return redirect()->to('/admin/dashboard');
-        if ($user->role === 'staff') return redirect()->to('/staff/dashboard');
-        return redirect()->to('/');
     }
 }

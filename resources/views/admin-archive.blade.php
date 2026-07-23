@@ -31,41 +31,21 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Sidebar Mobile & Dropdown */
-        #sidebar-mobile {
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-        }
-        #sidebar-overlay {
-            transition: opacity 0.3s ease-in-out;
-        }
-        .submenu {
-            transition: all 0.3s ease-in-out;
-            overflow: hidden;
-        }
-        /* Hover Effects */
-        .hover-lift {
-            transition: all 0.2s ease;
-        }
-        .hover-lift:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-        /* Dropdown Menu Animation */
+        #sidebar-mobile { transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; }
+        #sidebar-overlay { transition: opacity 0.3s ease-in-out; }
+        .submenu { transition: all 0.3s ease-in-out; overflow: hidden; }
+        .hover-lift { transition: all 0.2s ease; }
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
         .dropdown-menu {
             transform-origin: top right;
             transition: transform 0.1s ease, opacity 0.1s ease;
+            position: fixed !important; /* Membuatnya melayang di luar tabel */
+            z-index: 9999 !important; /* Memastikan posisinya paling depan */
+            width: 12rem; 
         }
-        /* Hide scrollbar for cleaner sidebar */
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 4px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 4px;
-        }
-        .sidebar-scroll {
-            scrollbar-width: thin;
-        }
+        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        .sidebar-scroll { scrollbar-width: thin; }
     </style>
 </head>
 <body class="font-sans antialiased text-textmain bg-lightbg flex h-screen overflow-hidden">
@@ -73,7 +53,7 @@
     <!-- Mobile Overlay -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden opacity-0" onclick="toggleSidebar()"></div>
 
-        <!-- SIDEBAR (Dipertahankan persis, dengan submenu Archived yang aktif) -->
+    <!-- SIDEBAR -->
     <aside id="sidebar-mobile" class="w-64 bg-darkbg text-gray-300 flex flex-col border-r border-gray-800 shadow-2xl z-40 fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 flex-shrink-0 sidebar-scroll">
         <div class="h-16 flex items-center gap-3 px-6 border-b border-gray-800">
             <div class="w-8 h-8 bg-gold rounded text-darkbg flex items-center justify-center font-bold text-lg">A</div>
@@ -84,13 +64,10 @@
         </div>
 
         <div class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-            
-            <!-- Dashboard -->
             <a href="/admin/dashboard" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg> Dashboard
             </a>
             
-            <!-- Menu Utama 1: Knowledge Management -->
             <div>
                 <button onclick="toggleSubmenu('submenu-knowledge')" class="w-full flex items-center justify-between text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                     <div class="flex items-center gap-3">
@@ -100,30 +77,36 @@
                     <svg class="w-4 h-4 transition-transform duration-200" id="arrow-knowledge" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="submenu-knowledge" class="submenu hidden pl-9 space-y-1 mt-1">
-                    <a href="/admin/all-articles" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• All Articles</a>
-                    <a href="/admin/pending-approval" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors flex items-center justify-between">• Pending Approval <span class="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">23</span></a>
-                    <!-- Draft sudah diperbaiki routenya -->
-                    <a href="/admin/draft" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Draft</a>
-                    <a href="/admin/revision" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Revision</a>
-                    <a href="/admin/published" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Published</a>
-                    <!-- Archived menjadi link yang aktif di halaman ini -->
-                    <a href="/admin/archive" class="block text-white font-medium bg-gray-800/30 rounded px-2 py-1.5 text-[13px] transition-colors">• Archived</a>
-                    <!-- Deleted sudah diperbaiki routenya -->
-                    <a href="/admin/delete" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Deleted</a>
+                    @php
+                        // Menghitung jumlah artikel yang berstatus 'pending' langsung dari database
+                        $pendingCount = \App\Models\Article::where('status', 'pending')->count();
+                    @endphp
+
+                    <a href="{{ route('admin.all-articles') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors {{ request()->routeIs('admin.all-articles') ? 'text-white' : '' }}">• All Articles</a>
+                    
+                    <a href="{{ route('admin.pending-approval') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors flex items-center justify-between {{ request()->routeIs('admin.pending-approval') ? 'text-white' : '' }}">
+                        • Pending Approval 
+                        
+                        {{-- Badge merah HANYA akan muncul jika ada artikel pending (> 0) --}}
+                        @if($pendingCount > 0)
+                            <span class="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">{{ $pendingCount }}</span>
+                        @endif
+                    </a>
+                    
+                    <a href="{{ route('admin.draft') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors {{ request()->routeIs('admin.draft') ? 'text-white' : '' }}">• Draft</a>
+                    <a href="{{ route('admin.revision') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors {{ request()->routeIs('admin.revision') ? 'text-white' : '' }}">• Revision</a>
+                    <a href="{{ route('admin.published') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors {{ request()->routeIs('admin.published') ? 'text-white' : '' }}">• Published</a>
+                    <a href="{{ route('admin.archive') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors {{ request()->routeIs('admin.archive') ? 'text-white' : '' }}">• Archived</a>
+                    <a href="{{ route('admin.delete') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors {{ request()->routeIs('admin.delete') ? 'text-white' : '' }}">• Deleted</a>
                 </div>
             </div>
 
-            <!-- Menu Utama 2: User Management (Diubah menjadi menu tunggal) -->
             <a href="/admin/users" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> User Management
             </a>
-
-            <!-- Menu Utama 3: Category (Menggantikan Master Data, menu tunggal) -->
             <a href="/admin/category" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg> Category
             </a>
-
-            <!-- Menu Utama 4: Single Links (Semua tautan sudah diperbaiki) -->
             <a href="/admin/analytics" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Analytics
             </a>
@@ -154,18 +137,27 @@
             <div class="flex items-center gap-3 mb-4">
                 <img src="https://ui-avatars.com/api/?name=Admin+Utama&background=ef4444&color=ffffff" class="w-9 h-9 rounded-full">
                 <div class="flex flex-col">
-                    <span class="text-sm font-bold text-white">Admin Diskominfo</span>
+                    <span class="text-sm font-bold text-white">{{ auth()->user()->name ?? 'Admin Diskominfo' }}</span>
                     <span class="text-[10px] text-gray-400">Super Admin</span>
                 </div>
             </div>
-            <a href="/login" class="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 py-2 rounded-lg text-xs font-medium border border-gray-700 transition">Keluar</a>
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 py-2 rounded-lg text-xs font-medium border border-gray-700 transition cursor-pointer">Keluar</button>
+            </form>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT (Archive Page) -->
+    <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#F8FAFC] p-4 md:p-8 relative w-full">
         
-        <!-- Mobile Toggle Sidebar -->
+        <!-- Pesan Sukses / Error -->
+        @if(session('success'))
+            <div class="mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-sm" role="alert">
+                <p class="font-medium text-sm">{{ session('success') }}</p>
+            </div>
+        @endif
+
         <div class="flex justify-between items-center mb-6 md:hidden">
             <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-900 p-2 -ml-2 rounded-lg hover:bg-gray-100">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -199,69 +191,65 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
-                        <!-- Row 1 -->
+                        @forelse($articles as $article)
                         <tr class="hover:bg-gray-50/80 transition-colors duration-200">
-                            <td class="px-4 py-4"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
-                            <td class="px-4 py-4 font-medium text-gray-900">Arsip SOP Backup Server 2025</td>
-                            <td class="px-4 py-4 text-gray-600">Rina</td>
-                            <td class="px-4 py-4 text-gray-600">SOP</td>
+                            <td class="px-4 py-4"><input type="checkbox" value="{{ $article->id }}" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
+                            <td class="px-4 py-4 font-medium text-gray-900">{{ $article->title }}</td>
+                            <td class="px-4 py-4 text-gray-600">{{ $article->user->name ?? '-' }}</td>
+                            <td class="px-4 py-4 text-gray-600">{{ $article->category ?? '-' }}</td>
                             <td class="px-4 py-4"><span class="bg-gray-300 text-gray-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Archived</span></td>
-                            <td class="px-4 py-4 text-center text-gray-600">1.8k</td>
-                            <td class="px-4 py-4 text-center text-yellow-400 font-medium">5.0</td>
-                            <td class="px-4 py-4 text-gray-600">18 Jun 2025</td>
-                            <td class="px-4 py-4 text-center relative">
-                                <!-- Action Dropdown -->
-                                <div class="relative inline-block">
-                                    <button onclick="toggleDropdown(this)" class="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
-                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
-                                    </button>
-                                    <!-- Dropdown Content -->
-                                    <div class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-20 origin-top-right scale-95 opacity-0">
-                                        <div class="py-1">
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Restore</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Delete Permanen</button>
-                                            <div class="border-t border-gray-100 my-1"></div>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Row 2 -->
-                        <tr class="hover:bg-gray-50/80 transition-colors duration-200">
-                            <td class="px-4 py-4"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
-                            <td class="px-4 py-4 font-medium text-gray-900">Arsip Panduan Laravel 2025</td>
-                            <td class="px-4 py-4 text-gray-600">Andi</td>
-                            <td class="px-4 py-4 text-gray-600">Web Dev</td>
-                            <td class="px-4 py-4"><span class="bg-gray-300 text-gray-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Archived</span></td>
-                            <td class="px-4 py-4 text-center text-gray-600">1.2k</td>
-                            <td class="px-4 py-4 text-center text-yellow-400 font-medium">4.6</td>
-                            <td class="px-4 py-4 text-gray-600">10 Jun 2025</td>
+                            <td class="px-4 py-4 text-center text-gray-600">{{ number_format($article->views ?? 0) }}</td>
+                            <td class="px-4 py-4 text-center text-yellow-400 font-medium">{{ number_format($article->rating_avg ?? 0, 1) }}</td>
+                            <td class="px-4 py-4 text-gray-600">{{ $article->updated_at->format('d M Y') }}</td>
                             <td class="px-4 py-4 text-center relative">
                                 <div class="relative inline-block">
                                     <button onclick="toggleDropdown(this)" class="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
                                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
                                     </button>
-                                    <div class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-20 origin-top-right scale-95 opacity-0">
+                                   <div class="dropdown-menu hidden w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-20 origin-top-right scale-95 opacity-0">
                                         <div class="py-1">
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Restore</button>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Delete Permanen</button>
+                                            <!-- Menggunakan route restore yang sudah ada -->
+<form action="{{ route('admin.articles.restore', $article->id) }}" method="POST" class="block">
+    @csrf
+    <button type="submit" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> 
+        Restore
+    </button>
+</form>
+                                            
+                                            <!-- Soft Delete (Move to Trash) -->
+                                            <form action="{{ route('admin.articles.destroy', $article->id) ?? '#' }}" method="POST" class="block" onsubmit="return confirm('Pindahkan artikel ini ke Recycle Bin?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Move to Trash</button>
+                                            </form>
+                                            
                                             <div class="border-t border-gray-100 my-1"></div>
-                                            <button class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View</button>
+                                            
+                                            <!-- View -->
+                                            <a href="{{ route('admin.articles.show', $article->id) ?? '#' }}" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View</a>
                                         </div>
                                     </div>
                                 </div>
                             </td>
                         </tr>
+                        @empty
+                        <tr>
+                            <td colspan="9" class="px-4 py-8 text-center text-gray-500 text-sm">Tidak ada arsip artikel.</td>
+                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
+            </div>
+            
+            <!-- Paginasi -->
+            <div class="px-4 py-3 border-t border-gray-200">
+                {{ $articles->links('pagination::tailwind') }}
             </div>
         </div>
     </main>
 
     <script>
-        // --- Toggle Sidebar Mobile ---
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar-mobile');
             const overlay = document.getElementById('sidebar-overlay');
@@ -282,7 +270,6 @@
             }
         }
 
-        // --- Toggle Sidebar Dropdowns ---
         function toggleSubmenu(id) {
             const el = document.getElementById(id);
             const arrow = document.getElementById('arrow-' + id.split('-')[1]);
@@ -295,11 +282,11 @@
             }
         }
 
-        // --- Logic Dropdown Action Menu ---
         function toggleDropdown(button) {
             const menu = button.parentElement.querySelector('.dropdown-menu');
             const isHidden = menu.classList.contains('hidden');
-            // Close all dropdowns first
+            
+            // Tutup semua dropdown lain terlebih dahulu
             document.querySelectorAll('.dropdown-menu').forEach(m => {
                 if (m !== menu) {
                     m.classList.add('hidden');
@@ -307,7 +294,16 @@
                     m.classList.add('scale-95', 'opacity-0');
                 }
             });
+
             if (isHidden) {
+                // Hitung posisi tombol relatif terhadap viewport layar
+                const rect = button.getBoundingClientRect();
+                const top = rect.bottom + window.scrollY + 8;
+                const left = rect.right + window.scrollX - 192 + 8;
+                
+                menu.style.top = top + 'px';
+                menu.style.left = left + 'px';
+
                 menu.classList.remove('hidden');
                 setTimeout(() => {
                     menu.classList.remove('scale-95', 'opacity-0');
@@ -321,7 +317,8 @@
                 }, 100);
             }
         }
-        // Close dropdown when clicking outside
+
+        // Tutup dropdown jika klik di luar area dropdown maupun tombol pembuka
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.relative')) {
                 document.querySelectorAll('.dropdown-menu').forEach(m => {
@@ -334,7 +331,6 @@
             }
         });
 
-        // --- Buka Knowledge Management secara otomatis saat halaman dimuat ---
         document.addEventListener('DOMContentLoaded', function() {
             const submenu = document.getElementById('submenu-knowledge');
             const arrow = document.getElementById('arrow-knowledge');

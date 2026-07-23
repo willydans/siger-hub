@@ -1,13 +1,33 @@
 <?php
-// FILE: app/Models/Feedback.php
+
 namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Feedback extends Model
 {
-    protected $fillable = ['user_id','article_id','assigned_to','type','note','status'];
+    use HasFactory;
 
-    public function user()       { return $this->belongsTo(User::class); }
-    public function article()    { return $this->belongsTo(Article::class); }
-    public function assignee()   { return $this->belongsTo(User::class, 'assigned_to'); }
+    protected $table = 'feedback';
+
+    protected $fillable = [
+        'article_id',
+        'user_id',
+        'feedback_type',
+        'status',
+        'message',
+        'rating',
+        'comment',
+    ];
+
+    public function article()
+    {
+        return $this->belongsTo(Article::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

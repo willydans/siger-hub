@@ -83,9 +83,22 @@
             <h2 class="text-2xl font-bold text-gray-900 mb-2">Verifikasi Email</h2>
             <p class="text-sm text-gray-500 mb-6">
                 Kami telah mengirimkan kode OTP ke <br>
-                <strong class="text-gold">{{ session('email') ?? auth()->user()->email }}</strong>
+                {{-- ✅ FIX: pakai $email dari controller (session otp_user_id), --}}
+                {{-- BUKAN auth()->user()->email karena user belum login di tahap ini --}}
+                <strong class="text-gold">{{ $email ?? session('email') }}</strong>
             </p>
 
+            <!-- ✅ TAMBAHAN NOTIFIKASI WARNING & SUCCESS -->
+            @if(session('warning'))
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-sm text-yellow-700">
+                    {{ session('warning') }}
+                </div>
+            @endif
+            @if(session('success'))
+                <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 text-sm text-green-700">
+                    {{ session('success') }}
+                </div>
+            @endif
             @error('otp')
                 <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-600">
                     {{ $message }}

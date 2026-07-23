@@ -16,5 +16,5 @@ class Category extends Model
     // Tambahkan alias ini agar tidak error saat dipanggil oleh AdminCategoryController
     public function subcategories() { return $this->hasMany(Subcategory::class); }
     
-    public function articles()  { return $this->hasMany(Article::class); }
+    public function articles(){return $this->hasMany(Article::class);}
 }

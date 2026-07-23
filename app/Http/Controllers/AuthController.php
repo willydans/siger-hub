@@ -1,121 +1,183 @@
 <?php
 
-// FILE: app/Http/Controllers/AuthController.php
-// Web auth controller (session-based) — kompatibel dengan Spatie Permission
-// Temanmu tidak perlu ubah apapun karena $user->role sudah dijembatani accessor
-
 namespace App\Http\Controllers;
 
-use App\Models\Otp;
 use App\Models\User;
-use App\Mail\OtpMail;
+use App\Models\Otp;
+use App\Models\Role;
+use App\Models\UserActivity; // ✨ Tambahkan import ini
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\OtpMail;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
+    /**
+     * Menampilkan halaman login / register
+     */
     public function showLoginForm()
     {
-        if (Auth::check()) return redirect('/');
+        if (Auth::check()) {
+            return $this->redirectBasedOnRole(Auth::user());
+        }
         return view('login');
     }
 
+    /**
+     * Proses login manual (email & password)
+     */
     public function login(Request $request)
     {
         $request->validate([
             'email'    => 'required|email',
-            'password' => 'required',
-        ], [
-            'email.required'    => 'Email wajib diisi.',
-            'email.email'       => 'Format email tidak valid.',
-            'password.required' => 'Password wajib diisi.',
+            'password' => 'required'
         ]);
 
-        if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
-            $user = Auth::user();
+        $credentials = $request->only('email', 'password');
 
-            // Cek akun aktif
-            if (!$user->is_active) {
-                Auth::logout();
-                return back()->withErrors(['email' => 'Akun Anda telah dinonaktifkan. Hubungi administrator.']);
-            }
-
-            // Jika email belum diverifikasi → kirim OTP
-            if (!$user->email_verified_at) {
-                $this->sendOtp($user);
-                return redirect()->route('otp.verify')->with('email', $user->email);
-            }
-
-            $request->session()->regenerate();
-            $user->update(['last_login_at' => now()]);
-
-            return $this->redirectBasedOnRole($user);
+        if (!Auth::validate($credentials)) {
+            return back()->withErrors(['email' => 'Email atau password salah.']);
         }
 
-        return back()->withErrors(['email' => 'Email atau password yang Anda masukkan salah.']);
+        $user = User::where('email', $credentials['email'])->first();
+
+        if (!$user->email_verified_at) {
+            // Simpan id user sementara di session, JANGAN Auth::login() dulu
+            $request->session()->put('otp_user_id', $user->id);
+            $request->session()->put('otp_remember', $request->boolean('remember'));
+
+            $this->sendOtp($user);
+            return redirect()->route('otp.verify')->with('email', $user->email);
+        }
+
+        Auth::login($user, $request->boolean('remember'));
+        $request->session()->regenerate();
+
+        // ✨ CATAT AKTIVITAS LOGIN
+        UserActivity::create([
+            'user_id'    => $user->id,
+            'type'       => 'Login',
+            'description'=> $user->name . ' berhasil login ke sistem',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return $this->redirectBasedOnRole($user);
     }
 
+    /**
+     * Proses registrasi akun baru
+     */
     public function register(Request $request)
     {
         $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|min:8',
-            'nip'      => 'nullable|string|max:50|unique:users,nip',
+            'nip'      => 'nullable|string|max:50'
         ]);
+
+        $userRole = Role::where('name', 'user')->first();
+        $roleId = $userRole ? $userRole->id : null;
 
         $user = User::create([
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'password'  => Hash::make($request->password),
-            'nip'       => $request->nip,
-            'is_active' => true,
-            'joined_at' => now(),
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'nip'      => $request->nip,
+            'role_id'  => $roleId
         ]);
 
-        // Assign role via Spatie (bukan simpan ke kolom)
-        $user->assignRole('user');
+        // ✨ CATAT AKTIVITAS REGISTER (sebelum OTP dikirim)
+        UserActivity::create([
+            'user_id'    => $user->id,
+            'type'       => 'Register',
+            'description'=> $user->name . ' mendaftarkan akun baru',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
 
-        Auth::login($user);
-        $this->sendOtp($user);
+        // Jangan Auth::login($user) dulu — simpan id-nya saja di session
+        $request->session()->put('otp_user_id', $user->id);
+        $request->session()->put('otp_remember', false);
 
-        return redirect()->route('otp.verify')->with('email', $user->email);
+        // Kirim OTP, jika gagal kita kasih pesan di session flash
+        $otpSent = $this->sendOtp($user);
+
+        $redirect = redirect()->route('otp.verify')->with('email', $user->email);
+
+        if (!$otpSent) {
+            return $redirect->with('warning', 'Kami gagal mengirim kode OTP ke email Anda. Pastikan konfigurasi SMTP Anda benar di .env!');
+        }
+
+        return $redirect;
     }
 
+    /**
+     * Proses logout (wajib POST)
+     */
     public function logout(Request $request)
     {
+        // ✨ CATAT AKTIVITAS LOGOUT sebelum user benar-benar logout
+        if (Auth::check()) {
+            UserActivity::create([
+                'user_id'    => Auth::id(),
+                'type'       => 'Logout',
+                'description'=> Auth::user()->name . ' keluar dari sistem',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect('/')->with('success', 'Anda berhasil logout.');
     }
 
-    // Public — dipanggil dari OtpController juga
+    /**
+     * Mengarahkan user berdasarkan role setelah login/verifikasi
+     */
     public function redirectBasedOnRole($user)
     {
-        if ($user->role === 'admin') return redirect()->to('/admin/dashboard');
-        if ($user->role === 'staff') return redirect()->to('/staff/dashboard');
-        return redirect()->to('/');
+        $roleName = $user->role;
+
+        if ($roleName === 'admin') {
+            return redirect()->to('/admin/dashboard');
+        }
+        if ($roleName === 'staff') {
+            return redirect()->to('/staff/dashboard');
+        }
+
+        // User biasa diarahkan ke Welcome Page
+        return redirect()->route('home.public');
     }
 
+    /**
+     * Mengirim Email OTP (return boolean agar tahu berhasil/gagal)
+     */
     private function sendOtp($user)
     {
-        if (!$user) return;
+        if (!$user) return false;
 
         $otpCode = rand(100000, 999999);
         Otp::create([
             'user_id'    => $user->id,
             'otp_code'   => $otpCode,
             'expires_at' => now()->addMinutes(10),
-            'is_used'    => false,
+            'is_used'    => false
         ]);
 
         try {
             Mail::to($user->email)->send(new OtpMail($otpCode, $user));
+            return true;
         } catch (\Exception $e) {
-            \Log::error('Gagal mengirim OTP ke ' . $user->email . ': ' . $e->getMessage());
+            Log::error('Gagal mengirim OTP ke ' . $user->email . ': ' . $e->getMessage());
+            return false;
         }
     }
 }

@@ -69,13 +69,27 @@
                     <svg class="w-4 h-4 transition-transform duration-200" id="arrow-knowledge" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="submenu-knowledge" class="submenu hidden pl-9 space-y-1 mt-1">
-                    <a href="/admin/all-articles" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• All Articles</a>
-                    <a href="/admin/pending-approval" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors flex items-center justify-between">• Pending Approval <span class="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">23</span></a>
-                    <a href="/admin/draft" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Draft</a>
-                    <a href="/admin/revision" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Revision</a>
-                    <a href="/admin/published" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Published</a>
-                    <a href="/admin/archive" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Archived</a>
-                    <a href="/admin/delete" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors">• Deleted</a>
+                    @php
+                        // Menghitung jumlah artikel yang berstatus 'pending' langsung dari database
+                        $pendingCount = \App\Models\Article::where('status', 'pending')->count();
+                    @endphp
+
+                    <a href="{{ route('admin.all-articles') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors {{ request()->routeIs('admin.all-articles') ? 'text-white' : '' }}">• All Articles</a>
+                    
+                    <a href="{{ route('admin.pending-approval') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors flex items-center justify-between {{ request()->routeIs('admin.pending-approval') ? 'text-white' : '' }}">
+                        • Pending Approval 
+                        
+                        {{-- Badge merah HANYA akan muncul jika ada artikel pending (> 0) --}}
+                        @if($pendingCount > 0)
+                            <span class="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">{{ $pendingCount }}</span>
+                        @endif
+                    </a>
+                    
+                    <a href="{{ route('admin.draft') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors {{ request()->routeIs('admin.draft') ? 'text-white' : '' }}">• Draft</a>
+                    <a href="{{ route('admin.revision') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors {{ request()->routeIs('admin.revision') ? 'text-white' : '' }}">• Revision</a>
+                    <a href="{{ route('admin.published') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors {{ request()->routeIs('admin.published') ? 'text-white' : '' }}">• Published</a>
+                    <a href="{{ route('admin.archive') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors {{ request()->routeIs('admin.archive') ? 'text-white' : '' }}">• Archived</a>
+                    <a href="{{ route('admin.delete') }}" class="block text-gray-400 hover:text-white text-[13px] py-1.5 transition-colors {{ request()->routeIs('admin.delete') ? 'text-white' : '' }}">• Deleted</a>
                 </div>
             </div>
 
@@ -148,35 +162,35 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.2s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">👁 Jumlah View</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $viewCount }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $stats['views'] ?? 0 }}</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.3s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">⬇ Download</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $downloadCount }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $stats['downloads'] ?? 0 }}</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.4s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">🔖 Bookmark</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $bookmarkCount }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $stats['bookmarks'] ?? 0 }}</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.5s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">💬 Komentar</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $komentarCount }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $stats['comments'] ?? 0 }}</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.6s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">⭐ Rating</p>
-                <p class="text-2xl font-bold text-yellow-500">{{ number_format($ratingAverage, 1) }}</p>
+                <p class="text-2xl font-bold text-yellow-500">{{ number_format($stats['rating'] ?? 0, 1) }}</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.7s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">💬 Feedback</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $feedbackCount }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $stats['feedback'] ?? 0 }}</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.8s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">🔎 Keyword</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $keywordCount }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $stats['keyword'] ?? 0 }}</p>
             </div>
             <div class="bg-white border border-cardborder rounded-xl p-4 shadow-sm stat-card fade-in-up" style="animation-delay: 0.9s;">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">👤 User Aktif</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $userAktifCount }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $stats['active_users'] ?? 0 }}</p>
             </div>
         </div>
 
@@ -257,8 +271,7 @@
             const ctx = document.getElementById('heatmapChart').getContext('2d');
             
             // Menerima data dari Controller menggunakan directive JSON Blade
-            const heatmapData = @json($heatmapData);
-
+            const heatmapData = @json($heatmapData ?? []);
             new Chart(ctx, {
                 type: 'bar',
                 data: {

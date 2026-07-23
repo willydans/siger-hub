@@ -4,64 +4,97 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\Category;
-use App\Models\Opd;
+use App\Models\User;
+use App\Models\UserActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
+    private function applyVisibilityFilter($query)
+    {
+        $user = Auth::user();
+        $roleName = 'user'; 
+        if ($user) {
+            $roleName = optional($user->role)->name ?? 'user';
+        }
+
+        $query->where('visibility', 'public');
+
+        if ($user) {
+            if (in_array($roleName, ['staff', 'admin'])) {
+                $query->orWhere('visibility', 'internal');
+            }
+            if ($roleName === 'admin') {
+                $query->orWhere('visibility', 'private');
+            } else {
+                if ($roleName === 'staff') {
+                    $query->orWhere(function ($q) use ($user) {
+                        $q->where('visibility', 'private')
+                          ->where('user_id', $user->id);
+                    });
+                }
+            }
+        }
+    }
+
     public function index(Request $request)
     {
         // --- CEK REDIRECT JIKA SUDAH LOGIN ---
         if (auth()->check()) {
             $user = auth()->user();
-
-            // ✅ PERBAIKAN: Hanya Admin dan Staff yang dipaksa redirect ke dashboard.
-            // Role 'user' (pengguna biasa) dibiarkan tetap berada di halaman publik/welcome.
-            if ($user->role === 'admin') {
+           $roleName = $user->role;
+            if ($roleName === 'admin') {
                 return redirect()->to('/admin/dashboard');
             }
-
-            if ($user->role === 'staff') {
+            if ($roleName === 'staff') {
                 return redirect()->to('/staff/dashboard');
             }
-
-            // Jika role 'user', jangan redirect kemanapun.
-            // Biarkan mereka menikmati halaman publik (welcome) di bawah ini.
         }
 
-        // --- DATA UNTUK GUEST / WELCOME PAGE ---
-        // 1. Data Statistik
-        $stats = [
-            'total_articles' => Article::where('status', 'published')->count(),
-            'total_views'    => Article::sum('views'),
-            'total_downloads'=> Article::sum('downloads'),
-            'total_opds'     => Opd::count(),
+        // ✨ Catat aktivitas (Guest maupun User Login) — Aman setelah database diperbaiki
+        UserActivity::create([
+            'user_id'       => auth()->check() ? auth()->id() : null,
+            'type'          => 'View Home',
+            'description'   => auth()->check() 
+                                ? auth()->user()->name . ' membuka halaman beranda' 
+                                : 'Guest membuka halaman beranda',
+            'ip_address'    => $request->ip(),
+            'user_agent'    => $request->userAgent(),
+        ]);
+
+        // --- DATA STATISTIK UNTUK HEADER ---
+        $visibleArticlesQuery = Article::where('status', 'published');
+        $this->applyVisibilityFilter($visibleArticlesQuery);
+
+       $stats = [
+            'total_articles' => (clone $visibleArticlesQuery)->count(),
+            'total_opds' => User::count(),
+            'total_downloads' => (clone $visibleArticlesQuery)->sum('downloads'),
+            
+            // Ubah bagian ini menggunakan scope bawaan Spatie
+            'total_views' => User::role(['staff', 'admin'])->count(),
         ];
 
-        // 2. Data Kategori (Untuk Icon Circular)
         $categories = Category::all();
 
-        // 3. Data Artikel Terbaru (Untuk Bagian Public SOPs & Guidelines)
-        $latestArticles = Article::where('status', 'published')
-            ->with(['user', 'category'])
-            ->orderBy('created_at', 'desc')
-            ->take(8)
-            ->get();
+        $latestQuery = Article::where('status', 'published')
+                              ->whereNotNull('published_at')
+                              ->with(['user', 'category']);
+        $this->applyVisibilityFilter($latestQuery);
+        $latestArticles = $latestQuery->orderBy('created_at', 'desc')->take(8)->get();
 
-        // 4. Data Artikel Trending (Rating Tertinggi)
-        $trendingArticles = Article::where('status', 'published')
-            ->with(['user', 'category'])
-            ->orderBy('rating', 'desc')     // <--- UBAH JADI 'rating'
-            ->take(5)
-            ->get();
+        $trendingQuery = Article::where('status', 'published')
+                                ->whereNotNull('published_at')
+                                ->with(['user', 'category']);
+        $this->applyVisibilityFilter($trendingQuery);
+        $trendingArticles = $trendingQuery->get()->sortByDesc('rating_avg')->take(5);
 
-        // 5. Data Artikel Populer (Views Tertinggi)
-        $popularArticles = Article::where('status', 'published')
-            ->with(['user', 'category'])
-            ->orderBy('views', 'desc')
-            ->take(5)
-            ->get();
+        $popularQuery = Article::where('status', 'published')
+                               ->whereNotNull('published_at')
+                               ->with(['user', 'category']);
+        $this->applyVisibilityFilter($popularQuery);
+        $popularArticles = $popularQuery->orderBy('views', 'desc')->take(5)->get();
 
         return view('welcome', compact('stats', 'categories', 'latestArticles', 'trendingArticles', 'popularArticles'));
     }

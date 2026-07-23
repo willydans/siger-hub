@@ -16,7 +16,7 @@ class AdminNotificationController extends Controller
         $type = $request->input('type', 'Semua');
 
         // Query notifikasi, urutkan dari yang terbaru
-        $query = Notification::with(['user', 'article'])->orderBy('created_at', 'desc');
+        $query = Notification::with(['user'])->orderBy('created_at', 'desc');
 
         // Filter berdasarkan tipe jika bukan 'Semua'
         if ($type !== 'Semua') {

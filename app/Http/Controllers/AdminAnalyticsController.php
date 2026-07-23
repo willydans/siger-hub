@@ -2,103 +2,115 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Article;
+use App\Models\Feedback;
+use App\Models\SearchLog;
+use App\Models\UserActivity;
+use App\Models\User;
+use App\Models\Bookmark; 
+use App\Models\Comment;  
 use Illuminate\Http\Request;
-use App\Models\AnalyticsLog;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class AdminAnalyticsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // 1. Data aktual dari tabel analytics_logs
-        $rawViewCount = AnalyticsLog::where('type', 'view')->count();
-        $rawDownloadCount = AnalyticsLog::where('type', 'download')->count();
-        $rawBookmarkCount = AnalyticsLog::where('type', 'bookmark')->orWhere('type', 'like')->count();
-        $ratingAverage = AnalyticsLog::where('type', 'rating')->avg('value') ?? 0;
+        $filter = $request->query('filter', 'today');
+        $dateRange = $this->getDateRange($filter);
+        $start = $dateRange['start'];
+        $end   = $dateRange['end'];
 
-        // 2. Format angka agar sesuai dengan UI (misal: 125.4K)
-        $viewCount = $this->formatNumberShort($rawViewCount);
-        $downloadCount = $this->formatNumberShort($rawDownloadCount);
-        $bookmarkCount = $this->formatNumberShort($rawBookmarkCount);
+        // --- Statistik Kartu (Dinamis dari Database) ---
+        $stats = [
+            'views'       => Article::sum('views'),
+            'downloads'   => Article::sum('downloads'),
+            'bookmarks'   => Bookmark::count(), // ✅ Dinamis dari tabel bookmarks
+            'comments'    => Comment::count(), // ✅ Dinamis dari tabel comments
+            'rating'      => round(Article::get()->avg('rating_avg'), 1) ?: 0,
+            'feedback'    => Feedback::count(),
+            'keyword'     => SearchLog::count(),
+            'active_users'=> UserActivity::whereBetween('created_at', [$start, $end])
+                            ->whereNotNull('user_id') // ✅ Hanya user yang login
+                            ->distinct('user_id')
+                            ->count(),
+        ];
 
-        // 3. Olah data Heatmap (Menghitung aktivitas berdasarkan jam 00-23 hari ini)
-        $heatmapRaw = AnalyticsLog::select(DB::raw('HOUR(created_at) as hour'), DB::raw('count(*) as count'))
-            ->whereDate('created_at', Carbon::today())
-            ->groupBy('hour')
-            ->pluck('count', 'hour')
-            ->toArray();
+        // --- Heatmap (Aktivitas per jam) ---
+        $hourlyData = $this->getHourlyActivity($start, $end);
 
-        $heatmapData = [];
-        for ($i = 0; $i < 24; $i++) {
-            $heatmapData[] = $heatmapRaw[$i] ?? 0;
-        }
+        // --- Top Search (Mengelompokkan query berdasarkan jumlah pencarian terbanyak) ---
+        $topSearches = SearchLog::select('query', DB::raw('count(*) as total'))
+                    ->groupBy('query')
+                    ->orderBy('total', 'desc')
+                    ->limit(4)
+                    ->get();
 
-        // 4. Data Aktual dari Tabel Lainnya
-        // Komentar
-        $komentarCount = $this->formatNumberShort(DB::table('comments')->count());
-        
-        // Feedback
-        $feedbackCount = $this->formatNumberShort(DB::table('feedback')->count());
-        
-        // Keyword (Menghitung jumlah query pencarian yang unik)
-        $keywordCount = $this->formatNumberShort(DB::table('search_logs')->distinct('query')->count('query'));
-        
-        // User Aktif (Menggunakan tabel sessions, menghitung sesi yang aktif dalam 24 jam terakhir)
-        $twentyFourHoursAgo = Carbon::now()->subDay()->getTimestamp();
-        $userAktifCount = $this->formatNumberShort(
-            DB::table('sessions')->where('last_activity', '>=', $twentyFourHoursAgo)->count()
-        );
+        // --- Knowledge Gap (Query yang sering dicari tapi tidak ada artikel yang membahasnya) ---
+        $knowledgeGaps = $this->getKnowledgeGaps($topSearches, 3);
 
-        // 5. Top Search Aktual
-        // Mengambil 4 query terbanyak dari search_logs
-        $topSearchesRaw = DB::table('search_logs')
-            ->select('query as keyword', DB::raw('count(*) as count'))
-            ->groupBy('query')
-            ->orderByDesc('count')
-            ->limit(4)
-            ->get();
-
-        $topSearches = $topSearchesRaw->map(function($item) {
-            return [
-                'keyword' => $item->keyword,
-                'count_formatted' => $this->formatNumberShort($item->count)
-            ];
-        });
-
-        // 6. Knowledge Gap Aktual
-        // Mengambil pencarian yang tidak membuahkan hasil (results_count = 0)
-        $knowledgeGaps = DB::table('search_logs')
-            ->select('query as keyword', DB::raw('count(*) as search_count'))
-            ->where('results_count', 0)
-            ->groupBy('query')
-            ->orderByDesc('search_count')
-            ->limit(3)
-            ->get()
-            ->map(function($item) {
-                return [
-                    'keyword' => $item->keyword,
-                    'search_count' => $item->search_count,
-                    'article_count' => 0 // Selalu 0 karena dicari dari results_count = 0
-                ];
-            });
-
-        return view('admin-analytics', compact(
-    'viewCount', 'downloadCount', 'bookmarkCount', 'ratingAverage',
-    'komentarCount', 'feedbackCount', 'keywordCount', 'userAktifCount',
-    'heatmapData', 'topSearches', 'knowledgeGaps'
-));
+        return view('admin-analytics', compact('stats', 'hourlyData', 'topSearches', 'knowledgeGaps', 'filter'));
     }
 
-    // Helper method untuk format angka ke "K" (Ribu) atau "M" (Juta)
-    private function formatNumberShort($num)
+    /**
+     * Helper untuk menentukan rentang tanggal berdasarkan filter.
+     */
+    private function getDateRange($filter)
     {
-        if ($num >= 1000000) {
-            return round($num / 1000000, 1) . 'M';
+        $now = Carbon::now();
+        switch ($filter) {
+            case 'week':
+                return ['start' => $now->copy()->startOfWeek(), 'end' => $now->copy()->endOfWeek()];
+            case 'month':
+                return ['start' => $now->copy()->startOfMonth(), 'end' => $now->copy()->endOfMonth()];
+            case 'year':
+                return ['start' => $now->copy()->startOfYear(), 'end' => $now->copy()->endOfYear()];
+            default: // today
+                return ['start' => $now->copy()->startOfDay(), 'end' => $now->copy()->endOfDay()];
         }
-        if ($num >= 1000) {
-            return round($num / 1000, 1) . 'K';
+    }
+
+    /**
+     * Helper untuk mendapatkan data aktivitas per jam (0-23).
+     */
+    private function getHourlyActivity($start, $end)
+    {
+        $data = array_fill(0, 24, 0);
+        $activities = UserActivity::selectRaw('HOUR(created_at) as hour, COUNT(*) as total')
+            ->whereBetween('created_at', [$start, $end])
+            ->groupBy('hour')
+            ->pluck('total', 'hour')
+            ->toArray();
+
+        foreach ($activities as $hour => $count) {
+            $data[$hour] = $count;
         }
-        return $num;
+        return $data;
+    }
+
+    /**
+     * Mendapatkan gap pengetahuan dari top search dengan mengecek judul DAN konten artikel.
+     */
+    private function getKnowledgeGaps($topSearches, $limit = 3)
+    {
+        $gaps = [];
+        foreach ($topSearches as $search) {
+            // ✅ Cek apakah ada artikel dengan judul ATAU konten yang mengandung kata kunci query
+            $articleCount = Article::where('title', 'like', '%' . $search->query . '%')
+                           ->orWhere('content', 'like', '%' . $search->query . '%')
+                           ->count();
+
+            if ($articleCount == 0) {
+                $gaps[] = [
+                    'keyword' => $search->query,
+                    'searches' => $search->total,
+                ];
+            }
+            if (count($gaps) >= $limit) break;
+        }
+
+        // ✅ Kembalikan array kosong jika tidak ada gap, view akan menanganinya dengan @empty
+        return $gaps;
     }
 }

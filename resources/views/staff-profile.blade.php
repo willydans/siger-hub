@@ -22,8 +22,6 @@
         }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Toastr Library for Flash Messages -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
@@ -330,9 +328,26 @@
             
             <!-- Body Modal -->
             <div class="p-6 max-h-[70vh] overflow-y-auto">
-                <form action="{{ route('staff.profile.update') }}" method="POST" class="space-y-5">
+                
+                <!-- Menampilkan error validasi jika ada -->
+                @if($errors->any())
+                    <div class="mb-5 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex items-center gap-2 text-red-700 text-sm font-bold mb-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            Terjadi kesalahan pada form!
+                        </div>
+                        <ul class="list-disc list-inside text-xs text-red-600 space-y-1 ml-1">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <!-- ✅ FORM DENGAN METHOD POST (HAPUS @method('PUT')) -->
+                <form id="edit-profile-form" action="{{ route('staff.profile.update') }}" method="POST" class="space-y-5">
                     @csrf
-                    @method('POST')
+                    <!-- Hapus @method('PUT') agar request menjadi POST biasa -->
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
@@ -388,13 +403,12 @@
             <!-- Footer Modal -->
             <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
                 <button onclick="closeEditModal()" class="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none">Batal</button>
-                <button type="submit" form="edit-profile-form" onclick="document.querySelector('#edit-profile-form').submit(); closeEditModal();" class="px-5 py-2 text-sm font-bold bg-gold text-darkbg hover:bg-goldhover rounded-lg transition-colors focus:outline-none shadow-md hover:scale-105 transition-all duration-200">Simpan Perubahan</button>
+                <button type="submit" form="edit-profile-form" class="px-5 py-2 text-sm font-bold bg-gold text-darkbg hover:bg-goldhover rounded-lg transition-colors focus:outline-none shadow-md hover:scale-105 transition-all duration-200">Simpan Perubahan</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- Logic Toggle Sidebar Mobile ---
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar-mobile');
             const overlay = document.getElementById('sidebar-overlay');
@@ -415,11 +429,9 @@
             }
         }
 
-        // --- Logic Modal Edit Profil ---
-        const modal = document.getElementById('edit-modal');
-        const modalBox = document.getElementById('modal-box');
-
         function openEditModal() {
+            const modal = document.getElementById('edit-modal');
+            const modalBox = document.getElementById('modal-box');
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0', 'visibility-hidden');
@@ -430,6 +442,8 @@
         }
 
         function closeEditModal() {
+            const modal = document.getElementById('edit-modal');
+            const modalBox = document.getElementById('modal-box');
             modalBox.classList.remove('scale-100', 'opacity-100');
             modalBox.classList.add('scale-95', 'opacity-0');
             modal.classList.remove('opacity-100', 'visibility-visible');
@@ -438,14 +452,6 @@
                 modal.classList.add('hidden');
             }, 300);
         }
-
-        // Agar form submit di modal bisa berjalan dengan baik
-        document.addEventListener('DOMContentLoaded', function() {
-            const modalForm = document.querySelector('#edit-modal form');
-            if(modalForm) {
-                modalForm.id = 'edit-profile-form';
-            }
-        });
     </script>
 </body>
 </html>

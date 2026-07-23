@@ -55,20 +55,17 @@
 </head>
 <body class="font-sans antialiased text-textmain bg-lightbg flex h-screen overflow-hidden">
 
-    <!-- Container Toast Notification -->
     <div id="toast-container"></div>
 
-    <!-- Flash Message via PHP Session -->
     @if(session('success'))
     <script>
         document.addEventListener('DOMContentLoaded', function() { showToast('{{ session('success') }}'); });
     </script>
     @endif
 
-    <!-- Mobile Overlay -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden opacity-0" onclick="toggleSidebar()"></div>
 
-    <!-- SIDEBAR -->
+    <!-- SIDEBAR (Sama persis, tidak diubah) -->
     <aside id="sidebar-mobile" class="w-64 bg-darkbg text-gray-300 flex flex-col border-r border-gray-800 shadow-2xl z-40 fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 flex-shrink-0">
         <div class="h-16 flex items-center gap-3 px-6 border-b border-gray-800">
             <div class="w-8 h-8 bg-gold rounded text-darkbg flex items-center justify-center font-bold text-lg">S</div>
@@ -77,46 +74,35 @@
                 <span class="text-[10px] text-gold uppercase tracking-widest">Portal Penulis</span>
             </div>
         </div>
-
         <div class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
             <a href="/" class="flex items-center justify-center gap-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 hover:text-blue-300 border border-blue-500/30 px-3 py-2.5 rounded-lg text-xs font-bold transition-colors mb-6 shadow-sm hover:scale-[1.02] duration-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                 Lihat Portal Publik
             </a>
-
             <p class="px-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Konten</p>
-            
             <a href="{{ route('staff.dashboard') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg> Analitik Dashboard
             </a>
-            
             <a href="{{ route('staff.articles') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Artikel Saya
             </a>
-            
             <a href="{{ route('staff.draft') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Draft
             </a>
-            
             <a href="{{ route('staff.revision') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Revision
             </a>
-            
-            <!-- Notification sekarang aktif -->
             <a href="{{ route('staff.notification') }}" class="flex items-center gap-3 bg-gray-800/50 text-white px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border border-gray-700">
                 <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg> Notification
             </a>
-            
             <a href="{{ route('staff.editor') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Tulis Artikel Baru
             </a>
-
             <p class="px-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-6 mb-2">Pengaturan</p>
             <a href="{{ route('staff.profile') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg> Profil Saya
             </a>
         </div>
-
         <div class="border-t border-gray-800 p-4">
             <div class="flex items-center gap-3 mb-4">
                 <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=eab308&color=0f172a" class="w-9 h-9 rounded-full">
@@ -125,7 +111,6 @@
                     <span class="text-[10px] text-gray-400">Kontributor</span>
                 </div>
             </div>
-            <!-- Logout Form (Wajib POST) -->
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
                 <button type="submit" class="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 py-2 rounded-lg text-xs font-medium border border-gray-700 transition cursor-pointer">Keluar</button>
@@ -133,10 +118,7 @@
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#F8FAFC] p-4 md:p-8 relative w-full">
-        
-        <!-- Mobile Toggle Sidebar -->
         <div class="flex justify-between items-center mb-6 md:hidden">
             <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-900 p-2 -ml-2 rounded-lg hover:bg-gray-100">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -144,14 +126,13 @@
             <h2 class="text-xl font-bold text-gray-900">Notifikasi</h2>
         </div>
 
-        <!-- Header Halaman Notification -->
+        <!-- Header -->
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4 fade-in-up delay-1">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Halaman Notifikasi</h1>
                 <p class="text-sm text-gray-500 mt-1">Seluruh notifikasi untuk Anda.</p>
             </div>
             <div class="flex items-center gap-2 w-full sm:w-auto">
-                <!-- Tombol Tandai Semua Sudah Dibaca -->
                 <form action="{{ route('staff.notification.readAll') }}" method="POST" onsubmit="return confirm('Tandai semua notifikasi sebagai sudah dibaca?');">
                     @csrf
                     <button type="submit" class="w-full sm:w-auto text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 px-4 py-2 rounded-lg transition-colors duration-200">
@@ -161,27 +142,24 @@
             </div>
         </div>
 
-        <!-- Filter Options -->
+        <!-- Filter -->
         <div class="flex flex-wrap items-center gap-2 mb-6 bg-white p-2 rounded-xl border border-gray-200 shadow-sm fade-in-up delay-2">
-            <a href="?filter=unread" class="px-4 py-2 text-xs font-medium rounded-lg {{ request('filter') == 'unread' ? 'bg-darkbg text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }} transition-colors duration-200 hover:scale-105">
-                Belum dibaca
-            </a>
-            <a href="?filter=today" class="px-4 py-2 text-xs font-medium rounded-lg {{ request('filter') == 'today' ? 'bg-darkbg text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }} transition-colors duration-200">
-                Hari ini
-            </a>
-            <a href="?filter=week" class="px-4 py-2 text-xs font-medium rounded-lg {{ request('filter') == 'week' ? 'bg-darkbg text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }} transition-colors duration-200">
-                Minggu ini
-            </a>
-            <a href="?filter=all" class="px-4 py-2 text-xs font-medium rounded-lg {{ request('filter') == 'all' || !request('filter') ? 'bg-darkbg text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }} transition-colors duration-200">
-                Semua
-            </a>
+            <a href="?filter=unread" class="px-4 py-2 text-xs font-medium rounded-lg {{ request('filter') == 'unread' ? 'bg-darkbg text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }} transition-colors duration-200 hover:scale-105">Belum dibaca</a>
+            <a href="?filter=today" class="px-4 py-2 text-xs font-medium rounded-lg {{ request('filter') == 'today' ? 'bg-darkbg text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }} transition-colors duration-200">Hari ini</a>
+            <a href="?filter=week" class="px-4 py-2 text-xs font-medium rounded-lg {{ request('filter') == 'week' ? 'bg-darkbg text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }} transition-colors duration-200">Minggu ini</a>
+            <a href="?filter=all" class="px-4 py-2 text-xs font-medium rounded-lg {{ request('filter') == 'all' || !request('filter') ? 'bg-darkbg text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }} transition-colors duration-200">Semua</a>
         </div>
 
-        <!-- Daftar Notifikasi Dinamis -->
+        <!-- Daftar Notifikasi -->
         <div class="space-y-4">
             @forelse($notifications as $notif)
                 @php
-                    // Mapping Warna dan Ikon berdasarkan type
+                    // ✅ Sekarang kita pakai kolom langsung!
+                    $title = $notif->title ?? 'Notifikasi Sistem';
+                    $message = $notif->message ?? '';
+                    $link = $notif->url ?? null;
+
+                    // Mapping Warna & Ikon berdasarkan $notif->type
                     $type = $notif->type;
                     $borderColor = 'border-gray-400';
                     $bgColor = 'bg-gray-200';
@@ -208,6 +186,9 @@
                     } elseif ($type === 'mention') {
                         $borderColor = 'border-indigo-500'; $bgColor = 'bg-indigo-100'; $textColor = 'text-indigo-600'; $labelClass = 'bg-indigo-50 text-indigo-600'; $labelText = 'Mention';
                         $iconHtml = '<span class="text-lg font-bold">@</span>';
+                    } elseif ($type === 'assignment') {
+                        $borderColor = 'border-blue-500'; $bgColor = 'bg-blue-100'; $textColor = 'text-blue-600'; $labelClass = 'bg-blue-50 text-blue-600'; $labelText = 'Tugas';
+                        $iconHtml = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
                     }
                 @endphp
 
@@ -217,29 +198,26 @@
                             {!! $iconHtml !!}
                         </div>
                         <div>
-                            <!-- ✨ PENYEMPURNAAN: Jika ada link, judul jadi hyperlink -->
-                            @if($notif->link)
-                                <a href="{{ $notif->link }}" class="font-bold text-gray-800 text-sm hover:text-blue-600 transition-colors">
-                                    {{ $notif->title }}
+                            @if($link)
+                                <a href="{{ $link }}" class="font-bold text-gray-800 text-sm hover:text-blue-600 transition-colors">
+                                    {{ $title }}
                                 </a>
                             @else
-                                <h4 class="font-bold text-gray-800 text-sm">{{ $notif->title }}</h4>
+                                <h4 class="font-bold text-gray-800 text-sm">{{ $title }}</h4>
                             @endif
                             
-                            <p class="text-xs text-gray-500 mt-0.5">{{ $notif->message }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">{{ $message }}</p>
                             <span class="text-[10px] text-gray-400 mt-1 block">{{ $notif->created_at->diffForHumans() }}</span>
                         </div>
                     </div>
                     <div class="flex flex-col items-end gap-1">
                         @if(!$notif->is_read)
-                            <!-- Tombol AJAX untuk Tandai Sudah Dibaca -->
                             <button onclick="markAsRead({{ $notif->id }}, this)" class="w-2.5 h-2.5 bg-blue-500 rounded-full unread-dot cursor-pointer hover:scale-125 transition-transform" title="Tandai sudah dibaca"></button>
                         @else
                             <span class="w-2.5 h-2.5 bg-transparent rounded-full"></span>
                         @endif
                         <div class="flex items-center gap-2">
                             <span class="text-[10px] {{ $labelClass }} font-medium px-2 py-0.5 rounded-full">{{ $labelText }}</span>
-                            <!-- Tombol Hapus Notifikasi -->
                             <form action="{{ route('staff.notification.destroy', $notif->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Hapus notifikasi ini?')">
                                 @csrf
                                 @method('DELETE')
@@ -257,7 +235,6 @@
                 </div>
             @endforelse
 
-            <!-- Pagination -->
             <div class="mt-4">
                 {{ $notifications->links() }}
             </div>
@@ -265,7 +242,6 @@
     </main>
 
     <script>
-        // --- Logic Toggle Sidebar Mobile ---
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar-mobile');
             const overlay = document.getElementById('sidebar-overlay');
@@ -286,7 +262,6 @@
             }
         }
 
-        // --- Logic Toast Notification (Jika dibutuhkan manual) ---
         function showToast(message) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -299,9 +274,7 @@
             }, 3000);
         }
 
-        // --- Logic Mark As Read via AJAX (Tanpa reload halaman!) ---
         function markAsRead(id, buttonElement) {
-            // Hapus animasi & ubah jadi kosong secara visual segera
             buttonElement.classList.remove('bg-blue-500', 'unread-dot');
             buttonElement.classList.add('bg-transparent');
             buttonElement.removeAttribute('onclick');
@@ -316,10 +289,17 @@
             .then(response => response.json())
             .then(data => {
                 if(data.success) {
-                    // Opsional: refresh halaman jika ingin update counter, tapi biarkan saja UX lebih smooth.
+                    window.location.reload();
+                } else {
+                    alert('Gagal menandai notifikasi. Silakan coba lagi.');
+                    window.location.reload();
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan koneksi. Silakan refresh halaman.');
+                window.location.reload();
+            });
         }
     </script>
 </body>

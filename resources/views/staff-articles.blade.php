@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <!-- Meta, Tailwind, Fonts, Toastr, CSS (Sama seperti kode sebelumnya) -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen Artikel - SIGER-Hub</title>
@@ -46,8 +45,9 @@
     </style>
 </head>
 <body class="font-sans antialiased text-textmain bg-lightbg flex h-screen overflow-hidden">
-    <!-- Sidebar HTML (Sama seperti kode Anda, tidak diubah) -->
     <div id="toast-container"></div>
+    
+    <!-- Overlay & Sidebar -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden opacity-0" onclick="toggleSidebar()"></div>
     <aside id="sidebar-mobile" class="w-64 bg-darkbg text-gray-300 flex flex-col border-r border-gray-800 shadow-2xl z-40 fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 flex-shrink-0">
         <div class="h-16 flex items-center gap-3 px-6 border-b border-gray-800">
@@ -81,10 +81,10 @@
         </div>
     </aside>
 
+    <!-- Main Content -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-gray-50 p-6 md:p-8 relative w-full">
         @if(session('success')) <script>document.addEventListener('DOMContentLoaded', function() { showToast('{{ session('success') }}'); });</script> @endif
 
-        <!-- Header, Filter Form, dll (Sama seperti kode asli) -->
         <div class="flex justify-between items-center mb-6 md:hidden">
             <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-900 p-2 -ml-2 rounded-lg hover:bg-gray-100">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -96,7 +96,7 @@
             <a href="{{ route('staff.editor') }}" class="bg-darkbg text-white font-bold py-2.5 px-5 rounded-lg text-sm hover:bg-gray-800 shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105">Tulis Baru</a>
         </div>
 
-        <!-- Form Filter (Dipersingkat agar fokus ke masalah) -->
+        <!-- Filter Form -->
         <form action="{{ route('staff.articles') }}" method="GET" class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-6 fade-in delay-1">
             <div class="flex flex-wrap items-center gap-3">
                 <div class="flex-1 min-w-[200px] w-full md:w-auto relative">
@@ -137,7 +137,7 @@
                     <option value="created_at" {{ request('sort_by') == 'created_at' ? 'selected' : '' }}>Urutkan</option>
                     <option value="created_at" {{ request('sort_by') == 'created_at' ? 'selected' : '' }}>Terbaru</option>
                     <option value="created_at" data-dir="asc" {{ request('sort_by') == 'created_at' && request('sort_dir') == 'asc' ? 'selected' : '' }}>Terlama</option>
-                    <option value="rating" data-dir="desc" {{ request('sort_by') == 'rating' ? 'selected' : '' }}>Rating Tertinggi</option>
+                    <option value="rating_avg" data-dir="desc" {{ request('sort_by') == 'rating_avg' ? 'selected' : '' }}>Rating Tertinggi</option>
                     <option value="views" data-dir="desc" {{ request('sort_by') == 'views' ? 'selected' : '' }}>View Terbanyak</option>
                 </select>
                 <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ml-auto">Terapkan Filter</button>
@@ -158,7 +158,7 @@
                             <option value="">Bulk Action</option>
                             <option value="delete">Hapus Terpilih</option>
                             <option value="archive">Arsipkan</option>
-                            <option value="unarchive">Kembalikan ke Draft</option> <!-- Tambahkan opsi bulk unarchive jika diperlukan -->
+                            <option value="unarchive">Kembalikan ke Draft</option>
                         </select>
                         <button type="submit" class="bg-darkbg text-white hover:bg-gray-800 px-4 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm hover:shadow">Terapkan</button>
                     </div>
@@ -197,7 +197,13 @@
                                     <span class="{{ $statusColor[$article->status] ?? 'bg-gray-100 text-gray-600' }} px-2.5 py-1 rounded-full text-[10px] font-bold">{{ ucfirst($article->status) }}</span>
                                 </td>
                                 <td class="px-4 py-4 text-center text-gray-600">{{ number_format($article->views) }}</td>
-                                <td class="px-4 py-4 text-center text-yellow-400 font-medium">{{ number_format($article->rating, 1) }}</td>
+                                <td class="px-4 py-4 text-center text-yellow-400 font-medium">
+                                    {{-- ✅ PERBAIKAN: Gunakan rating_avg dan rating_count --}}
+                                    {{ $article->rating_avg ? number_format($article->rating_avg, 1) : 0 }}
+                                    @if(isset($article->rating_count) && $article->rating_count > 0)
+                                        <span class="block text-[10px] text-gray-400">({{ $article->rating_count }} Rating)</span>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-4 text-gray-600">{{ \Carbon\Carbon::parse($article->created_at)->format('d M Y') }}</td>
                                 <td class="px-4 py-4 text-center">
                                     <div class="relative inline-block">
@@ -209,20 +215,16 @@
                                             <div class="py-1">
                                                 <a href="{{ route('staff.articles.show', $article->id) }}" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View</a>
                                                 
-                                                <button onclick="openEditModal({{ $article->id }}, '{{ addslashes($article->title) }}', '{{ $article->category }}', '{{ $article->visibility }}')" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit</button>
+                                                <button onclick="openEditModal({{ $article->id }}, @js($article->title), '{{ $article->category }}', '{{ $article->visibility }}')" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit</button>
                                                 
-                                                <form action="{{ route('staff.articles.duplicate', $article->id) }}" method="POST">
-                                                    @csrf
-                                                    <button type="submit" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg> Duplicate</button>
-                                                </form>
+                                                <button type="button" onclick="confirmDuplicate({{ $article->id }}, @js($article->title))" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg> Duplicate</button>
 
                                                 <a href="{{ route('staff.articles.preview', $article->id) }}" target="_blank" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Preview</a>
                                                 
-                                                <a href="{{ route('staff.articles.download', $article->id) }}" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Download PDF</a>
+                                                <a href="{{ route('staff.articles.download-pdf', $article->id) }}" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Download PDF</a>
                                                 
-                                                <button onclick="openDeleteModal({{ $article->id }}, '{{ addslashes($article->title) }}')" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Delete</button>
+                                                <button onclick="openDeleteModal({{ $article->id }}, @js($article->title))" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Delete</button>
 
-                                                <!-- LOGIKA ARCHIVE / UNARCHIVE -->
                                                 @if($article->status === 'archived')
                                                     <form action="{{ route('staff.articles.unarchive', $article->id) }}" method="POST">
                                                         @csrf
@@ -268,7 +270,6 @@
                         <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Kategori</label><select id="edit-category" name="category" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:border-blue-500 outline-none transition"><option value="Keamanan">Keamanan</option><option value="Infrastruktur">Infrastruktur</option><option value="Tutorial Aplikasi">Tutorial Aplikasi</option><option value="SOP Umum">SOP Umum</option><option value="Web Dev">Web Dev</option></select></div>
                         <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Visibilitas</label><select id="edit-visibility" name="visibility" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:border-blue-500 outline-none transition"><option value="publik">Publik (Semua)</option><option value="terbatas">Publik Terbatas</option><option value="privat">Privat (Internal)</option></select></div>
                     </div>
-                    <!-- REVISI BAGIAN INI: Link Editor Lengkap akan diarahkan ke halaman edit spesifik -->
                     <div class="pt-2">
                         <a href="#" id="open-full-editor-link" target="_blank" class="text-xs text-blue-600 hover:underline flex items-center gap-1 font-medium">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
@@ -284,7 +285,7 @@
         </form>
     </div>
 
-    <!-- MODAL HAPUS (Sama seperti sebelumnya) -->
+    <!-- MODAL HAPUS -->
     <div id="deleteModal" class="fixed inset-0 z-50 hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center transition-opacity opacity-0">
         <div id="deleteModalContent" class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 text-center">
             <form id="deleteForm" method="POST">
@@ -406,7 +407,6 @@
             document.getElementById('edit-category').value = category;
             document.getElementById('edit-visibility').value = visibility;
             quickEditForm.action = `/staff/articles/quick-update/${id}`;
-            // REVISI JS: Mengarahkan link editor ke halaman edit spesifik
             document.getElementById('open-full-editor-link').href = `/staff/editor/${id}`;
             editModal.classList.remove('hidden');
             setTimeout(() => { editModal.classList.remove('opacity-0'); editModalContent.classList.remove('scale-95'); }, 10);
@@ -431,6 +431,48 @@
             deleteModal.classList.add('opacity-0');
             deleteModalContent.classList.add('scale-95');
             setTimeout(() => { deleteModal.classList.add('hidden'); }, 300);
+        }
+
+        function confirmDuplicate(id, title) {
+            Swal.fire({
+                title: 'Duplikasi Artikel?',
+                text: 'Apakah Anda yakin ingin menduplikasi artikel "' + title + '" menjadi draft baru?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#EAB308',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Duplikasi!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const token = document.querySelector('#bulkForm input[name="_token"]').value;
+                    
+                    fetch(`/staff/articles/duplicate/${id}`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': token,
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            Swal.fire('Berhasil!', 'Artikel berhasil diduplikasi.', 'success')
+                                .then(() => window.location.reload());
+                        } else {
+                            response.json().then(data => {
+                                Swal.fire('Gagal!', data.message || 'Terjadi kesalahan server.', 'error');
+                            }).catch(() => {
+                                Swal.fire('Gagal!', 'Terjadi kesalahan yang tidak diketahui.', 'error');
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire('Error!', 'Terjadi kesalahan koneksi.', 'error');
+                    });
+                }
+            });
         }
     </script>
 </body>
