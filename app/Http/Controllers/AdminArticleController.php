@@ -9,7 +9,7 @@ use App\Models\Opd;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Http;
 class AdminArticleController extends Controller
 {
     /**
@@ -161,6 +161,96 @@ class AdminArticleController extends Controller
         
         return view('admin-editor', compact('categories', 'subcategories', 'opds'));
     }
+    public function uploadAttachment(Request $request)
+    {
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            
+            // Simpan ke storage/app/public/attachments
+            $path = $file->storeAs('attachments', $filename, 'public');
+            
+            return response()->json([
+                'success' => true,
+                'path' => $path
+            ]);
+        }
+
+        return response()->json(['success' => false, 'error' => 'Tidak ada file yang diunggah'], 400);
+    }
+    public function autoFillMetadata(Request $request)
+    {
+        $content = $request->input('content');
+        $apiKey = env('GEMINI_API_KEY');
+        
+        if (empty($apiKey)) {
+            return response()->json(['success' => false, 'error' => 'API Key Gemini kosong. Jalankan php artisan config:clear'], 500);
+        }
+        
+        $prompt = "Buatkan metadata SEO dari artikel berikut. Berikan response HANYA dalam format JSON murni tanpa awalan/akhiran markdown dengan key: category (string), subcategory (string), opd_unit (string), tags (array of string), meta_keywords (string), meta_description (string), estimated_read_time (integer menit). Artikel: \n\n" . $content;
+        
+        try {
+            // withoutVerifying() digunakan agar localhost tidak diblokir oleh isu SSL
+            $response = Http::withoutVerifying()->withHeaders([
+                'Content-Type' => 'application/json'
+            ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
+                'contents' => [['parts' => [['text' => $prompt]]]]
+            ]);
+
+            if ($response->successful()) {
+                $jsonString = $response->json('candidates.0.content.parts.0.text');
+                // Bersihkan format markdown bawaan Gemini jika ada
+                $jsonString = trim(str_replace(['```json', '```'], '', $jsonString));
+                
+                return response()->json([
+                    'success' => true,
+                    'data' => json_decode($jsonString, true)
+                ]);
+            }
+
+            // Jika gagal, beritahu alasan spesifik dari Google
+            return response()->json(['success' => false, 'error' => 'Google API Error: ' . $response->body()], 500);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => 'Server Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Handle AI Assistant Actions (Ringkas, EYD, dll)
+     */
+    public function aiAssistant(Request $request)
+    {
+        $action = $request->input('action');
+        $content = $request->input('content');
+        $apiKey = env('GEMINI_API_KEY');
+        
+        if (empty($apiKey)) {
+            return response()->json(['error' => 'API Key Gemini kosong. Jalankan php artisan config:clear'], 500);
+        }
+        
+        $prompt = "Tolong lakukan aksi '{$action}' pada teks artikel berikut. Berikan langsung hasilnya saja tanpa teks pengantar atau basa-basi tambahan: \n\n" . $content;
+        
+        try {
+            $response = Http::withoutVerifying()->withHeaders([
+                'Content-Type' => 'application/json'
+            ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
+                'contents' => [['parts' => [['text' => $prompt]]]]
+            ]);
+
+            if ($response->successful()) {
+                $resultText = $response->json('candidates.0.content.parts.0.text');
+                return response()->json([
+                    'result' => trim($resultText)
+                ]);
+            }
+
+            return response()->json(['error' => 'Google API Error: ' . $response->body()], 500);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Server Error: ' . $e->getMessage()], 500);
+        }
+    }
     public function edit($id)
     {
         $article = Article::findOrFail($id);
@@ -189,14 +279,59 @@ class AdminArticleController extends Controller
             'thumbnail'   => 'required|file|mimes:jpg,jpeg,png,webp|max:10240',
         ]);
 
+        // 1. Buat Slug unik terlebih dahulu SEBELUM menyusun array $data
+        $originalSlug = \Illuminate\Support\Str::slug($request->title);
+        $slug = $originalSlug;
+        $count = 1;
+
+        // ✅ PERBAIKAN: Tambahkan withTrashed() agar mengecek artikel yang ada di Recycle Bin juga
+        while (\App\Models\Article::withTrashed()->where('slug', $slug)->exists()) {
+            $slug = "{$originalSlug}-{$count}";
+            $count++;
+        }
+
+        // 1. Resolve Category ID
+        $categoryId = $request->category;
+        if (!is_numeric($categoryId)) {
+            $category = \App\Models\Category::firstOrCreate(
+                ['name' => $categoryId],
+                ['slug' => \Illuminate\Support\Str::slug($categoryId)] // Tambahkan slug
+            );
+            $categoryId = $category->id;
+        }
+
+        // 2. Resolve Subcategory ID
+        $subcategoryId = $request->subcategory;
+        if (!empty($subcategoryId) && !is_numeric($subcategoryId)) {
+            $subcategory = \App\Models\Subcategory::firstOrCreate(
+                ['name' => $subcategoryId, 'category_id' => $categoryId],
+                ['slug' => \Illuminate\Support\Str::slug($subcategoryId)] // Tambahkan slug
+            );
+            $subcategoryId = $subcategory->id;
+        }
+
+        // 3. Resolve OPD ID (Solusi error 'slug' Presiden Republik Indonesia)
+        $opdId = $request->opd_unit;
+        if (!empty($opdId) && !is_numeric($opdId)) {
+            $opd = \App\Models\Opd::firstOrCreate(
+                ['name' => $opdId],
+                ['slug' => \Illuminate\Support\Str::slug($opdId)] // Tambahkan slug
+            );
+            $opdId = $opd->id;
+        }
+
+        // 2. Susun array data
         $data = [
             'user_id' => auth()->id(),
             'title' => $request->title,
-            'slug' => $this->generateUniqueSlug($request->title),
+            'slug' => $slug, 
             'content' => $request->content,
-            'category_id' => $request->category,
-            'subcategory_id' => $request->subcategory,
-            'opd_id' => $request->opd_unit,
+            
+            // ✅ PERBAIKAN DI SINI: Gunakan variabel yang sudah di-resolve, bukan dari $request lagi
+            'category_id' => $categoryId,
+            'subcategory_id' => $subcategoryId,
+            'opd_id' => $opdId,
+            
             'tags_json' => $request->tags ? json_encode(explode(',', $request->tags)) : null,
             'visibility' => $request->visibility ?? 'public',
             'keywords' => $request->meta_keywords,
@@ -207,11 +342,12 @@ class AdminArticleController extends Controller
             'doc_code' => $request->doc_code,
             'valid_from' => $request->valid_from,
             'valid_until' => $request->valid_until,
-            'status' => 'draft', // Tersimpan sebagai draft terlebih dahulu
+            'status' => 'draft',
             'progress' => $request->progress ?? 0,
             'relations' => $request->relations ? array_filter($request->relations) : null,
         ];
 
+        // 3. Simpan ke database 
         $article = Article::create($data);
         $this->handleThumbnail($request, $article);
 
@@ -312,8 +448,9 @@ class AdminArticleController extends Controller
     public function destroy($id)
     {
         $article = Article::findOrFail($id);
-        $article->delete();
-        return redirect()->back()->with('success', 'Artikel berhasil dihapus dan masuk ke Recycle Bin.');
+        $article->delete(); 
+        
+        return redirect()->back()->with('success', 'Artikel berhasil dipindahkan ke Recycle Bin.');
     }
 
     public function approve($id)

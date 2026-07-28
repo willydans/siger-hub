@@ -227,10 +227,15 @@
         </div>
 
         <form id="editorForm" method="POST" action="{{ isset($article) ? route('admin.all-articles.update', $article->id) : route('admin.article.store') }}" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    @csrf
-    @if(isset($article)) @method('PUT') @endif
+            @csrf
+            @if(isset($article)) @method('PUT') @endif
 
+            <!-- ========================================== -->
+            <!-- KOLOM KIRI (UTAMA)                         -->
+            <!-- ========================================== -->
             <div class="lg:col-span-2 space-y-8">
+                
+                <!-- 1. Judul Artikel -->
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 fade-in-up delay-2 hover-lift">
                     <label class="block text-sm font-bold text-gray-700 mb-2">Judul Artikel <span class="text-red-500">*</span></label>
                     <input id="title-input" name="title" type="text" value="{{ old('title', $article->title ?? '') }}" placeholder="Masukkan judul yang jelas dan deskriptif..." class="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg font-medium focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-colors duration-200" required>
@@ -245,6 +250,7 @@
                     </div>
                 </div>
 
+                <!-- 2. Konten Artikel -->
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden fade-in-up delay-3 hover-lift">
                     <div class="p-4">
                         <label class="block text-sm font-bold text-gray-700 mb-3">Konten Artikel <span class="text-red-500">*</span></label>
@@ -253,13 +259,13 @@
                     </div>
                 </div>
 
+                <!-- 3. Upload Lampiran -->
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 fade-in-up delay-3">
                     <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
                         <i class="fas fa-paperclip text-gold"></i>
                         Upload Lampiran
                     </h3>
 
-                    {{-- ✅ FIX: Tampilkan kembali lampiran yang sudah tersimpan sebelumnya --}}
                     @php
                         $existingAttachments = [];
                         if (isset($article) && $article->attachments) {
@@ -293,8 +299,14 @@
                 </div>
             </div>
 
-            <div class="lg:col-span-1 space-y-6 sticky top-6 h-fit">
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 fade-in-up delay-2 hover-lift sidebar-scroll max-h-[560px] overflow-y-auto">
+            <!-- ========================================== -->
+            <!-- KOLOM KANAN (SIDEBAR)                      -->
+            <!-- ========================================== -->
+            <!-- Ditambahkan max-h dan overflow-y-auto agar sidebar bisa di-scroll terpisah jika terlalu panjang -->
+            <div class="lg:col-span-1 space-y-6 sticky top-6 h-fit max-h-[calc(100vh-2rem)] overflow-y-auto sidebar-scroll pb-6">
+                
+                <!-- 1. Informasi Dasar -->
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 fade-in-up delay-2 hover-lift">
                     <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-1">
                         <h3 class="font-bold text-gray-800">Informasi Dasar</h3>
                         <button type="button" id="ai-autofill-btn" onclick="autoFillFromAI()" class="flex items-center gap-1.5 text-[11px] font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2.5 py-1.5 rounded-lg transition-colors flex-shrink-0">
@@ -308,13 +320,13 @@
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-1">Kategori Utama <span class="text-red-500">*</span></label>
                             <select id="category-select" name="category" class="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none transition focus:border-gold">
-    <option value="">Pilih Kategori...</option>
-    @foreach($categories as $cat)
-        <option value="{{ $cat->id }}" {{ (isset($article) && $article->category_id == $cat->id) ? 'selected' : '' }}>
-            {{ $cat->name }}
-        </option>
-    @endforeach
-</select>>
+                                <option value="">Pilih Kategori...</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat->id }}" {{ (isset($article) && $article->category_id == $cat->id) ? 'selected' : '' }}>
+                                        {{ $cat->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                             @error('category') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
@@ -331,14 +343,14 @@
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 mb-1">OPD / Unit</label>
-                                <select id="opd-select" name="opd_unit" ...>
-    <option value="">Pilih OPD...</option>
-    @foreach($opds as $opd)
-        <option value="{{ $opd->id }}" {{ (isset($article) && $article->opd_id == $opd->id) ? 'selected' : '' }}>
-            {{ $opd->name }}
-        </option>
-    @endforeach
-</select>
+                                <select id="opd-select" name="opd_unit">
+                                    <option value="">Pilih OPD...</option>
+                                    @foreach($opds as $opd)
+                                        <option value="{{ $opd->id }}" {{ (isset($article) && $article->opd_id == $opd->id) ? 'selected' : '' }}>
+                                            {{ $opd->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 mb-1">Tags</label>
@@ -388,6 +400,7 @@
                     </div>
                 </div>
 
+                <!-- 2. Metadata & SEO -->
                 <details class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 fade-in-up delay-3 hover-lift group open:border-gold/50 transition-all duration-200">
                     <summary class="flex justify-between items-center cursor-pointer list-none font-bold text-gray-800">
                         <span><i class="fas fa-tags mr-2"></i> Metadata & SEO</span>
@@ -419,33 +432,20 @@
                             <label class="block text-xs font-bold text-gray-500 mb-1">Versi</label>
                             <input type="text" name="version" value="{{ old('version', $article->version ?? '') }}" placeholder="v1.0" class="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none transition focus:border-gold">
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 mb-1">Nomor SOP / Kode Dokumen</label>
-                            <input type="text" name="doc_code" value="{{ old('doc_code', $article->doc_code ?? '') }}" placeholder="cth: SOP-CSIRT-004" class="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none transition focus:border-gold">
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 mb-1">Tanggal Berlaku</label>
-                                <input type="date" name="valid_from" value="{{ old('valid_from', $article->valid_from ?? '') }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none transition focus:border-gold">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 mb-1">Tanggal Kadaluarsa</label>
-                                <input type="date" name="valid_until" value="{{ old('valid_until', $article->valid_until ?? '') }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none transition focus:border-gold">
-                            </div>
-                        </div>
                     </div>
                 </details>
 
+                <!-- 3. Knowledge Relation (Telah dipindahkan ke kanan) -->
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 fade-in-up delay-3 hover-lift">
                     <h3 class="font-bold text-gray-800 border-b border-gray-100 pb-2 mb-3 text-sm"><i class="fas fa-link mr-2 text-gold"></i> Knowledge Relation</h3>
-                    <p class="text-xs text-gray-500 mb-2">Artikel ini berhubungan dengan (tekan Enter untuk menambah relasi baru):</p>
+                    <p class="text-xs text-gray-500 mb-2">Artikel berhubungan dengan (Enter untuk tambah):</p>
                     <div class="flex items-center gap-2">
                         <input type="text" id="relation-input" placeholder="Ketik nama relasi..." class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm outline-none transition focus:border-gold">
                         <button type="button" onclick="addRelation()" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-2 rounded text-sm font-medium border border-blue-200 transition-colors">
                             <i class="fas fa-plus-circle"></i> Tambah
                         </button>
                     </div>
-                    <div id="relation-list" class="relation-chip-wrapper">
+                    <div id="relation-list" class="relation-chip-wrapper mt-2">
                         @if(isset($article) && $article->relations)
                             @foreach(json_decode($article->relations, true) as $rel)
                                 <div class="relation-chip">
@@ -458,48 +458,44 @@
                     </div>
                 </div>
 
+                <!-- 4. Flowchart / SOP (Telah dipindahkan ke kanan) -->
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 fade-in-up delay-3 hover-lift">
                     <h3 class="font-bold text-gray-800 border-b border-gray-100 pb-2 mb-3 text-sm"><i class="fas fa-project-diagram mr-2 text-gold"></i> Flowchart (SOP)</h3>
-                    <p class="text-xs text-gray-500 mb-2">Tulis kode Mermaid untuk membuat diagram alur.</p>
-                    <textarea id="mermaid-input" rows="4" placeholder="flowchart TD
-A[Start] --> B[Process]
-B --> C[End]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none transition focus:border-gold resize-none">{{ old('flowchart', $article->flowchart ?? '') }}</textarea>
+                    <p class="text-xs text-gray-500 mb-2">Tulis kode Mermaid untuk diagram alur.</p>
+                    <textarea id="mermaid-input" rows="4" placeholder="flowchart TD&#10;A[Start] --> B[Process]&#10;B --> C[End]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none transition focus:border-gold resize-none">{{ old('flowchart', $article->flowchart ?? '') }}</textarea>
                     <button type="button" onclick="renderFlowchart()" class="mt-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded text-xs font-medium flex items-center gap-1">
                         <i class="fas fa-sync-alt"></i> Render
                     </button>
                     <div id="mermaid-preview" class="mt-3 border border-gray-200 rounded bg-white p-2 min-h-[60px]"></div>
                 </div>
 
+                <!-- 5. Tombol Aksi (Telah dipindahkan ke kanan agar selalu terlihat) -->
                 <div class="flex flex-col gap-2 mt-6">
                     <button type="submit" class="w-full border border-gray-300 text-gray-700 font-bold py-3 px-4 rounded-lg text-sm bg-white hover:bg-gray-50 transition-all duration-200 hover:shadow-md flex items-center justify-center gap-2">
                         <i class="fas fa-save"></i> Simpan Draf
                     </button>
                     
                     @if(isset($article))
-                    <a href="{{ route('admin.articles.show', $article->id) }}" target="_blank" class="w-full bg-darkbg text-white font-bold py-3 px-4 rounded-lg text-sm hover:bg-gray-800 transition-all duration-200 hover:shadow-md flex items-center justify-center gap-2">
-                    <i class="fas fa-eye"></i> Preview
-                    </a>
+                        <a href="{{ route('admin.articles.show', $article->id) }}" target="_blank" class="w-full bg-darkbg text-white font-bold py-3 px-4 rounded-lg text-sm hover:bg-gray-800 transition-all duration-200 hover:shadow-md flex items-center justify-center gap-2">
+                        <i class="fas fa-eye"></i> Preview
+                        </a>
                     @else
-                <button type="button" onclick="Swal.fire('Info', 'Simpan draft terlebih dahulu untuk melihat preview.', 'info')" class="w-full bg-gray-300 text-gray-600 font-bold py-3 px-4 rounded-lg text-sm cursor-not-allowed flex items-center justify-center gap-2">
-                    <i class="fas fa-eye"></i> Preview
-                 </button>
-                @endif
+                        <button type="button" onclick="Swal.fire('Info', 'Simpan draft terlebih dahulu untuk melihat preview.', 'info')" class="w-full bg-gray-300 text-gray-600 font-bold py-3 px-4 rounded-lg text-sm cursor-not-allowed flex items-center justify-center gap-2">
+                            <i class="fas fa-eye"></i> Preview
+                        </button>
+                    @endif
 
-                    <!-- ============================================ -->
-                    <!-- ✅ PERUBAHAN PENTING: LOGIKA TOMBOL SUBMIT   -->
-                    <!-- ============================================ -->
                     @if(isset($article))
                         @if($article->status === 'draft')
-                            <form action="{{ route('admin.article.submit', $article->id) }}" method="POST" id="submitForm" class="w-full">
+                            <form action="{{ route('admin.editor.submit', $article->id) }}" method="POST" id="submitForm" class="w-full">
                                 @csrf
                                 <button type="button" onclick="confirmSubmit()" class="w-full bg-gold text-darkbg font-bold py-3 px-4 rounded-lg text-sm hover:bg-goldhover transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
                                     <i class="fas fa-check-circle"></i> Submit Approval
                                 </button>
                             </form>
                         @else
-                            {{-- Jika sudah disubmit (Pending), jangan tampilkan tombol submit, tapi info status --}}
-                            <div class="w-full bg-blue-50 border border-blue-200 text-blue-800 text-center py-3 px-4 rounded-lg text-sm font-bold flex items-center justify-center gap-2">
-                                <i class="fas fa-clock"></i> Artikel sedang dalam proses review Admin. Menunggu persetujuan.
+                            <div class="w-full bg-blue-50 border border-blue-200 text-blue-800 text-center py-3 px-4 rounded-lg text-sm font-bold flex flex-col items-center justify-center gap-1">
+                                <i class="fas fa-clock"></i> <span>Menunggu Persetujuan</span>
                             </div>
                         @endif
                     @else
@@ -508,6 +504,7 @@ B --> C[End]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm out
                         </button>
                     @endif
                 </div>
+
             </div>
         </form>
     </main>
@@ -689,7 +686,7 @@ B --> C[End]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm out
 
         // ✅ PERBAIKAN: DROPZONE menggunakan Route Helper
         Dropzone.options.myDropzone = {
-    url: "#", 
+    url: "{{ route('admin.article.uploadAttachment') }}", 
             paramName: "file",
             maxFilesize: 20,
             acceptedFiles: '.pdf,.docx,.mp4,.zip,.jpg,.jpeg,.png,.webp',
@@ -898,7 +895,7 @@ B --> C[End]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm out
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menganalisa...';
             }
 
-            fetch("#", {
+            fetch("{{ route('admin.article.autofill') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1061,7 +1058,7 @@ B --> C[End]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm out
             applyWrapper.innerHTML = '';
             resultDiv.innerHTML = '<div class="text-center text-gray-500 py-2"><i class="fas fa-spinner fa-spin text-purple-500"></i> AI sedang memproses...</div>';
 
-            fetch("#", {
+            fetch("{{ route('admin.article.ai') }}", {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',

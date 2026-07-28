@@ -4,22 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\Otp;
 use App\Models\User;
+use App\Models\UserActivity; // ✅ Tambahkan ini
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\OtpMail;
 use Illuminate\Support\Facades\Log;
+use App\Mail\OtpMail;
+use Carbon\Carbon;
 
 class OtpController extends Controller
 {
     /**
      * Ambil user yang sedang menunggu verifikasi OTP dari session.
-     *
-     * ✅ PERBAIKAN: sebelumnya seluruh controller ini bergantung pada
-     * auth()->user(), yang HANYA ada karena register()/login() login-kan
-     * user sebelum waktunya. Sekarang user belum ter-autentikasi sama
-     * sekali sampai OTP benar, jadi kita ambil dari 'otp_user_id' yang
-     * disimpan di session oleh AuthController.
+     * User belum ter-autentikasi sampai OTP benar.
      */
     private function pendingUser(Request $request): ?User
     {
@@ -27,9 +24,12 @@ class OtpController extends Controller
         return $userId ? User::find($userId) : null;
     }
 
+    /**
+     * Tampilkan halaman verifikasi OTP
+     */
     public function showVerifyForm(Request $request)
     {
-        // Kalau ada session login penuh & sudah terverifikasi, tidak perlu ke sini
+        // Jika sudah login penuh & terverifikasi, langsung redirect
         if (Auth::check() && Auth::user()->email_verified_at) {
             return app(AuthController::class)->redirectBasedOnRole(Auth::user());
         }
@@ -44,6 +44,9 @@ class OtpController extends Controller
         return view('verify-otp')->with('email', $user->email);
     }
 
+    /**
+     * Verifikasi kode OTP
+     */
     public function verify(Request $request)
     {
         $request->validate(['otp' => 'required|numeric']);
@@ -72,17 +75,32 @@ class OtpController extends Controller
         $remember = $request->session()->pull('otp_remember', false);
         $request->session()->forget('otp_user_id');
 
-        // ✅ Baru di sini user benar-benar login, SETELAH OTP terbukti benar
+        // ✅ Login user setelah OTP benar
         Auth::login($user, $remember);
         $request->session()->regenerate();
+
+        // ✅ Catat aktivitas login (RIWAYAT LOGIN)
+        try {
+            UserActivity::create([
+                'user_id'    => $user->id,
+                'type'       => 'Login',
+                'description'=> $user->name . ' login via OTP',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+        } catch (\Exception $e) {
+            // Jangan sampai proses gagal hanya karena gagal catat aktivitas
+            Log::warning('Gagal mencatat aktivitas login via OTP: ' . $e->getMessage());
+        }
 
         return app(AuthController::class)->redirectBasedOnRole($user);
     }
 
+    /**
+     * Kirim ulang OTP
+     */
     public function resend(Request $request)
     {
-        // Dukung dua kemungkinan: user masih "pending" (belum login penuh),
-        // atau (edge case) sudah login tapi somehow belum verified.
         $user = $this->pendingUser($request) ?? (Auth::check() ? Auth::user() : null);
 
         if (!$user) {
@@ -90,11 +108,14 @@ class OtpController extends Controller
                 ->withErrors(['otp' => 'Sesi verifikasi tidak ditemukan. Silakan login/daftar kembali.']);
         }
 
+        // Hapus OTP lama yang belum digunakan
+        Otp::where('user_id', $user->id)->where('is_used', false)->delete();
+
         $otpCode = rand(100000, 999999);
         Otp::create([
             'user_id'    => $user->id,
             'otp_code'   => $otpCode,
-            'expires_at' => now()->addMinutes(10),
+            'expires_at' => Carbon::now()->addMinutes(10),
             'is_used'    => false
         ]);
 

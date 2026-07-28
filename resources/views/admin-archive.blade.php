@@ -196,7 +196,7 @@
                             <td class="px-4 py-4"><input type="checkbox" value="{{ $article->id }}" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
                             <td class="px-4 py-4 font-medium text-gray-900">{{ $article->title }}</td>
                             <td class="px-4 py-4 text-gray-600">{{ $article->user->name ?? '-' }}</td>
-                            <td class="px-4 py-4 text-gray-600">{{ $article->category ?? '-' }}</td>
+                            <td class="px-4 py-4 text-gray-600">{{ optional($article->category)->name ?? '-' }}</td>
                             <td class="px-4 py-4"><span class="bg-gray-300 text-gray-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Archived</span></td>
                             <td class="px-4 py-4 text-center text-gray-600">{{ number_format($article->views ?? 0) }}</td>
                             <td class="px-4 py-4 text-center text-yellow-400 font-medium">{{ number_format($article->rating_avg ?? 0, 1) }}</td>

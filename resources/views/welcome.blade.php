@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AKSARA | Pemprov Lampung</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -48,6 +49,37 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .card-img-wrapper { aspect-ratio: 16 / 9; overflow: hidden; }
+        .bg-stat-pattern {
+            background-image: url('https://images.unsplash.com/photo-1562262342-6064492e2cb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .bg-stat-pattern::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(17,24,39,0.85) 0%, rgba(17,24,39,0.4) 100%);
+            z-index: 1;
+        }
+        .bg-stat-pattern > * {
+            position: relative;
+            z-index: 2;
+        }
+        .gradient-overlay {
+            background: linear-gradient(to bottom, rgba(17,24,39,0.9), rgba(17,24,39,0.6));
+        }
+        /* loading dots */
+        .loading-dots::after {
+            content: '...';
+            animation: dots 1.2s steps(4) infinite;
+        }
+        @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+        }
     </style>
 </head>
 <body class="font-sans antialiased text-gray-800 bg-lightbg overflow-x-hidden">
@@ -71,17 +103,26 @@
         </div>
         <div>
             @auth
+                @php
+                    $user = Auth::user();
+                    $roleName = optional($user->role)->name;
+                    $profileLink = match($roleName) {
+                        'staff' => route('staff.profile'),
+                        'admin' => route('admin.dashboard'),
+                        default => route('user.profil'),
+                    };
+                @endphp
                 <div class="relative group">
-                    <button class="flex items-center gap-2 text-gray-300 hover:text-white transition-colors duration-300 focus:outline-none">
-                        <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=EAB308&color=0f172a' }}" 
+                    <button id="user-dropdown-btn" class="flex items-center gap-2 text-gray-300 hover:text-white transition-colors duration-300 focus:outline-none">
+                        <img src="{{ $user->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=EAB308&color=0f172a' }}" 
                              alt="Avatar" 
                              class="w-8 h-8 rounded-full border-2 border-transparent group-hover:border-gold transition-all duration-300">
-                        <span class="hidden sm:block text-sm font-medium">{{ Auth::user()->name }}</span>
+                        <span class="hidden sm:block text-sm font-medium">{{ $user->name }}</span>
                         <svg class="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right group-hover:scale-100 scale-95 z-50 overflow-hidden">
                         <div class="py-1">
-                            <a href="{{ route('user.profil') }}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors duration-200">
+                            <a href="{{ $profileLink }}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors duration-200">
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                 Profil Saya
                             </a>
@@ -135,7 +176,9 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
                 <input type="text" placeholder="Cari dokumen publik, SOP, pedoman, atau regulasi..." class="w-full bg-transparent px-4 py-3 sm:py-3 outline-none text-white text-sm focus:ring-0">
-                <button class="bg-gold text-darkbg px-6 py-3 sm:py-2 rounded-md font-semibold text-sm hover:bg-goldhover hover:scale-105 transition-all duration-300 shadow-lg w-full sm:w-auto mt-2 sm:mt-0">Cari Dokumen</button>
+                <a href="{{ route('knowledge-base') }}" class="bg-gold text-darkbg px-6 py-3 sm:py-2 rounded-md font-semibold text-sm hover:bg-goldhover hover:scale-105 transition-all duration-300 shadow-lg w-full sm:w-auto mt-2 sm:mt-0 text-center">
+                    Cari Dokumen
+                </a>
             </div>
             <a href="/login" class="bg-gold text-darkbg px-6 py-2.5 rounded-md font-bold text-sm hover:bg-goldhover hover:-translate-y-1 transition-all duration-300 inline-flex items-center gap-2 shadow-lg shadow-gold/20 opacity-0 animate-fade-in-up" style="animation-delay: 0.9s;">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -145,42 +188,51 @@
     </section>
 
     <!-- FOTO 2: STATISTIK -->
-    <section id="statistik" class="py-16 px-4 sm:px-8 max-w-7xl mx-auto bg-lightbg scroll-mt-20">
+    <section id="statistik" class="py-16 px-4 sm:px-8 max-w-7xl mx-auto scroll-mt-20">
         <div class="flex flex-col md:flex-row items-center gap-12">
             <div class="w-full md:w-1/2 scroll-hidden obs-element">
                 <h2 class="text-3xl font-bold text-gray-900 mb-4">Real-Time Government<br>Knowledge Metrics</h2>
                 <p class="text-gray-500 mb-8 text-sm">Data statistik terkini yang mencerminkan aktivitas dan pertumbuhan ekosistem manajemen pengetahuan di lingkungan Pemerintah Provinsi Lampung.</p>
                 <div class="grid grid-cols-2 gap-6 sm:gap-8">
                     <div class="scroll-hidden obs-element" style="transition-delay: 100ms;">
-                        <div class="text-2xl sm:text-3xl font-bold text-gold"><span class="cnt" id="stat-docs">0</span><span class="text-xl">+</span></div>
+                        <div class="text-2xl sm:text-3xl font-bold text-gold">
+                            {{ number_format($stats['total_articles'] ?? 0) }}<span class="text-xl">+</span>
+                        </div>
                         <div class="text-xs sm:text-sm text-gray-800 font-medium mt-1">Total Public Documents</div>
                         <div class="text-[10px] sm:text-xs text-green-500 mt-1 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Live Data</div>
                     </div>
                     <div class="scroll-hidden obs-element" style="transition-delay: 200ms;">
-                        <div class="text-2xl sm:text-3xl font-bold text-gold"><span class="cnt" id="stat-opd">0</span></div>
+                        <div class="text-2xl sm:text-3xl font-bold text-gold">
+                            {{ number_format($stats['total_opds'] ?? 0) }}
+                        </div>
                         <div class="text-xs sm:text-sm text-gray-800 font-medium mt-1">Active Regional IT Assets</div>
                         <div class="text-[10px] sm:text-xs text-green-500 mt-1 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Live Data</div>
                     </div>
                     <div class="scroll-hidden obs-element" style="transition-delay: 300ms;">
-                        <div class="text-2xl sm:text-3xl font-bold text-gold"><span class="cnt" id="stat-downloads">0</span><span class="text-xl">+</span></div>
+                        <div class="text-2xl sm:text-3xl font-bold text-gold">
+                            {{ number_format($stats['total_downloads'] ?? 0) }}<span class="text-xl">+</span>
+                        </div>
                         <div class="text-xs sm:text-sm text-gray-800 font-medium mt-1">Total Downloads</div>
                         <div class="text-[10px] sm:text-xs text-green-500 mt-1 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Live Data</div>
                     </div>
                     <div class="scroll-hidden obs-element" style="transition-delay: 400ms;">
-                        <div class="text-2xl sm:text-3xl font-bold text-gold"><span class="cnt" id="stat-views">0</span></div>
+                        <div class="text-2xl sm:text-3xl font-bold text-gold">
+                            {{ number_format($stats['total_views'] ?? 0) }}
+                        </div>
                         <div class="text-xs sm:text-sm text-gray-800 font-medium mt-1">Gov Agencies Connected</div>
                         <div class="text-[10px] sm:text-xs text-green-500 mt-1 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Live Data</div>
                     </div>
                 </div>
             </div>
-            <div class="w-full md:w-1/2 bg-gray-100 rounded-3xl p-8 sm:p-12 flex justify-center items-center relative h-64 sm:h-80 scroll-hidden obs-element hover:shadow-xl transition duration-500" style="transition-delay: 300ms;">
-                <div class="absolute w-32 h-32 sm:w-40 sm:h-40 bg-white rounded-full shadow-lg flex flex-col items-center justify-center z-20 animate-float">
+            <div class="w-full md:w-1/2 bg-stat-pattern rounded-3xl p-8 sm:p-12 flex justify-center items-center relative h-64 sm:h-80 scroll-hidden obs-element hover:shadow-xl transition duration-500" style="transition-delay: 300ms;">
+                <div class="absolute w-32 h-32 sm:w-40 sm:h-40 bg-white/90 backdrop-blur-sm rounded-full shadow-xl flex flex-col items-center justify-center z-20 animate-float">
                     <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gold rounded text-darkbg flex items-center justify-center font-bold mb-2">=</div>
                     <div class="text-xs font-bold text-gray-800">System Online</div>
                     <div class="text-[10px] text-gray-500">99.9% Uptime</div>
                 </div>
-                <div class="absolute top-10 right-5 sm:right-10 w-20 h-20 sm:w-24 sm:h-24 bg-gray-200 rounded-2xl animate-float-delayed"></div>
-                <div class="absolute bottom-10 left-5 sm:left-10 w-24 h-24 sm:w-32 sm:h-32 bg-gray-200 rounded-full animate-float" style="animation-duration: 8s;"></div>
+                <div class="absolute top-10 right-5 sm:right-10 w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-sm rounded-2xl animate-float-delayed"></div>
+                <div class="absolute bottom-10 left-5 sm:left-10 w-24 h-24 sm:w-32 sm:h-32 bg-white/10 backdrop-blur-sm rounded-full animate-float" style="animation-duration: 8s;"></div>
+                <div class="absolute inset-0 rounded-3xl bg-gradient-to-br from-darkbg/80 via-darkbg/40 to-transparent"></div>
             </div>
         </div>
     </section>
@@ -200,7 +252,7 @@
         </div>
     </section>
 
-    <!-- PUBLIC SOPS & GUIDELINES (Tinggi Kartu Disamakan) -->
+    <!-- PUBLIC SOPS & GUIDELINES -->
     <section id="dokumen-publik" class="py-8 px-4 sm:px-8 max-w-7xl mx-auto scroll-mt-20">
         <div class="flex justify-between items-end mb-8 scroll-hidden obs-element">
             <div>
@@ -281,7 +333,7 @@
         </div>
     </section>
 
-    <!-- KNOWLEDGE TRENDING (💥 FIX: FIXED WIDTH UNTUK CAROUSEL) -->
+    <!-- KNOWLEDGE TRENDING -->
     <section class="py-8 px-4 sm:px-8 max-w-7xl mx-auto border-t border-gray-100 scroll-hidden obs-element relative group section-carousel">
         <div class="flex items-center gap-2 mb-6">
             <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
@@ -303,7 +355,6 @@
                         $thumbUrl = str_starts_with($article->thumbnail, 'http') ? $article->thumbnail : \Illuminate\Support\Facades\Storage::url($article->thumbnail);
                     }
                 @endphp
-                {{-- 💥 FIX: Tambahkan w-[280px] sm:w-[260px] flex-shrink-0 agar tidak stretch --}}
                 <a href="{{ route('document.detail', $article->slug ?? $article->id) }}" class="block w-[280px] sm:w-[260px] flex-shrink-0 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group">
                     <div class="h-32 bg-gray-200 relative overflow-hidden">
                         <img src="{{ $thumbUrl }}" alt="{{ $article->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" onerror="this.src='{{ asset('images/placeholder-article.png') }}'">
@@ -340,7 +391,7 @@
         </div>
     </section>
 
-    <!-- KNOWLEDGE TERPOPULER (💥 FIX: FIXED WIDTH UNTUK CAROUSEL) -->
+    <!-- KNOWLEDGE TERPOPULER -->
     <section class="py-8 px-4 sm:px-8 max-w-7xl mx-auto border-t border-gray-100 scroll-hidden obs-element relative group section-carousel">
         <div class="flex items-center gap-2 mb-6">
             <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
@@ -362,7 +413,6 @@
                         $thumbUrl = str_starts_with($article->thumbnail, 'http') ? $article->thumbnail : \Illuminate\Support\Facades\Storage::url($article->thumbnail);
                     }
                 @endphp
-                {{-- 💥 FIX: Tambahkan w-[280px] sm:w-[260px] flex-shrink-0 agar tidak stretch --}}
                 <a href="{{ route('document.detail', $article->slug ?? $article->id) }}" class="block w-[280px] sm:w-[260px] flex-shrink-0 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group">
                     <div class="h-32 bg-gray-200 relative overflow-hidden">
                         <img src="{{ $thumbUrl }}" alt="{{ $article->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" onerror="this.src='{{ asset('images/placeholder-article.png') }}'">
@@ -394,7 +444,7 @@
         </div>
     </section>
 
-    <!-- KNOWLEDGE TERBARU (💥 FIX: FIXED WIDTH UNTUK CAROUSEL) -->
+    <!-- KNOWLEDGE TERBARU -->
     <section class="py-8 px-4 sm:px-8 max-w-7xl mx-auto border-t border-gray-100 scroll-hidden obs-element relative group section-carousel mb-10">
         <div class="flex items-center gap-2 mb-6">
             <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -416,7 +466,6 @@
                         $thumbUrl = str_starts_with($article->thumbnail, 'http') ? $article->thumbnail : \Illuminate\Support\Facades\Storage::url($article->thumbnail);
                     }
                 @endphp
-                {{-- 💥 FIX: Tambahkan w-[280px] sm:w-[260px] flex-shrink-0 agar tidak stretch --}}
                 <a href="{{ route('document.detail', $article->slug ?? $article->id) }}" class="block w-[280px] sm:w-[260px] flex-shrink-0 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group">
                     <div class="h-32 bg-gray-200 relative overflow-hidden">
                         <img src="{{ $thumbUrl }}" alt="{{ $article->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" onerror="this.src='{{ asset('images/placeholder-article.png') }}'">
@@ -481,8 +530,9 @@
             <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-3">Masuk ke Portal<br>Internal AKSARA</h3>
             <p class="text-gray-500 text-sm mb-8 max-w-sm">Akses dashboard internal untuk mengelola dokumen, melakukan review, berkolaborasi dalam forum, dan berkontribusi.</p>
             <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                <a href="/login" class="bg-darkbg text-white px-6 py-3 sm:py-2 rounded-md font-medium text-sm hover:bg-gray-800 hover:-translate-y-1 transition-all duration-300 shadow-md">Portal Pegawai →</a>
-                <a href="/login" class="border border-gray-300 text-gray-700 px-6 py-3 sm:py-2 rounded-md font-medium text-sm hover:bg-gray-50 hover:-translate-y-1 transition-all duration-300">Portal Admin ⚙</a>
+                <span class="text-gray-700 text-sm font-medium">🔐 Sudah memiliki akun? <a href="/login" class="text-gold font-bold hover:underline">Login sekarang</a></span>
+                <span class="text-gray-400 text-sm">|</span>
+                <span class="text-gray-700 text-sm font-medium">🆕 Belum terdaftar? <a href="/login?form=register" class="text-gold font-bold hover:underline">Daftar</a></span>
             </div>
         </div>
     </section>
@@ -522,7 +572,7 @@
         </div>
     </footer>
 
-    <!-- AI CHAT BOT WIDGET -->
+    <!-- AI CHAT BOT WIDGET (DENGAN AUTO-SUMMARY) -->
     <div class="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
         <div id="ai-chat-window" class="bg-white w-80 sm:w-96 rounded-2xl shadow-2xl border border-gray-200 overflow-hidden mb-4 transition-all duration-300 origin-bottom-right scale-0 opacity-0 hidden flex-col">
             <div class="bg-darkbg text-white p-4 flex items-center gap-3">
@@ -535,7 +585,7 @@
                 <div class="flex gap-2 items-start">
                     <div class="w-6 h-6 bg-gold rounded-full flex items-center justify-center flex-shrink-0 mt-1"><svg class="w-3 h-3 text-darkbg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg></div>
                     <div class="bg-white border border-gray-200 p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-gray-700">
-                        Halo! Saya Asisten AI AKSARA. Saya hanya dapat menjawab pertanyaan seputar dokumentasi yang ada di database AKSARA. Ada yang bisa saya bantu?
+                        Halo! Saya Asisten AI AKSARA. Saya dapat mencari dokumen dan memberikan ringkasan otomatis. Coba tanyakan tentang topik tertentu.
                     </div>
                 </div>
                 <div id="ai-message-container"></div>
@@ -556,28 +606,32 @@
     </div>
 
     <script>
-        // Navbar scroll logic
+        // Navbar scroll logic (dengan perbaikan warna username)
         window.addEventListener('scroll', function() {
             const nav = document.getElementById('navbar');
             const logoText = document.getElementById('logo-text');
             const navLinks = document.querySelectorAll('.nav-link');
             const loginBtn = document.getElementById('login-btn');
+            const userBtn = document.getElementById('user-dropdown-btn');
+
             if (window.scrollY > 50) {
                 nav.classList.remove('bg-darkbg', 'border-gray-800');
                 nav.classList.add('bg-white', 'border-gray-200', 'shadow-sm', 'bg-opacity-95', 'backdrop-blur-md');
                 logoText.classList.remove('text-white'); logoText.classList.add('text-gray-900');
                 navLinks.forEach(link => { link.classList.remove('text-white', 'text-gray-300'); link.classList.add('text-gray-600', 'hover:text-gray-900'); });
                 if(loginBtn) { loginBtn.classList.remove('border-gray-600', 'text-gray-300', 'hover:text-white', 'hover:border-gray-400'); loginBtn.classList.add('border-gray-300', 'text-gray-700', 'hover:text-gray-900', 'hover:bg-gray-50'); }
+                if(userBtn) { userBtn.classList.remove('text-gray-300', 'hover:text-white'); userBtn.classList.add('text-gray-900', 'hover:text-gray-700'); }
             } else {
                 nav.classList.add('bg-darkbg', 'border-gray-800');
                 nav.classList.remove('bg-white', 'border-gray-200', 'shadow-sm', 'bg-opacity-95', 'backdrop-blur-md');
                 logoText.classList.add('text-white'); logoText.classList.remove('text-gray-900');
                 navLinks.forEach(link => { link.classList.add('text-gray-300'); link.classList.remove('text-gray-600', 'hover:text-gray-900'); });
                 if(loginBtn) { loginBtn.classList.add('border-gray-600', 'text-gray-300', 'hover:text-white', 'hover:border-gray-400'); loginBtn.classList.remove('border-gray-300', 'text-gray-700', 'hover:text-gray-900', 'hover:bg-gray-50'); }
+                if(userBtn) { userBtn.classList.add('text-gray-300', 'hover:text-white'); userBtn.classList.remove('text-gray-900', 'hover:text-gray-700'); }
             }
         });
 
-        // Scroll reveal logic
+        // Scroll reveal
         document.addEventListener("DOMContentLoaded", function() {
             const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
             const observer = new IntersectionObserver((entries, observer) => {
@@ -590,7 +644,10 @@
                 });
             }, observerOptions);
             document.querySelectorAll('.obs-element').forEach((el) => { observer.observe(el); });
+        });
 
+        // ======== AI CHAT DENGAN AUTO-SUMMARY ========
+        (function() {
             const toggleBtn = document.getElementById('ai-toggle-btn');
             const chatWindow = document.getElementById('ai-chat-window');
             const robotIcon = document.getElementById('robot-icon');
@@ -599,6 +656,7 @@
             const sendBtn = document.getElementById('ai-send-btn');
             const aiInput = document.getElementById('ai-input');
             const aiMessageContainer = document.getElementById('ai-message-container');
+            const chatBody = document.getElementById('ai-chat-body');
             let isChatOpen = false;
 
             toggleBtn.addEventListener('click', () => {
@@ -628,6 +686,102 @@
                 }
             });
 
+            // Fungsi untuk mengambil ringkasan dari halaman dokumen
+            async function fetchDocumentSummary(url) {
+                try {
+                    const response = await fetch(url, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (!response.ok) throw new Error('Gagal mengambil halaman');
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    let contentEl = doc.querySelector('.content') || 
+                                    doc.querySelector('article') || 
+                                    doc.querySelector('#article-content') || 
+                                    doc.querySelector('.post-content') ||
+                                    doc.querySelector('main');
+                    let summary = '';
+                    if (contentEl) {
+                        const text = contentEl.textContent || '';
+                        summary = text.trim().slice(0, 200) + (text.length > 200 ? '...' : '');
+                    } else {
+                        const meta = doc.querySelector('meta[name="description"]');
+                        if (meta) summary = meta.getAttribute('content') || '';
+                    }
+                    const title = doc.querySelector('h1')?.textContent?.trim() || doc.title || 'Dokumen';
+                    const category = doc.querySelector('.category-badge')?.textContent?.trim() || 'Umum';
+
+                    return { title, category, summary };
+                } catch (e) {
+                    console.warn('Gagal mengambil ringkasan:', e);
+                    return null;
+                }
+            }
+
+            // Fungsi menampilkan respons AI dengan ringkasan otomatis
+            function displayAIResponse(aiMessage) {
+                const linkRegex = /https?:\/\/[^\/]+\/document\/[^\s\)]+/g;
+                const links = aiMessage.match(linkRegex) || [];
+                
+                const aiBubble = document.createElement('div');
+                aiBubble.className = 'flex gap-2 items-start mt-3';
+                let contentHtml = `
+                    <div class="w-6 h-6 bg-gold rounded-full flex items-center justify-center flex-shrink-0 mt-1"><svg class="w-3 h-3 text-darkbg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg></div>
+                    <div class="bg-white border border-gray-200 p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-gray-700 whitespace-pre-line max-w-[80%]">
+                        ${aiMessage}
+                `;
+                if (links.length > 0) {
+                    contentHtml += `<div class="mt-2 text-xs text-gray-500">⏳ Mengambil ringkasan dokumen...</div>`;
+                }
+                contentHtml += `</div></div>`;
+                aiBubble.innerHTML = contentHtml;
+                aiMessageContainer.appendChild(aiBubble);
+                chatBody.scrollTop = chatBody.scrollHeight;
+
+                if (links.length > 0) {
+                    const summaryContainer = aiBubble.querySelector('.text-gray-500');
+                    if (summaryContainer) {
+                        const fetchPromises = links.map(async (url) => {
+                            const data = await fetchDocumentSummary(url);
+                            return { url, data };
+                        });
+                        Promise.all(fetchPromises).then(results => {
+                            let summaryHtml = '<div class="mt-3 space-y-3 border-t border-gray-200 pt-2">';
+                            results.forEach(({ url, data }) => {
+                                if (data) {
+                                    summaryHtml += `
+                                        <div class="bg-gray-50 p-2 rounded border border-gray-200">
+                                            <div class="font-semibold text-xs text-gray-800">${data.title}</div>
+                                            <div class="text-[10px] text-gray-500">Kategori: ${data.category}</div>
+                                            <div class="text-xs text-gray-700 mt-1">${data.summary || 'Ringkasan tidak tersedia'}</div>
+                                            <a href="${url}" target="_blank" class="text-[10px] text-gold hover:underline">🔗 Baca selengkapnya</a>
+                                        </div>
+                                    `;
+                                } else {
+                                    summaryHtml += `
+                                        <div class="bg-gray-50 p-2 rounded border border-gray-200 text-xs text-gray-500">
+                                            Gagal mengambil ringkasan untuk <a href="${url}" target="_blank" class="text-gold">${url}</a>
+                                        </div>
+                                    `;
+                                }
+                            });
+                            summaryHtml += '</div>';
+                            if (summaryContainer) {
+                                summaryContainer.innerHTML = summaryHtml;
+                            }
+                            chatBody.scrollTop = chatBody.scrollHeight;
+                        }).catch(err => {
+                            if (summaryContainer) {
+                                summaryContainer.innerHTML = `<div class="text-red-500 text-xs mt-2">Gagal memuat ringkasan: ${err.message}</div>`;
+                            }
+                        });
+                    }
+                }
+            }
+
+            // Kirim pesan ke backend AI
             async function sendMessage() {
                 const message = aiInput.value.trim();
                 if (!message) return;
@@ -637,7 +791,16 @@
                 userBubble.innerHTML = `<div class="bg-gold text-darkbg p-3 rounded-2xl rounded-tr-none shadow-sm text-sm max-w-[80%]">${message}</div>`;
                 aiMessageContainer.appendChild(userBubble);
                 aiInput.value = '';
-                document.getElementById('ai-chat-body').scrollTop = document.getElementById('ai-chat-body').scrollHeight;
+                chatBody.scrollTop = chatBody.scrollHeight;
+
+                const loadingBubble = document.createElement('div');
+                loadingBubble.className = 'flex gap-2 items-start mt-3';
+                loadingBubble.innerHTML = `
+                    <div class="w-6 h-6 bg-gold rounded-full flex items-center justify-center flex-shrink-0 mt-1"><svg class="w-3 h-3 text-darkbg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg></div>
+                    <div class="bg-white border border-gray-200 p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-gray-500 loading-dots">Memproses</div>
+                `;
+                aiMessageContainer.appendChild(loadingBubble);
+                chatBody.scrollTop = chatBody.scrollHeight;
 
                 try {
                     const response = await fetch('/api/ai/chat', {
@@ -650,21 +813,18 @@
                     });
 
                     const data = await response.json();
-                    
-                    const aiBubble = document.createElement('div');
-                    aiBubble.className = 'flex gap-2 items-start mt-3';
-                    aiBubble.innerHTML = `
-                        <div class="w-6 h-6 bg-gold rounded-full flex items-center justify-center flex-shrink-0 mt-1"><svg class="w-3 h-3 text-darkbg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg></div>
-                        <div class="bg-white border border-gray-200 p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-gray-700 whitespace-pre-line max-w-[80%]">${data.reply}</div>
-                    `;
-                    aiMessageContainer.appendChild(aiBubble);
-                    document.getElementById('ai-chat-body').scrollTop = document.getElementById('ai-chat-body').scrollHeight;
+                    const reply = data.reply || data.message || data.response || 'Maaf, saya tidak dapat memproses pertanyaan Anda saat ini.';
+
+                    loadingBubble.remove();
+                    displayAIResponse(reply);
 
                 } catch (error) {
-                    const aiBubble = document.createElement('div');
-                    aiBubble.className = 'flex gap-2 items-start mt-3';
-                    aiBubble.innerHTML = `<div class="bg-white border border-red-200 p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-red-600 max-w-[80%]">Maaf, terjadi kesalahan koneksi AI.</div>`;
-                    aiMessageContainer.appendChild(aiBubble);
+                    loadingBubble.remove();
+                    const errBubble = document.createElement('div');
+                    errBubble.className = 'flex gap-2 items-start mt-3';
+                    errBubble.innerHTML = `<div class="bg-white border border-red-200 p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-red-600 max-w-[80%]">Maaf, terjadi kesalahan koneksi AI. Silakan coba lagi nanti.</div>`;
+                    aiMessageContainer.appendChild(errBubble);
+                    chatBody.scrollTop = chatBody.scrollHeight;
                 }
             }
 
@@ -672,7 +832,7 @@
             aiInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') sendMessage();
             });
-        });
+        })();
     </script>
 </body>
 </html>

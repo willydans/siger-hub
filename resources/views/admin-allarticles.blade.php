@@ -105,7 +105,7 @@
                 </div>
             </div>
 
-            <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('admin.users') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> User Management
             </a>
 
@@ -155,7 +155,7 @@
     </aside>
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#F8FAFC] p-4 md:p-8 relative w-full">
+    <main class="flex-1 min-w-0 flex flex-col h-screen overflow-y-auto bg-[#F8FAFC] p-4 md:p-8 relative w-full">
         
         @if(session('success'))
             <script>document.addEventListener('DOMContentLoaded', function() { showToast('{{ session('success') }}'); });</script>
@@ -265,7 +265,7 @@
                             <td class="px-4 py-4"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-gold focus:ring-gold cursor-pointer"></td>
                             <td class="px-4 py-4 font-medium text-gray-900">{{ $article->title }}</td>
                             <td class="px-4 py-4 text-gray-600">{{ $article->user->name ?? '-' }}</td>
-                            <td class="px-4 py-4 text-gray-600">{{ $article->category ?? '-' }}</td>
+                            <td class="px-4 py-4 text-gray-600">{{ optional($article->category)->name ?? '-' }}</td>
                             <td class="px-4 py-4">
                                 @php
                                     $statusColors = [
@@ -329,11 +329,14 @@
                                             @endif
 
                                             <!-- ✅ DELETE -->
-                                            <form action="{{ route('admin.articles.destroy', $article->id) }}" method="POST" class="block" onsubmit="return confirm('Hapus artikel ini secara permanen?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Delete</button>
-                                            </form>
+                                            <form action="{{ route('admin.articles.destroy', $article->id) }}" method="POST" class="block" onsubmit="return confirm('Pindahkan artikel ini ke Recycle Bin?')">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> 
+        Delete
+    </button>
+</form>
 
                                             <!-- ✅ HISTORY (Mengarah ke route admin.articles.history spesifik artikel) -->
                                             <a href="{{ route('admin.articles.history', $article->id) }}" class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">

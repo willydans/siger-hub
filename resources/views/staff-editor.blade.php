@@ -270,8 +270,9 @@
                             <select id="category-select" name="category" class="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none transition focus:border-gold">
                                 <option value="">Pilih Kategori...</option>
                                 @foreach($categories as $cat)
-                                    <option value="{{ $cat->id }}" {{ (isset($article) && $article->category == $cat->id) ? 'selected' : '' }}>
-                                        {{ $cat->id }}
+                                    <!-- Ubah dari $article->category menjadi $article->category_id -->
+                                    <option value="{{ $cat->id }}" {{ (isset($article) && $article->category_id == $cat->id) ? 'selected' : '' }}>
+                                        {{ $cat->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -282,8 +283,9 @@
                             <select id="subcategory-select" name="subcategory" class="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none transition focus:border-gold">
                                 <option value="">Pilih Subkategori...</option>
                                 @foreach($subcategories as $sub)
-                                    <option value="{{ $sub->id }}" {{ (isset($article) && $article->subcategory == $sub->id) ? 'selected' : '' }}>
-                                        {{ $sub->id }}
+                                    <!-- Ubah dari $article->subcategory menjadi $article->subcategory_id -->
+                                    <option value="{{ $sub->id }}" {{ (isset($article) && $article->subcategory_id == $sub->id) ? 'selected' : '' }}>
+                                        {{ $sub->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -294,18 +296,13 @@
                                 <select id="opd-select" name="opd_unit" class="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none transition focus:border-gold">
                                     <option value="">Pilih OPD...</option>
                                     @foreach($opds as $opd)
-                                        <option value="{{ $opd->id }}" {{ (isset($article) && $article->opd_unit == $opd->id) ? 'selected' : '' }}>
-                                            {{ $opd->id }}
+                                        <!-- Ubah dari $article->opd_unit menjadi $article->opd_id -->
+                                        <option value="{{ $opd->id }}" {{ (isset($article) && $article->opd_id == $opd->id) ? 'selected' : '' }}>
+                                            {{ $opd->name }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 mb-1">Tags</label>
-                                <input type="text" name="tags" id="tags-input" value="{{ old('tags', isset($article) && is_array($article->tags) ? implode(', ', $article->tags) : '') }}" placeholder="cth: ssl, nginx" class="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none transition focus:border-gold">
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="mt-6 border-t border-gray-200 pt-4">
                         <h4 class="text-xs font-bold text-gray-600 mb-3">Visibilitas</h4>
@@ -610,34 +607,31 @@ B --> C[End]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm out
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            const categorySelect = document.getElementById('category-select');
-            if (categorySelect) {
-                categoryTS = new TomSelect(categorySelect, {
-                    create: true,
-                    plugins: ['remove_button']
-                });
-            }
-            const subcategorySelect = document.getElementById('subcategory-select');
-            if (subcategorySelect) {
-                subcategoryTS = new TomSelect(subcategorySelect, {
-                    create: true,
-                    plugins: ['remove_button']
-                });
-            }
-            const opdSelect = document.getElementById('opd-select');
-            if (opdSelect) {
-                opdTS = new TomSelect(opdSelect, {
-                    create: true,
-                    plugins: ['remove_button']
-                });
-            }
-            const tagsInput = document.getElementById('tags-input');
-            if (tagsInput) {
-                tagsTS = new TomSelect(tagsInput, {
-                    delimiter: ',',
-                    persist: false,
-                    create: function(input) { return { value: input, text: input }; },
-                });
+    const categorySelect = document.getElementById('category-select');
+    if (categorySelect) {
+        categoryTS = new TomSelect(categorySelect, {
+            plugins: ['remove_button']
+        });
+    }
+    const subcategorySelect = document.getElementById('subcategory-select');
+    if (subcategorySelect) {
+        subcategoryTS = new TomSelect(subcategorySelect, {
+            plugins: ['remove_button']
+        });
+    }
+    const opdSelect = document.getElementById('opd-select');
+    if (opdSelect) {
+        opdTS = new TomSelect(opdSelect, {
+            plugins: ['remove_button']
+        });
+    }
+    const tagsInput = document.getElementById('tags-input');
+    if (tagsInput) {
+        tagsTS = new TomSelect(tagsInput, {
+            delimiter: ',',
+            persist: false,
+            create: function(input) { return { value: input, text: input }; },
+        });
             }
         });
 
@@ -889,46 +883,60 @@ B --> C[End]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm out
             });
         }
 
-        function applyAutoFillResult(data) {
-            if (data.category && categoryTS && !categoryTS.getValue()) {
-                categoryTS.addOption({ value: data.category, text: data.category });
-                categoryTS.setValue(data.category, true);
-                markAiFilled(document.getElementById('category-select').nextElementSibling);
-            }
-            if (data.subcategory && subcategoryTS && !subcategoryTS.getValue()) {
-                subcategoryTS.addOption({ value: data.subcategory, text: data.subcategory });
-                subcategoryTS.setValue(data.subcategory, true);
-                markAiFilled(document.getElementById('subcategory-select').nextElementSibling);
-            }
-            if (data.opd_unit && opdTS && !opdTS.getValue()) {
-                opdTS.addOption({ value: data.opd_unit, text: data.opd_unit });
-                opdTS.setValue(data.opd_unit, true);
-                markAiFilled(document.getElementById('opd-select').nextElementSibling);
-            }
-            if (Array.isArray(data.tags) && data.tags.length && tagsTS && tagsTS.getValue().length === 0) {
-                data.tags.forEach(tag => {
-                    tagsTS.addOption({ value: tag, text: tag });
-                    tagsTS.addItem(tag, true);
-                });
-                markAiFilled(document.getElementById('tags-input').nextElementSibling);
-            }
+        function findOptionValueByText(ts, text) {
+    if (!ts || !text) return null;
+    for (const key in ts.options) {
+        if (ts.options[key].text === text) return key;
+    }
+    return null;
+}
 
-            const metaKeywords = document.querySelector('input[name="meta_keywords"]');
-            if (metaKeywords && !metaKeywords.value && data.meta_keywords) {
-                metaKeywords.value = data.meta_keywords;
-                markAiFilled(metaKeywords);
-            }
-            const metaDescription = document.querySelector('textarea[name="meta_description"]');
-            if (metaDescription && !metaDescription.value && data.meta_description) {
-                metaDescription.value = data.meta_description;
-                markAiFilled(metaDescription);
-            }
-            const readTime = document.querySelector('input[name="estimated_read_time"]');
-            if (readTime && !readTime.value && data.estimated_read_time) {
-                readTime.value = data.estimated_read_time;
-                markAiFilled(readTime);
-            }
+function applyAutoFillResult(data) {
+    if (data.category && categoryTS && !categoryTS.getValue()) {
+        const val = findOptionValueByText(categoryTS, data.category);
+        if (val !== null) {
+            categoryTS.setValue(val, true);
+            markAiFilled(document.getElementById('category-select').nextElementSibling);
         }
+    }
+    if (data.subcategory && subcategoryTS && !subcategoryTS.getValue()) {
+        const val = findOptionValueByText(subcategoryTS, data.subcategory);
+        if (val !== null) {
+            subcategoryTS.setValue(val, true);
+            markAiFilled(document.getElementById('subcategory-select').nextElementSibling);
+        }
+    }
+    if (data.opd_unit && opdTS && !opdTS.getValue()) {
+        const val = findOptionValueByText(opdTS, data.opd_unit);
+        if (val !== null) {
+            opdTS.setValue(val, true);
+            markAiFilled(document.getElementById('opd-select').nextElementSibling);
+        }
+    }
+    if (Array.isArray(data.tags) && data.tags.length && tagsTS && tagsTS.getValue().length === 0) {
+        data.tags.forEach(tag => {
+            tagsTS.addOption({ value: tag, text: tag });
+            tagsTS.addItem(tag, true);
+        });
+        markAiFilled(document.getElementById('tags-input').nextElementSibling);
+    }
+
+    const metaKeywords = document.querySelector('input[name="meta_keywords"]');
+    if (metaKeywords && !metaKeywords.value && data.meta_keywords) {
+        metaKeywords.value = data.meta_keywords;
+        markAiFilled(metaKeywords);
+    }
+    const metaDescription = document.querySelector('textarea[name="meta_description"]');
+    if (metaDescription && !metaDescription.value && data.meta_description) {
+        metaDescription.value = data.meta_description;
+        markAiFilled(metaDescription);
+    }
+    const readTime = document.querySelector('input[name="estimated_read_time"]');
+    if (readTime && !readTime.value && data.estimated_read_time) {
+        readTime.value = data.estimated_read_time;
+        markAiFilled(readTime);
+    }
+}
 
         /* =========================================================================
            ✅ AI ASSISTANT — dibuat lebih menarik & fungsional dengan tombol "Terapkan"

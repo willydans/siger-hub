@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Otp;
 use App\Models\Role;
-use App\Models\UserActivity; // ✨ Tambahkan import ini
+use App\Models\UserActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\OtpMail;
 use Illuminate\Support\Facades\Log;
+use App\Mail\OtpMail;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -38,32 +39,32 @@ class AuthController extends Controller
 
         $credentials = $request->only('email', 'password');
 
+        // Validasi kredensial (tanpa login dulu)
         if (!Auth::validate($credentials)) {
             return back()->withErrors(['email' => 'Email atau password salah.']);
         }
 
         $user = User::where('email', $credentials['email'])->first();
 
+        // Jika email belum diverifikasi, kirim OTP dan arahkan ke halaman verifikasi
         if (!$user->email_verified_at) {
-            // Simpan id user sementara di session, JANGAN Auth::login() dulu
             $request->session()->put('otp_user_id', $user->id);
             $request->session()->put('otp_remember', $request->boolean('remember'));
 
-            $this->sendOtp($user);
+            $otpSent = $this->sendOtp($user);
+            if (!$otpSent) {
+                return back()->with('warning', 'Gagal mengirim kode OTP. Periksa konfigurasi email Anda.');
+            }
+
             return redirect()->route('otp.verify')->with('email', $user->email);
         }
 
+        // Login sukses (email sudah terverifikasi)
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
-        // ✨ CATAT AKTIVITAS LOGIN
-        UserActivity::create([
-            'user_id'    => $user->id,
-            'type'       => 'Login',
-            'description'=> $user->name . ' berhasil login ke sistem',
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-        ]);
+        // ✅ Catat aktivitas login
+        $this->recordActivity($user->id, 'Login', 'Login ke sistem', $request);
 
         return $this->redirectBasedOnRole($user);
     }
@@ -91,29 +92,23 @@ class AuthController extends Controller
             'role_id'  => $roleId
         ]);
 
-        // ✨ CATAT AKTIVITAS REGISTER (sebelum OTP dikirim)
-        UserActivity::create([
-            'user_id'    => $user->id,
-            'type'       => 'Register',
-            'description'=> $user->name . ' mendaftarkan akun baru',
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-        ]);
+        // ✅ Catat aktivitas registrasi
+        $this->recordActivity($user->id, 'Register', 'Mendaftarkan akun baru', $request);
 
-        // Jangan Auth::login($user) dulu — simpan id-nya saja di session
+        // Simpan ID user di session untuk proses OTP (belum login)
         $request->session()->put('otp_user_id', $user->id);
         $request->session()->put('otp_remember', false);
 
-        // Kirim OTP, jika gagal kita kasih pesan di session flash
+        // Kirim OTP
         $otpSent = $this->sendOtp($user);
 
-        $redirect = redirect()->route('otp.verify')->with('email', $user->email);
-
         if (!$otpSent) {
-            return $redirect->with('warning', 'Kami gagal mengirim kode OTP ke email Anda. Pastikan konfigurasi SMTP Anda benar di .env!');
+            return redirect()->route('otp.verify')
+                ->with('email', $user->email)
+                ->with('warning', 'Gagal mengirim kode OTP. Periksa konfigurasi email Anda.');
         }
 
-        return $redirect;
+        return redirect()->route('otp.verify')->with('email', $user->email);
     }
 
     /**
@@ -121,15 +116,9 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        // ✨ CATAT AKTIVITAS LOGOUT sebelum user benar-benar logout
+        // ✅ Catat aktivitas logout sebelum user benar-benar logout
         if (Auth::check()) {
-            UserActivity::create([
-                'user_id'    => Auth::id(),
-                'type'       => 'Logout',
-                'description'=> Auth::user()->name . ' keluar dari sistem',
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-            ]);
+            $this->recordActivity(Auth::id(), 'Logout', 'Keluar dari sistem', $request);
         }
 
         Auth::logout();
@@ -140,44 +129,63 @@ class AuthController extends Controller
     }
 
     /**
-     * Mengarahkan user berdasarkan role setelah login/verifikasi
+     * Redirect user berdasarkan role setelah login/verifikasi
      */
     public function redirectBasedOnRole($user)
-    {
-        $roleName = $user->role;
+{
+    $roleName = $user->role;
 
-        if ($roleName === 'admin') {
-            return redirect()->to('/admin/dashboard');
-        }
-        if ($roleName === 'staff') {
-            return redirect()->to('/staff/dashboard');
-        }
-
-        // User biasa diarahkan ke Welcome Page
-        return redirect()->route('home.public');
-    }
+    return match ($roleName) {
+        'admin' => redirect()->to('/admin/dashboard'),
+        'staff' => redirect()->to('/staff/dashboard'),
+        default => redirect()->route('home.public'),
+    };
+}
 
     /**
-     * Mengirim Email OTP (return boolean agar tahu berhasil/gagal)
+     * Kirim Email OTP
      */
-    private function sendOtp($user)
+    private function sendOtp($user): bool
     {
         if (!$user) return false;
 
         $otpCode = rand(100000, 999999);
-        Otp::create([
-            'user_id'    => $user->id,
-            'otp_code'   => $otpCode,
-            'expires_at' => now()->addMinutes(10),
-            'is_used'    => false
-        ]);
+
+        Otp::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'otp_code'   => $otpCode,
+                'expires_at' => Carbon::now()->addMinutes(10),
+                'is_used'    => false
+            ]
+        );
 
         try {
             Mail::to($user->email)->send(new OtpMail($otpCode, $user));
             return true;
         } catch (\Exception $e) {
-            Log::error('Gagal mengirim OTP ke ' . $user->email . ': ' . $e->getMessage());
+            Log::error('Gagal kirim OTP ke ' . $user->email . ': ' . $e->getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Helper untuk mencatat aktivitas user ke tabel user_activities
+     */
+    private function recordActivity(int $userId, string $type, string $description, Request $request): void
+    {
+        try {
+            UserActivity::create([
+                'user_id'    => $userId,
+                'type'       => $type,
+                'description'=> $description,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'created_at' => Carbon::now(),
+            ]);
+        } catch (\Exception $e) {
+            // Jangan sampai proses gagal hanya karena gagal mencatat aktivitas
+            Log::warning('Gagal mencatat aktivitas: ' . $e->getMessage());
         }
     }
 }

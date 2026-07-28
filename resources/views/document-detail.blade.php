@@ -33,16 +33,94 @@
         .fade-in-new-comment { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Print */
         @media print {
             #navbar, #right-sidebar, #action-bar, #comment-section, #ai-toggle-btn, #footer, #feedback-modal { display: none !important; }
             main { width: 100% !important; }
+        }
+        /* Tambahan styling untuk info tambahan */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.75rem;
+        }
+        .info-item {
+            background: #f9fafb;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #f3f4f6;
+        }
+        .info-item .label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6b7280;
+        }
+        .info-item .value {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1f2937;
+            margin-top: 0.1rem;
+            word-break: break-word;
+        }
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.75rem;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            transition: 0.2s;
+            margin-bottom: 0.5rem;
+        }
+        .attachment-item:hover { background: #f3f4f6; }
+        .attachment-item a {
+            color: #2563eb;
+            font-weight: 500;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+        }
+        .attachment-item a:hover { text-decoration: underline; }
+        .tag-badge {
+            display: inline-block;
+            background: #e0f2fe;
+            color: #0369a1;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.15rem 0.6rem;
+            border-radius: 9999px;
+            margin: 0.15rem 0.2rem;
+        }
+        .relation-chip {
+            display: inline-block;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            padding: 0.15rem 0.7rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            color: #1f2937;
+            margin: 0.15rem 0.2rem;
+        }
+        .info-section-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1f2937;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
     </style>
 </head>
 <body class="font-sans antialiased text-textmain bg-white">
 
-    <!-- NAVBAR -->
+    <!-- ========== NAVBAR ========== -->
     <nav id="navbar" class="bg-white text-gray-800 py-4 px-8 flex justify-between items-center border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='/'">
             <div class="w-8 h-8 bg-gold rounded text-darkbg flex items-center justify-center font-bold">S</div>
@@ -62,7 +140,6 @@
             @auth
                 <div class="relative group">
                     <button class="flex items-center gap-2 text-gray-700 hover:text-navy transition-colors duration-300 focus:outline-none">
-                        {{-- ✅ PERBAIKAN 1: Gunakan optional() untuk Auth user di Navbar --}}
                         <img src="{{ optional(Auth::user())->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(optional(Auth::user())->name ?? 'Guest') . '&background=f3f4f6&color=333' }}" 
                              alt="Avatar" 
                              class="w-8 h-8 rounded-full border border-gray-200 group-hover:border-gold transition-all duration-300">
@@ -71,7 +148,8 @@
                     </button>
                     <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right group-hover:scale-100 scale-95 z-50 overflow-hidden">
                         <div class="py-1">
-                            <a href="{{ route('user.profil') }}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors duration-200">
+                            @php $profileRoute = auth()->user()->role == 'staff' ? route('staff.profil') : route('user.profil'); @endphp
+                            <a href="{{ $profileRoute }}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors duration-200">
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                 Profil Saya
                             </a>
@@ -94,7 +172,7 @@
         </div>
     </nav>
 
-    <!-- MAIN CONTENT WRAPPER -->
+    <!-- ========== MAIN CONTENT WRAPPER ========== -->
     <div class="max-w-[1400px] mx-auto px-8 py-8 flex flex-col lg:flex-row gap-12">
         
         <!-- LEFT COLUMN -->
@@ -140,7 +218,8 @@
                             <div class="flex flex-col">
                                 <div class="flex items-center gap-2">
                                     <span class="font-bold text-gray-900 text-[13px]">{{ $article->user->name ?? 'Admin' }}</span>
-                                    <a href="{{ route('user.profil') }}" class="inline-flex items-center gap-1 text-[11px] text-navy bg-blue-50 hover:bg-blue-100 transition-colors duration-200 px-2 py-0.5 rounded-full border border-blue-200">
+                                    @php $authorProfileRoute = ($article->user->role ?? '') == 'staff' ? route('staff.profil', $article->user->id) : route('user.profil', $article->user->id); @endphp
+                                    <a href="{{ $authorProfileRoute }}" class="inline-flex items-center gap-1 text-[11px] text-navy bg-blue-50 hover:bg-blue-100 transition-colors duration-200 px-2 py-0.5 rounded-full border border-blue-200">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                         Lihat Profil
                                     </a>
@@ -160,7 +239,7 @@
                     </div>
                 </div>
 
-                <!-- ACTION BAR (Backend Integrated) -->
+                <!-- ACTION BAR -->
                 <div id="action-bar" class="mt-6 pt-6 border-t border-gray-100 flex flex-wrap items-center gap-3 sm:gap-4">
                     @auth
                         @php $isBookmarked = \App\Models\Bookmark::where('user_id', auth()->id())->where('article_id', $article->id)->exists(); @endphp
@@ -175,11 +254,17 @@
                             <span id="like-count" class="text-xs font-medium">{{ $article->likes_count ?? 0 }}</span>
                         </button>
 
+                        <!-- ✅ RATING -->
                         <div class="flex items-center gap-1 px-3 py-1.5 rounded-full border border-gray-200 bg-white">
                             <span class="text-[10px] font-medium text-gray-400 mr-1">Beri Rating:</span>
                             <div class="flex" id="rating-container">
                                 @for($i=1; $i<=5; $i++)
-                                <button class="star-rating text-gray-300 hover:text-yellow-400 transition-colors duration-200 text-base leading-none px-0.5" data-value="{{ $i }}" onclick="submitRating({{ $article->id }}, {{ $i }})">☆</button>
+                                    <button class="star-rating text-base leading-none px-0.5 transition-colors duration-200
+                                        {{ $userRating && $i <= $userRating ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-400' }}"
+                                        data-value="{{ $i }}"
+                                        onclick="submitRating({{ $article->id }}, {{ $i }})">
+                                        {{ $userRating && $i <= $userRating ? '★' : '☆' }}
+                                    </button>
                                 @endfor
                             </div>
                             <span id="rating-text" class="text-xs text-gray-500 ml-1">({{ number_format($article->rating_avg, 1) }})</span>
@@ -191,7 +276,7 @@
                         </div>
                     @endauth
 
-                    <!-- Share Popup Tooltip -->
+                    <!-- Share -->
                     <div class="relative group/share inline-block">
                         <button id="btn-share" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-all duration-300">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
@@ -208,13 +293,22 @@
                 </div>
             </div>
 
-            <!-- AI Summary -->
+            <!-- ========== AI SUMMARY YANG DIPERBAIKI (RINGKAS, MAKS 5 BARIS) ========== -->
             <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-10 hover:shadow-md transition-shadow duration-300">
                 <div class="flex items-center gap-2 mb-3">
                     <div class="bg-gold text-white p-1 rounded"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
                     <h3 class="font-bold text-gray-900">AI Document Summary</h3>
                 </div>
-                <p class="text-sm text-gray-700 leading-relaxed">{{ Str::limit(strip_tags($article->content), 300) }}</p>
+                @php
+                    $plainContent = strip_tags($article->content);
+                    // Ambil maksimal 25 kata pertama, tambahkan "..." jika lebih panjang
+                    $summary = Str::words($plainContent, 25, ' ...');
+                    // Jika teks pendek, tampilkan semua tanpa potongan
+                    if (str_word_count($plainContent) <= 25) {
+                        $summary = $plainContent;
+                    }
+                @endphp
+                <p class="text-sm text-gray-700 leading-relaxed">{{ $summary }}</p>
             </div>
 
             <!-- Konten Artikel -->
@@ -223,7 +317,153 @@
             </article>
 
             <!-- ============================================== -->
-            <!-- BAGIAN KOMENTAR (GABUNGAN: Tampilan Deep Reply + Backend AJAX) -->
+            <!-- INFORMASI TAMBAHAN (TAGS, RELASI, LAMPIRAN, METADATA, DLL) -->
+            <!-- ============================================== -->
+            @php
+                $attachmentsRaw = is_array($article->attachments) ? $article->attachments : (json_decode($article->attachments, true) ?? []);
+                // ✅ PERBAIKAN: hanya ambil file yang benar-benar ada di storage
+                $attachments = array_filter($attachmentsRaw, function($file) {
+                    return !empty($file) && \Storage::disk('public')->exists($file);
+                });
+                $tags = is_array($article->tags) ? $article->tags : (json_decode($article->tags, true) ?? []);
+                $relations = is_array($article->relations) ? $article->relations : (json_decode($article->relations, true) ?? []);
+            @endphp
+
+            @if(!empty($tags) || !empty($relations) || !empty($attachments) || $article->thumbnail || $article->meta_keywords || $article->meta_description || $article->subcategory || $article->opd_unit || $article->version || $article->doc_code || $article->estimated_read_time || $article->language || $article->visibility || $article->valid_from || $article->valid_until)
+            <div class="mt-12 pt-8 border-t border-gray-200">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Informasi Tambahan</h3>
+
+                <!-- Grid Metadata -->
+                <div class="info-grid mb-4">
+                    @if($article->subcategory)
+                        <div class="info-item">
+                            <div class="label">Subkategori</div>
+                            <div class="value">{{ $article->subcategory }}</div>
+                        </div>
+                    @endif
+                    @if($article->opd_unit)
+                        <div class="info-item">
+                            <div class="label">OPD / Unit</div>
+                            <div class="value">{{ $article->opd_unit }}</div>
+                        </div>
+                    @endif
+                    @if($article->version)
+                        <div class="info-item">
+                            <div class="label">Versi</div>
+                            <div class="value">{{ $article->version }}</div>
+                        </div>
+                    @endif
+                    @if($article->doc_code)
+                        <div class="info-item">
+                            <div class="label">Kode Dokumen</div>
+                            <div class="value">{{ $article->doc_code }}</div>
+                        </div>
+                    @endif
+                    @if($article->estimated_read_time)
+                        <div class="info-item">
+                            <div class="label">Estimasi Baca</div>
+                            <div class="value">{{ $article->estimated_read_time }} menit</div>
+                        </div>
+                    @endif
+                    @if($article->language)
+                        <div class="info-item">
+                            <div class="label">Bahasa</div>
+                            <div class="value">{{ $article->language == 'id' ? 'Indonesia' : 'English' }}</div>
+                        </div>
+                    @endif
+                    @if($article->visibility)
+                        <div class="info-item">
+                            <div class="label">Visibilitas</div>
+                            <div class="value">{{ ucfirst($article->visibility) }}</div>
+                        </div>
+                    @endif
+                    @if($article->meta_keywords)
+                        <div class="info-item">
+                            <div class="label">Keyword SEO</div>
+                            <div class="value">{{ $article->meta_keywords }}</div>
+                        </div>
+                    @endif
+                    @if($article->meta_description)
+                        <div class="info-item">
+                            <div class="label">Meta Deskripsi</div>
+                            <div class="value">{{ $article->meta_description }}</div>
+                        </div>
+                    @endif
+                    @if($article->rating_avg)
+                        <div class="info-item">
+                            <div class="label">Rating</div>
+                            <div class="value">{{ number_format($article->rating_avg, 1) }} / 5 ({{ $article->rating_count ?? 0 }} suara)</div>
+                        </div>
+                    @endif
+                    @if($article->valid_from)
+                        <div class="info-item">
+                            <div class="label">Berlaku Mulai</div>
+                            <div class="value">{{ \Carbon\Carbon::parse($article->valid_from)->isoFormat('D MMMM YYYY') }}</div>
+                        </div>
+                    @endif
+                    @if($article->valid_until)
+                        <div class="info-item">
+                            <div class="label">Berlaku Sampai</div>
+                            <div class="value">{{ \Carbon\Carbon::parse($article->valid_until)->isoFormat('D MMMM YYYY') }}</div>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Tags -->
+                @if(!empty($tags))
+                    <div class="mb-3">
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider mr-2">🏷️ Tags:</span>
+                        @foreach($tags as $tag)
+                            <span class="tag-badge">{{ $tag }}</span>
+                        @endforeach
+                    </div>
+                @endif
+
+                <!-- Relations -->
+                @if(!empty($relations))
+                    <div class="mb-3">
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider mr-2">🔗 Relasi:</span>
+                        @foreach($relations as $rel)
+                            <span class="relation-chip">{{ $rel }}</span>
+                        @endforeach
+                    </div>
+                @endif
+
+                <!-- Thumbnail -->
+                @if($article->thumbnail)
+                    <div class="mb-3">
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">🖼️ Thumbnail</span>
+                        <img src="{{ asset('storage/' . $article->thumbnail) }}" alt="Thumbnail" class="max-w-xs max-h-48 rounded-lg border border-gray-200 shadow-sm">
+                    </div>
+                @endif
+
+                <!-- ============================================== -->
+                <!-- ✅ LAMPIRAN / ATTACHMENTS (DIPERBAIKI)          -->
+                <!-- ============================================== -->
+                @if(!empty($attachments))
+                    <div class="mt-3">
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">📎 Lampiran ({{ count($attachments) }})</span>
+                        <div class="space-y-1">
+                            @foreach($attachments as $file)
+                                @php
+                                    $fileSize = \Storage::disk('public')->exists($file) ? round(\Storage::disk('public')->size($file) / 1024) : 0;
+                                @endphp
+                                <div class="attachment-item">
+                                    <a href="{{ asset('storage/' . $file) }}" target="_blank">
+                                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                        <span class="truncate">{{ basename($file) }}</span>
+                                    </a>
+                                    <span class="text-xs text-gray-400 flex-shrink-0">{{ $fileSize }} KB</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
+            @endif
+
+            <!-- ============================================== -->
+            <!-- KOMENTAR (Deep Reply + AJAX)                    -->
             <!-- ============================================== -->
             <section id="comment-section" class="mt-12 pt-8 border-t border-gray-200">
                 <div class="flex items-center justify-between mb-6">
@@ -233,7 +473,6 @@
                 @auth
                 <!-- Form Komentar Utama -->
                 <div class="flex flex-col sm:flex-row gap-4 mb-8">
-                    {{-- ✅ PERBAIKAN 2: Gunakan optional() untuk Auth user di Form Komentar Utama --}}
                     <img src="{{ optional(Auth::user())->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(optional(Auth::user())->name ?? 'Guest') . '&background=f3f4f6' }}" class="w-10 h-10 rounded-full flex-shrink-0 border border-gray-200">
                     <div class="flex-1 flex flex-col gap-3">
                         <textarea id="comment-input" placeholder="Tulis komentar Anda..." class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent transition-all duration-300 h-20 bg-white shadow-sm"></textarea>
@@ -264,7 +503,7 @@
                             
                             <div id="comment-content-{{ $comment->id }}" class="text-sm text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-xl border border-gray-100">{{ $comment->content }}</div>
                             
-                            <!-- Form Edit Komentar Utama -->
+                            <!-- Form Edit -->
                             <div id="edit-form-container-{{ $comment->id }}" class="hidden mt-2">
                                 <textarea id="edit-input-{{ $comment->id }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent h-20 bg-white shadow-sm">{{ $comment->content }}</textarea>
                                 <div class="flex gap-2 mt-2 justify-end">
@@ -288,7 +527,6 @@
                             <!-- Form Balasan untuk Komentar Utama -->
                             <div id="reply-form-container-{{ $comment->id }}" class="hidden mt-3 pl-4">
                                 <div class="flex gap-3">
-                                    {{-- ✅ PERBAIKAN 3: Gunakan optional() untuk Auth user di Form Balasan (Baris 289 dulu) --}}
                                     <img src="{{ optional(Auth::user())->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(optional(Auth::user())->name ?? 'Guest') . '&background=f3f4f6' }}" class="w-8 h-8 rounded-full flex-shrink-0 border border-gray-200">
                                     <div class="flex-1 flex gap-2">
                                         <input type="text" id="reply-input-{{ $comment->id }}" placeholder="Tulis balasan..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-all duration-300">
@@ -299,7 +537,7 @@
                             </div>
 
                             <!-- ================================================== -->
-                            <!-- BALASAN LEVEL 1 (Replies) -->
+                            <!-- BALASAN LEVEL 1 (Replies)                        -->
                             <!-- ================================================== -->
                             @if($comment->replies->count() > 0)
                             <div class="mt-3 pl-4 border-l-2 border-gray-200 space-y-4">
@@ -344,7 +582,7 @@
                                         <!-- Form Balasan untuk Reply Level 1 -->
                                         <div id="reply-form-container-{{ $reply->id }}" class="hidden mt-2">
                                             <div class="flex gap-3">
-                                                <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name ?? 'Guest') . '&background=f3f4f6' }}" class="w-6 h-6 rounded-full flex-shrink-0 border border-gray-200">
+                                                <img src="{{ optional(Auth::user())->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(optional(Auth::user())->name ?? 'Guest') . '&background=f3f4f6' }}" class="w-6 h-6 rounded-full flex-shrink-0 border border-gray-200">
                                                 <div class="flex-1 flex gap-2">
                                                     <input type="text" id="reply-input-{{ $reply->id }}" placeholder="Tulis balasan..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-all duration-300">
                                                     <button onclick="submitReply({{ $reply->id }}, {{ $article->id }})" class="bg-navy hover:bg-gray-800 text-white text-xs font-medium px-4 py-2 rounded-lg transition-all duration-300">Kirim</button>
@@ -354,7 +592,7 @@
                                         </div>
 
                                         <!-- ================================================== -->
-                                        <!-- ✅ DEEP REPLY LEVEL 2 (Balasan dari Balasan) -->
+                                        <!-- DEEP REPLY LEVEL 2 (Balasan dari Balasan)         -->
                                         <!-- ================================================== -->
                                         @if($reply->replies->count() > 0)
                                         <div class="mt-2 pl-4 border-l-2 border-gray-200 space-y-2">
@@ -399,7 +637,7 @@
                                                     <!-- Form Balasan Deep Reply -->
                                                     <div id="reply-form-container-{{ $deepReply->id }}" class="hidden mt-2">
                                                         <div class="flex gap-3">
-                                                            <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name ?? 'Guest') . '&background=f3f4f6' }}" class="w-6 h-6 rounded-full flex-shrink-0 border border-gray-200">
+                                                            <img src="{{ optional(Auth::user())->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(optional(Auth::user())->name ?? 'Guest') . '&background=f3f4f6' }}" class="w-6 h-6 rounded-full flex-shrink-0 border border-gray-200">
                                                             <div class="flex-1 flex gap-2">
                                                                 <input type="text" id="reply-input-{{ $deepReply->id }}" placeholder="Tulis balasan..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-all duration-300">
                                                                 <button onclick="submitReply({{ $deepReply->id }}, {{ $article->id }})" class="bg-navy hover:bg-gray-800 text-white text-xs font-medium px-4 py-2 rounded-lg transition-all duration-300">Kirim</button>
@@ -431,7 +669,7 @@
 
         </main>
 
-        <!-- RIGHT COLUMN -->
+        <!-- ========== RIGHT SIDEBAR ========== -->
         <aside id="right-sidebar" class="w-full lg:w-1/3 xl:w-[30%]">
             <div class="sticky top-24 space-y-6">
                 <div class="flex flex-col gap-3">
@@ -488,12 +726,9 @@
         </aside>
     </div>
 
-    <!-- ============================================ -->
-    <!-- ✨ MODAL FEEDBACK (SAAT KELUAR HALAMAN)        -->
-    <!-- ============================================ -->
+    <!-- ========== MODAL FEEDBACK ========== -->
     <div id="feedback-modal" class="fixed inset-0 z-[9999] hidden bg-gray-900/70 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden transform scale-95 transition-transform duration-300" id="feedback-modal-box">
-            <!-- Header Modal -->
             <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-5 text-white relative">
                 <button onclick="closeFeedbackModal(false)" class="absolute top-4 right-4 hover:bg-white/20 rounded-full p-1 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -505,7 +740,6 @@
                 <p class="text-sm text-indigo-100 mt-1">Pendapat Anda sangat berarti untuk pengembangan artikel ini.</p>
             </div>
 
-            <!-- Body Modal -->
             <div class="p-6 space-y-5">
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">Seberapa puas Anda dengan artikel ini?</label>
@@ -533,7 +767,6 @@
                 </div>
             </div>
 
-            <!-- Footer Modal -->
             <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-end gap-3">
                 <button onclick="closeFeedbackModal(false)" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                     Nanti Saja
@@ -546,7 +779,7 @@
         </div>
     </div>
 
-    <!-- FOOTER (Tetap sama) -->
+    <!-- ========== FOOTER ========== -->
     <footer id="footer" class="bg-[#0B1120] text-white py-16 mt-12 border-t border-gray-800">
         <div class="max-w-[1400px] mx-auto px-8 grid grid-cols-1 md:grid-cols-4 gap-12">
             <div class="col-span-1">
@@ -585,10 +818,10 @@
         </div>
     </footer>
 
-    <!-- SCRIPT INTERAKTIF -->
+    <!-- ========== SCRIPT ========== -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // ========== SHARE COPY LINK ==========
+            // ===== SHARE COPY LINK =====
             window.copyShareLink = function() {
                 const input = document.getElementById('share-url-input');
                 if(input) {
@@ -604,28 +837,39 @@
                 }
             }
 
-            // ========== RATING AJAX ==========
+            // ===== RATING AJAX =====
             window.submitRating = function(articleId, rating) {
                 fetch(`/document/${articleId}/rate`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
                     body: JSON.stringify({ rating: rating })
                 })
                 .then(res => res.json())
                 .then(data => {
-                    if(data.success) {
+                    if (data.success) {
                         const stars = document.querySelectorAll('.star-rating');
                         stars.forEach(s => {
                             const val = parseInt(s.getAttribute('data-value'));
-                            if(val <= rating) { s.classList.add('text-yellow-400'); s.classList.remove('text-gray-300'); s.textContent = '★'; } 
-                            else { s.classList.remove('text-yellow-400'); s.classList.add('text-gray-300'); s.textContent = '☆'; }
+                            if (val <= rating) {
+                                s.classList.add('text-yellow-400');
+                                s.classList.remove('text-gray-300');
+                                s.textContent = '★';
+                            } else {
+                                s.classList.remove('text-yellow-400');
+                                s.classList.add('text-gray-300');
+                                s.textContent = '☆';
+                            }
                         });
                         document.getElementById('rating-text').textContent = `(${data.avg})`;
                     }
-                });
+                })
+                .catch(err => console.error('Rating error:', err));
             }
 
-            // ========== LIKE ARTIKEL AJAX ==========
+            // ===== LIKE ARTIKEL =====
             window.toggleLike = function(articleId) {
                 fetch(`/document/${articleId}/like`, {
                     method: 'POST',
@@ -648,7 +892,7 @@
                 });
             }
 
-            // ========== BOOKMARK AJAX ==========
+            // ===== BOOKMARK =====
             window.toggleBookmark = function(articleId) {
                 fetch(`/document/${articleId}/bookmark`, {
                     method: 'POST',
@@ -672,7 +916,7 @@
                 });
             }
 
-            // ========== KOMENTAR: LIKE/UNLIKE COMMENT ==========
+            // ===== LIKE KOMENTAR =====
             window.handleLike = function(commentId) {
                 fetch(`/comments/${commentId}/like`, {
                     method: 'POST',
@@ -695,7 +939,7 @@
                 });
             }
 
-            // ========== TOGGLE REPLY FORM ==========
+            // ===== TOGGLE REPLY FORM =====
             window.toggleReplyForm = function(commentId, targetUsername) {
                 const container = document.getElementById(`reply-form-container-${commentId}`);
                 container.classList.toggle('hidden');
@@ -708,7 +952,7 @@
                 }
             }
 
-            // ========== SUBMIT REPLY ==========
+            // ===== SUBMIT REPLY =====
             window.submitReply = function(parentId, articleId) {
                 const input = document.getElementById(`reply-input-${parentId}`);
                 if(!input) return;
@@ -728,7 +972,7 @@
                 .catch(error => console.error('Error:', error));
             }
 
-            // ========== SUBMIT MAIN COMMENT ==========
+            // ===== SUBMIT MAIN COMMENT =====
             const mainSubmitBtn = document.getElementById('btn-submit-comment');
             const mainInput = document.getElementById('comment-input');
             if(mainSubmitBtn) {
@@ -749,7 +993,7 @@
                 });
             }
 
-            // ========== TOGGLE EDIT ==========
+            // ===== TOGGLE EDIT =====
             window.toggleEdit = function(commentId) {
                 const contentDiv = document.getElementById(`comment-content-${commentId}`);
                 const editForm = document.getElementById(`edit-form-container-${commentId}`);
@@ -762,7 +1006,7 @@
                 }
             }
 
-            // ========== BATAL EDIT ==========
+            // ===== BATAL EDIT =====
             window.cancelEdit = function(commentId) {
                 const contentDiv = document.getElementById(`comment-content-${commentId}`);
                 const editForm = document.getElementById(`edit-form-container-${commentId}`);
@@ -770,7 +1014,7 @@
                 editForm.classList.add('hidden');
             }
 
-            // ========== SUBMIT EDIT ==========
+            // ===== SUBMIT EDIT =====
             window.submitEdit = function(commentId) {
                 const input = document.getElementById(`edit-input-${commentId}`);
                 const content = input.value.trim();
@@ -796,7 +1040,7 @@
                 .catch(error => console.error('Error:', error));
             }
 
-            // ========== DELETE COMMENT ==========
+            // ===== DELETE COMMENT =====
             window.deleteComment = function(commentId) {
                 if (confirm('Apakah Anda yakin ingin menghapus komentar ini?')) {
                     fetch(`/comments/${commentId}`, {
@@ -813,27 +1057,22 @@
             }
 
             // ============================================================
-            // ✨ FITUR BARU: LOGIKA MODAL FEEDBACK (HANYA UNTUK USER LOGIN)
+            // MODAL FEEDBACK (HANYA UNTUK USER LOGIN)
             // ============================================================
             @auth
             const articleId = {{ $article->id }};
             const feedbackKeyShown = 'feedback_shown_' + articleId;
             const feedbackKeySubmitted = 'feedback_submitted_' + articleId;
 
-            // Cek jika sudah pernah submit, jangan munculkan lagi
             if (!localStorage.getItem(feedbackKeySubmitted)) {
-                // Tangkap semua klik link di halaman
                 const allLinks = document.querySelectorAll('a');
                 let pendingUrl = null;
 
                 allLinks.forEach(link => {
                     link.addEventListener('click', function(e) {
-                        // Jika modal sudah pernah ditampilkan, abaikan
                         if (localStorage.getItem(feedbackKeyShown)) {
                             return;
                         }
-
-                        // Cegah navigasi, tampilkan modal
                         e.preventDefault();
                         pendingUrl = this.href;
                         openFeedbackModal();
@@ -871,7 +1110,7 @@
                     }, 300);
                 }
 
-                // Logic Rating Bintang
+                // Rating bintang
                 const stars = document.querySelectorAll('#star-rating span');
                 const ratingInput = document.getElementById('feedback-rating');
                 const ratingText = document.getElementById('rating-text');
@@ -881,7 +1120,6 @@
                         const val = parseInt(this.getAttribute('data-value'));
                         ratingInput.value = val;
                         updateStars(val);
-                        
                         const labels = ['', 'Sangat Buruk', 'Buruk', 'Cukup', 'Baik', 'Sangat Baik'];
                         ratingText.textContent = labels[val];
                     });
@@ -910,7 +1148,7 @@
                     });
                 }
 
-                // Submit Feedback via AJAX
+                // Submit feedback
                 window.submitFeedback = function() {
                     const rating = parseInt(ratingInput.value);
                     if (rating === 0) {
@@ -935,7 +1173,6 @@
                     .then(data => {
                         if (data.status === 'success') {
                             localStorage.setItem(feedbackKeySubmitted, 'true');
-                            // Toast sukses sederhana
                             const toast = document.createElement('div');
                             toast.className = 'fixed bottom-5 right-5 z-[9999] bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300';
                             toast.innerHTML = '<span class="font-bold">Terima kasih!</span> Feedback Anda telah dikirim.';

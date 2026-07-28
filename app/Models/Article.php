@@ -6,12 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
-use Spatie\Activitylog\Traits\LogsActivity; // Tambahan dari teman
-use Spatie\Activitylog\LogOptions; // Tambahan dari teman
 
 class Article extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         // ── Kolom Asli Milikmu & Kombinasi Frontend/Backend Teman ──
@@ -19,6 +17,7 @@ class Article extends Model
         'category_id', // Tambahan
         'category',
         'subcategory',
+        'subcategory_id',
         'opd_id', // Tambahan
         'opd_unit',
         'tags',
@@ -84,16 +83,6 @@ class Article extends Model
             'valid_from'          => 'date',
             'valid_until'         => 'date'
         ];
-    }
-
-    // ========== ACTIVITY LOG ==========
-
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logOnly(['title', 'status', 'visibility', 'version'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
     }
 
     // ========== RELATIONSHIPS ==========

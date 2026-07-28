@@ -24,6 +24,9 @@ use App\Http\Controllers\AdminSearchLogController;
 use App\Http\Controllers\AdminSettingsController;
 use App\Http\Controllers\AdminFeedbackController;
 use App\Http\Controllers\AdminAnalyticsController;
+use App\Http\Controllers\AdminCategoryController;
+use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\PortalController;
 
 // ✅ Tambahkan import UserProfileController
 use App\Http\Controllers\UserProfileController;
@@ -41,7 +44,10 @@ use Illuminate\Http\Request;
 */
 Route::get('/', [HomeController::class, 'index'])->name('home.public');
 Route::get('/knowledge-base', [KnowledgeBaseController::class, 'index'])->name('knowledge-base');
-Route::get('/document/sop-siber', function () { return view('document-detail'); });
+Route::get('/document/sop-siber', function () {
+    return view('document-detail');
+});
+Route::get('/portal', [PortalController::class, 'index'])->name('portal');
 
 // ✨ TAMBAHAN: Detail dokumen dinamis berdasarkan slug (dari web.php teman)
 Route::get('/document/{slug}', [DocumentController::class, 'show'])->name('document.detail');
@@ -97,21 +103,42 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
 */
 Route::get('/dashboard', function () {
     $user = auth()->user();
-    if ($user->role === 'admin') {
+    $roleName = $user->role;
+
+    if ($roleName === 'admin') {
         return redirect()->to('/admin/dashboard');
     }
-    if ($user->role === 'staff') {
+    if ($roleName === 'staff') {
         return redirect()->to('/staff/dashboard');
     }
-    return redirect()->to('/user/profil');
-})->middleware('auth')->name('dashboard');
+
+    return redirect()->route('home.public');
+})->middleware(['auth', 'verified.otp'])->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
 | Staff Routes (Peran staff)
 |--------------------------------------------------------------------------
 */
-Route::prefix('staff')->name('staff.')->middleware(['auth', 'role:staff', 'prevent.back'])->group(function () {
+$registerEditorRoutes = function () {
+    Route::get('/editor', [StaffEditorController::class, 'index'])->name('editor');
+    Route::post('/editor', [StaffEditorController::class, 'store'])->name('editor.store');
+    Route::post('/editor/upload-image', [StaffEditorController::class, 'uploadImage'])->name('editor.upload.image');
+    Route::post('/editor/upload-attachment', [StaffEditorController::class, 'uploadAttachment'])->name('editor.upload.attachment');
+    Route::post('/editor/ai-assistant', [StaffEditorController::class, 'aiAssistant'])->name('editor.ai');
+    Route::post('/editor/autofill', [StaffEditorController::class, 'autoFillMetadata'])->name('editor.autofill');
+
+    Route::get('/editor/{id}', [StaffEditorController::class, 'edit'])->whereNumber('id')->name('editor.edit');
+    Route::post('/editor/{id}', [StaffEditorController::class, 'update'])->whereNumber('id')->name('editor.update');
+    Route::post('/editor/{id}/submit', [StaffEditorController::class, 'submitApproval'])->whereNumber('id')->name('editor.submit');
+};
+
+/*
+|--------------------------------------------------------------------------
+| STAFF ROUTES (Middleware role:staff)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('staff')->name('staff.')->middleware(['auth', 'verified.otp', 'role:staff'])->group(function () use ($registerEditorRoutes) {
     Route::get('/dashboard', [StaffDashboardController::class, 'index'])->name('dashboard');
 
     // Artikel & Manajemen
@@ -150,18 +177,7 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'role:staff', 'preve
     | EDITOR ROUTES — Urutan sangat penting!
     |--------------------------------------------------------------------------
     */
-    Route::get('/editor', [StaffEditorController::class, 'index'])->name('editor');
-    Route::post('/editor', [StaffEditorController::class, 'store'])->name('editor.store');
-    Route::post('/editor/upload-image', [StaffEditorController::class, 'uploadImage'])->name('editor.upload.image');
-    Route::post('/editor/upload-attachment', [StaffEditorController::class, 'uploadAttachment'])->name('editor.upload.attachment');
-    Route::post('/editor/ai-assistant', [StaffEditorController::class, 'aiAssistant'])->name('editor.ai');
-
-    // ✨ TAMBAHAN: Auto-fill metadata artikel pakai AI (dari web.php teman)
-    Route::post('/editor/autofill', [StaffEditorController::class, 'autoFillMetadata'])->name('editor.autofill');
-
-    Route::get('/editor/{id}', [StaffEditorController::class, 'edit'])->whereNumber('id')->name('editor.edit');
-    Route::post('/editor/{id}', [StaffEditorController::class, 'update'])->whereNumber('id')->name('editor.update');
-    Route::post('/editor/{id}/submit', [StaffEditorController::class, 'submitApproval'])->whereNumber('id')->name('editor.submit');
+    $registerEditorRoutes();
 
     // Profil
     Route::get('/profile', [StaffProfileController::class, 'index'])->name('profile');
@@ -178,14 +194,43 @@ Route::any('/test-connection', function() {
 | Admin Routes (Peran admin)
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin', 'prevent.back'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified.otp', 'role:admin'])->group(function () use ($registerEditorRoutes) {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+    // --- 1. Manajemen Artikel (dengan status filter) ---
     Route::get('/all-articles/{status?}', [AdminArticleController::class, 'index'])->name('all-articles');
     Route::get('/pending-approval', [AdminArticleController::class, 'index'])->defaults('status', 'pending')->name('pending-approval');
+    Route::get('/draft', [AdminArticleController::class, 'index'])->defaults('status', 'draft')->name('draft');
+    Route::get('/revision', [AdminArticleController::class, 'index'])->defaults('status', 'revision')->name('revision');
+    Route::get('/published', [AdminArticleController::class, 'index'])->defaults('status', 'published')->name('published');
+    Route::get('/archive', [AdminArticleController::class, 'archived'])->name('archive');
+    Route::get('/delete', [AdminArticleController::class, 'deleted'])->name('delete');
+
+    // --- 2. CRUD & Aksi Artikel ---
+    Route::get('/article/create', [AdminArticleController::class, 'create'])->name('article.create');
+    Route::post('/article/store', [AdminArticleController::class, 'store'])->name('article.store');
+    Route::post('/articles/upload-attachment', [AdminArticleController::class, 'uploadAttachment'])->name('article.uploadAttachment');
+    Route::post('/articles/autofill', [AdminArticleController::class, 'autoFillMetadata'])->name('article.autofill');
+    Route::post('/articles/ai-assistant', [AdminArticleController::class, 'aiAssistant'])->name('article.ai');
+    
+    Route::get('/all-articles/{id}/edit', [AdminArticleController::class, 'edit'])->name('all-articles.edit');
+    Route::put('/all-articles/{id}', [AdminArticleController::class, 'update'])->name('all-articles.update');
+    Route::delete('/all-articles/{id}', [AdminArticleController::class, 'destroy'])->name('articles.destroy');
+    
     Route::post('/articles/approve/{id}', [AdminArticleController::class, 'approve'])->name('articles.approve');
     Route::post('/articles/reject/{id}', [AdminArticleController::class, 'reject'])->name('articles.reject');
-    Route::delete('/articles/{id}', [AdminArticleController::class, 'destroy'])->name('articles.destroy');
-    
+    Route::post('/articles/archive/{id}', [AdminArticleController::class, 'archive'])->name('articles.archive');
+    Route::post('/articles/duplicate/{id}', [AdminArticleController::class, 'duplicate'])->name('articles.duplicate');
+    Route::post('/articles/revision/{id}', [AdminArticleController::class, 'revision'])->name('articles.revision');
+    Route::get('/articles/view/{id}', [AdminArticleController::class, 'show'])->name('articles.show');
+    Route::get('/articles/history/{id}', [AdminArticleController::class, 'history'])->name('articles.history');
+    Route::get('/articles/json/{id}', [AdminArticleController::class, 'getArticleJson'])->name('articles.json');
+
+    // Restore & Force Delete
+    Route::match(['get', 'post'], '/articles/restore/{id}', [AdminArticleController::class, 'restore'])->name('articles.restore');
+    Route::delete('/articles/force-delete/{id}', [AdminArticleController::class, 'forceDelete'])->name('articles.forceDelete');
+
+    // --- 3. Backup & Restore ---
     Route::get('/backup', [AdminBackupController::class, 'index'])->name('backup');
     Route::post('/backup/store', [AdminBackupController::class, 'store'])->name('backup.store');
     Route::post('/backup/schedule', [AdminBackupController::class, 'updateSchedule'])->name('backup.schedule');
@@ -193,95 +238,70 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin', 'preve
     Route::post('/backup/restore/{id}', [AdminBackupController::class, 'restore'])->name('backup.restore');
     Route::post('/backup/upload-restore', [AdminBackupController::class, 'uploadRestore'])->name('backup.uploadRestore');
 
-    Route::view('/users', 'admin-users')->name('users');
-    Route::view('/reports', 'admin-reports')->name('reports');
-    Route::view('/editor', 'admin-editor')->name('editor');
-    Route::get('/draft', [AdminArticleController::class, 'draft'])->name('draft');
-    Route::view('/revision', 'admin-revision')->name('revision');
-    Route::post('/articles/{id}/submit', [ArticleController::class, 'submit'])->name('article.submit');
-    Route::get('/published', [AdminArticleController::class, 'published'])->name('published');
-    Route::get('/archive', [AdminArticleController::class, 'archived'])->name('archive');
-    Route::get('/delete', [AdminArticleController::class, 'deleted'])->name('delete');
+    // --- 4. Manajemen User & Role ---
+    Route::get('/users', [AdminUserController::class, 'index'])->name('users');
+    Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
+    Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+    Route::post('/users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('users.toggleStatus');
+    Route::post('/users/{user}/reset-password', [AdminUserController::class, 'resetPassword'])->name('users.resetPassword');
     
-    // Tambahkan juga route ini agar tombol Restore & Force Delete di halaman Archive/Delete tidak error
-    Route::post('/articles/restore/{id}', [AdminArticleController::class, 'restore'])->name('articles.restore');
-    Route::delete('/articles/force-delete/{id}', [AdminArticleController::class, 'forceDelete'])->name('articles.forceDelete');
+    // Role & Permissions (Jika menggunakan Spatie)
+    Route::post('/roles', [AdminUserController::class, 'storeRole'])->name('roles.store');
+    Route::get('/roles/{role}/edit', [AdminUserController::class, 'editRole'])->name('roles.edit');
+    Route::put('/roles/{role}', [AdminUserController::class, 'updateRole'])->name('roles.update');
+    Route::delete('/roles/{role}', [AdminUserController::class, 'destroyRole'])->name('roles.destroy');
+    Route::post('/permissions/toggle', [AdminUserController::class, 'togglePermission'])->name('permissions.toggle');
 
+    // --- 5. Laporan & Analytics ---
+    Route::get('/analytics', [AdminAnalyticsController::class, 'index'])->name('analytics');
+    Route::view('/reports', 'admin-reports')->name('reports');
+
+    // --- 6. Feedback ---
+    Route::get('/feedback', [AdminFeedbackController::class, 'index'])->name('feedback');
+    Route::post('/feedback/{id}/update', [AdminFeedbackController::class, 'update'])->name('feedback.update');
+    Route::put('/feedback/{id}/status', [AdminFeedbackController::class, 'updateStatus'])->name('feedback.updateStatus');
+    Route::delete('/feedback/{id}', [AdminFeedbackController::class, 'destroy'])->name('feedback.destroy');
+
+    // --- 7. Notifikasi ---
     Route::get('/notification', [AdminNotificationController::class, 'index'])->name('notification');
     Route::post('/notification/read-all', [AdminNotificationController::class, 'markAllAsRead'])->name('notification.readAll');
     Route::post('/notification/{id}/read', [AdminNotificationController::class, 'markAsRead'])->name('notification.read');
     Route::delete('/notification/{id}', [AdminNotificationController::class, 'destroy'])->name('notification.destroy');
 
+    // --- 8. Log Aktivitas & Pencarian ---
     Route::get('/activity', [AdminActivityLogController::class, 'index'])->name('activity');
     Route::get('/activity/export-pdf', [AdminActivityLogController::class, 'exportPdf'])->name('activity.exportPdf');
     Route::get('/activity/export-excel', [AdminActivityLogController::class, 'exportExcel'])->name('activity.exportExcel');
+    Route::get('/searchlog', [AdminSearchLogController::class, 'index'])->name('searchlog');
+    Route::post('/searchlog/assign', [AdminSearchLogController::class, 'assign'])->name('searchlog.assign');
 
+    // --- 9. Storage Management ---
     Route::get('/storage', [AdminStorageController::class, 'index'])->name('storage');
     Route::post('/storage/delete', [AdminStorageController::class, 'deleteFile'])->name('storage.delete');
     Route::post('/storage/cleanup', [AdminStorageController::class, 'cleanup'])->name('storage.cleanup');
 
-    Route::get('/searchlog', [AdminSearchLogController::class, 'index'])->name('searchlog');
-    Route::post('/searchlog/assign', [AdminSearchLogController::class, 'assign'])->name('searchlog.assign');
-
-    // Settings
+    // --- 10. Pengaturan Sistem ---
     Route::get('/settings', [AdminSettingsController::class, 'index'])->name('settings');
     Route::post('/settings', [AdminSettingsController::class, 'update'])->name('settings.update');
 
-    //Route::view('/category', 'admin-category')->name('category');
-    Route::get('/category', [App\Http\Controllers\AdminCategoryController::class, 'index'])->name('category');
-    Route::post('/category', [App\Http\Controllers\AdminCategoryController::class, 'store'])->name('category.store');
-    Route::put('/category/{id}', [App\Http\Controllers\AdminCategoryController::class, 'update'])->name('category.update');
-    Route::delete('/category/{id}', [App\Http\Controllers\AdminCategoryController::class, 'destroy'])->name('category.destroy');
+    // --- 11. Manajemen Kategori & Subkategori ---
+    Route::get('/category', [AdminCategoryController::class, 'index'])->name('category');
+    Route::post('/category', [AdminCategoryController::class, 'store'])->name('category.store');
+    Route::put('/category/{category}', [AdminCategoryController::class, 'update'])->name('category.update');
+    Route::delete('/category/{category}', [AdminCategoryController::class, 'destroy'])->name('category.destroy');
+    Route::post('/category/{category}/subcategory', [AdminCategoryController::class, 'storeSubcategory'])->name('category.subcategory.store');
+    Route::put('/subcategory/{subcategory}', [AdminCategoryController::class, 'updateSubcategory'])->name('subcategory.update');
+    Route::delete('/subcategory/{subcategory}', [AdminCategoryController::class, 'destroySubcategory'])->name('subcategory.destroy');
 
-    Route::post('/admin/subcategory', [App\Http\Controllers\AdminSubcategoryController::class, 'store'])->name('admin.subcategory.store');
-    Route::delete('/admin/subcategory/{id}', [App\Http\Controllers\AdminSubcategoryController::class, 'destroy'])->name('admin.subcategory.destroy');
-
-    Route::get('/feedback', [AdminFeedbackController::class, 'index'])->name('feedback');
-    Route::put('/feedback/{id}/status', [AdminFeedbackController::class, 'updateStatus'])->name('feedback.updateStatus');
-
-    Route::get('/analytics', [AdminAnalyticsController::class, 'index'])
-    ->name('analytics');
-
-    // Route CRUD untuk User Management
-    Route::resource('users', App\Http\Controllers\AdminUserController::class);
-
-    // ================================================================
-    // ✨ TAMBAHAN BARU (hasil sinkronisasi dengan web.php teman)
-    // Semua route di bawah ini pakai path/nama baru sehingga TIDAK
-    // bentrok dengan route lama di atas. Route lama tidak diubah.
-    // ================================================================
-
-    // --- Aksi tambahan Artikel (Admin) ---
-    Route::get('/article/create', [AdminArticleController::class, 'create'])->name('article.create');
-    Route::post('/article/store', [AdminArticleController::class, 'store'])->name('article.store');
-    Route::get('/all-articles/{id}/edit', [AdminArticleController::class, 'edit'])->name('all-articles.edit');
-    Route::put('/all-articles/{id}', [AdminArticleController::class, 'update'])->name('all-articles.update');
-    Route::post('/articles/archive/{id}', [AdminArticleController::class, 'archive'])->name('articles.archive');
-    Route::post('/articles/duplicate/{id}', [AdminArticleController::class, 'duplicate'])->name('articles.duplicate');
-    Route::get('/articles/view/{id}', [AdminArticleController::class, 'show'])->name('articles.show');
-    Route::get('/articles/history/{id}', [AdminArticleController::class, 'history'])->name('articles.history');
-    Route::get('/articles/json/{id}', [AdminArticleController::class, 'getArticleJson'])->name('articles.json');
-    Route::post('/articles/revision/{id}', [AdminArticleController::class, 'revision'])->name('articles.revision');
-
-    // --- Aksi tambahan User & Role Management (Admin) ---
-    Route::post('/users/{user}/toggle-status', [App\Http\Controllers\AdminUserController::class, 'toggleStatus'])->name('users.toggleStatus');
-    Route::post('/users/{user}/reset-password', [App\Http\Controllers\AdminUserController::class, 'resetPassword'])->name('users.resetPassword');
-    Route::post('/roles', [App\Http\Controllers\AdminUserController::class, 'storeRole'])->name('roles.store');
-    Route::get('/roles/{role}/edit', [App\Http\Controllers\AdminUserController::class, 'editRole'])->name('roles.edit');
-    Route::put('/roles/{role}', [App\Http\Controllers\AdminUserController::class, 'updateRole'])->name('roles.update');
-    Route::delete('/roles/{role}', [App\Http\Controllers\AdminUserController::class, 'destroyRole'])->name('roles.destroy');
-    Route::post('/permissions/toggle', [App\Http\Controllers\AdminUserController::class, 'togglePermission'])->name('permissions.toggle');
-
-    // --- Aksi tambahan Subkategori (Admin) — path baru, tidak sentuh route subcategory lama ---
-    Route::post('/category/{category}/subcategory', [App\Http\Controllers\AdminSubcategoryController::class, 'store'])->name('category.subcategory.store');
-    Route::put('/subcategory/{subcategory}', [App\Http\Controllers\AdminSubcategoryController::class, 'update'])->name('subcategory.update');
-    Route::delete('/subcategory/{subcategory}', [App\Http\Controllers\AdminSubcategoryController::class, 'destroy'])->name('subcategory.destroy');
-
-    // --- Aksi tambahan Feedback (Admin) ---
-    Route::post('/feedback/{id}/update', [AdminFeedbackController::class, 'update'])->name('feedback.update');
-    Route::delete('/feedback/{id}', [AdminFeedbackController::class, 'destroy'])->name('feedback.destroy');
-
-    });
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN EDITOR ROUTES
+    |--------------------------------------------------------------------------
+    */
+    $registerEditorRoutes();
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -307,6 +327,10 @@ Route::prefix('user')->name('user.')->middleware(['auth', 'role:user', 'prevent.
     Route::post('/notifications/read-all', [UserProfileController::class, 'markAllNotificationsAsRead'])->name('notifications.readAll');
     Route::delete('/notifications/{id}', [UserProfileController::class, 'deleteNotification'])->name('notifications.delete');
     Route::delete('/notifications', [UserProfileController::class, 'clearNotifications'])->name('notifications.clear');
+
+    Route::get('/login-history', [UserProfileController::class, 'loginHistory'])->name('login.history');
+    Route::get('/active-devices', [UserProfileController::class, 'activeDevices'])->name('active.devices');
+    Route::post('/logout-all-devices', [UserProfileController::class, 'logoutAllDevices'])->name('logout.all');
 });
 
 /*
@@ -321,6 +345,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/document/{id}/feedback', [DocumentController::class, 'submitFeedback'])->name('document.feedback');
 });
 Route::get('/document/{id}/download-pdf', [DocumentController::class, 'downloadPdf'])->name('document.download-pdf');
+Route::get('/document/{id}/download', [DocumentController::class, 'downloadPdf'])->name('document.download');
 
 /*
 |--------------------------------------------------------------------------

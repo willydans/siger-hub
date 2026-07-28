@@ -9,15 +9,45 @@ use App\Models\Subcategory;
 use App\Models\Opd;
 use App\Models\Tag;
 use App\Models\User;
-use App\Models\Notification; 
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 
 class StaffEditorController extends Controller
 {
+    /**
+     * ✅ Menentukan apakah request ini datang dari area admin atau staff,
+     * berdasarkan PREFIX URL yang sedang diakses — bukan dari relasi
+     * $user->role yang bisa saja null/gagal dimuat. Ini aman karena
+     * middleware 'role:admin' / 'role:staff' di routes/web.php SUDAH
+     * memvalidasi role user sebelum request sampai ke controller ini;
+     * jadi kalau request lolos sampai sini dengan prefix /admin/*,
+     * user tersebut SUDAH PASTI admin.
+     */
+    private function isAdminContext(): bool
+    {
+        return request()->is('admin/*');
+    }
+
+    private function getViewPrefix(): string
+    {
+        return $this->isAdminContext() ? 'admin' : 'staff';
+    }
+
+    private function getRedirectRoute(): string
+    {
+        return $this->isAdminContext() ? 'admin.all-articles' : 'staff.articles';
+    }
+
+    private function getEditorEditRoute(): string
+    {
+        return $this->isAdminContext() ? 'admin.editor.edit' : 'staff.editor.edit';
+    }
+
     public function index()
     {
         $categories = Category::all();
@@ -25,57 +55,117 @@ class StaffEditorController extends Controller
         $opds = Opd::all();
         $tags = Tag::all();
 
-        return view('staff-editor', compact('categories', 'subcategories', 'opds', 'tags'));
+        $view = $this->getViewPrefix() . '-editor';
+        return view($view, compact('categories', 'subcategories', 'opds', 'tags'));
     }
 
     /**
-     * 📌 PERBAIKAN: Proteksi Edit. Jika status bukan 'draft', lempar ke halaman list.
+     * ✅ Menampilkan editor untuk mengedit artikel yang sudah ada.
+     * - Admin bisa membuka SEMUA artikel (tidak dibatasi user_id & status).
+     * - Staff hanya bisa membuka artikel MILIKNYA sendiri dan hanya status 'draft'/'revision'.
      */
     public function edit($id)
     {
-        $article = Article::where('user_id', auth()->id())->find($id);
+        $isAdmin = $this->isAdminContext();
+
+        $article = Article::find($id);
 
         if (!$article) {
-            return redirect()->route('staff.articles')->with('error', 'Artikel tidak ditemukan atau Anda tidak memiliki akses.');
+            Log::warning("Editor edit: artikel #{$id} tidak ditemukan di database.", [
+                'user_id'  => auth()->id(),
+                'is_admin' => $isAdmin,
+            ]);
+            return redirect()->route($this->getRedirectRoute())
+                ->with('error', "Artikel #{$id} tidak ditemukan (mungkin sudah dihapus).");
         }
 
-        // 🛑 Cegah akses edit jika sudah disubmit ke admin
-        if ($article->status !== 'draft') {
-            return redirect()->route('staff.articles')->with('error', 'Artikel sudah dikirim ke Admin untuk review. Anda tidak dapat mengeditnya saat ini.');
+        // Staff: hanya bisa edit artikel milik sendiri
+        if (!$isAdmin && (int) $article->user_id !== (int) auth()->id()) {
+            Log::warning("Editor edit: staff mencoba edit artikel milik user lain.", [
+                'article_id'      => $article->id,
+                'article_user_id' => $article->user_id,
+                'logged_in_user'  => auth()->id(),
+            ]);
+            return redirect()->route($this->getRedirectRoute())
+                ->with('error', 'Artikel ini bukan milik Anda, sehingga tidak bisa diedit.');
         }
+
+        // Staff: hanya status draft & revision yang boleh diedit
+        if (!$isAdmin && !in_array($article->status, ['draft', 'revision'])) {
+            Log::info("Editor edit: staff mencoba edit artikel status tidak diizinkan.", [
+                'article_id' => $article->id,
+                'status'     => $article->status,
+                'user_id'    => auth()->id(),
+            ]);
+            return redirect()->route($this->getRedirectRoute())
+                ->with('error', 'Artikel sedang dalam proses review Admin atau sudah dipublikasikan. Anda tidak dapat mengeditnya saat status ini.');
+        }
+
+        // ✅ Admin: bebas edit semua status (tidak ada pengecekan status)
 
         $categories = Category::all();
         $subcategories = Subcategory::all();
         $opds = Opd::all();
         $tags = Tag::all();
 
-        return view('staff-editor', compact('article', 'categories', 'subcategories', 'opds', 'tags'));
+        $view = $this->getViewPrefix() . '-editor';
+        return view($view, compact('article', 'categories', 'subcategories', 'opds', 'tags'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'title'       => 'required|string|max:255',
-            'category'    => 'required|string',
+            'category'    => 'required',
             'content'     => 'required|string|min:300',
             'thumbnail'   => 'required|file|mimes:jpg,jpeg,png,webp|max:10240',
         ]);
+
+        // 1. Resolve Category ID (Ubah teks kategori menjadi ID angka)
+        $categoryId = $request->category;
+        if (!empty($categoryId) && !is_numeric($categoryId)) {
+            $category = Category::firstOrCreate(
+                ['name' => $categoryId],
+                ['slug' => Str::slug($categoryId)]
+            );
+            $categoryId = $category->id;
+        }
+
+        // 2. Resolve Subcategory ID (Ubah teks subkategori menjadi ID angka)
+        $subcategoryId = $request->subcategory;
+        if (!empty($subcategoryId) && !is_numeric($subcategoryId)) {
+            $subcategory = Subcategory::firstOrCreate(
+                ['name' => $subcategoryId, 'category_id' => $categoryId],
+                ['slug' => Str::slug($subcategoryId)]
+            );
+            $subcategoryId = $subcategory->id;
+        }
+
+        // 3. Resolve OPD ID (Ubah teks OPD menjadi ID angka)
+        $opdId = $request->opd_unit;
+        if (!empty($opdId) && !is_numeric($opdId)) {
+            $opd = Opd::firstOrCreate(
+                ['name' => $opdId],
+                ['slug' => Str::slug($opdId)]
+            );
+            $opdId = $opd->id;
+        }
 
         $data = [
             'user_id' => auth()->id(),
             'title' => $request->title,
             'slug' => $this->generateUniqueSlug($request->title),
             'content' => $request->content,
-            'category_id' => $request->category,
-            'subcategory_id' => $request->subcategory,
-            'opd_id' => $request->opd_unit,
+            'category_id' => $categoryId,
+            'subcategory_id' => $subcategoryId,
+            'opd_id' => $opdId,
             'tags_json' => $request->tags ? json_encode(explode(',', $request->tags)) : null,
             'visibility' => $request->visibility ?? 'public',
             'keywords' => $request->meta_keywords,
             'meta_description' => $request->meta_description,
             'estimated_read_time' => $request->estimated_read_time,
             'language' => $request->language ?? 'id',
-            'version' => $request->version ?: '1.0',
+            'version' => $request->version ?? '1.0',
             'doc_code' => $request->doc_code,
             'valid_from' => $request->valid_from,
             'valid_until' => $request->valid_until,
@@ -102,42 +192,64 @@ class StaffEditorController extends Controller
             'user_agent' => $request->userAgent(),
         ]);
 
-        return redirect()->route('staff.editor.edit', $article->id)->with('success', 'Draft artikel berhasil disimpan!');
+        return redirect()->route($this->getEditorEditRoute(), $article->id)->with('success', 'Draft artikel berhasil disimpan!');
     }
 
-    /**
-     * 📌 PERBAIKAN: Proteksi Update. Jika status bukan 'draft', lempar ke halaman list.
-     */
     public function update(Request $request, $id)
     {
-        $article = Article::where('user_id', auth()->id())->findOrFail($id);
+        $isAdmin = $this->isAdminContext();
 
-        // 🛑 Cegah update jika sudah disubmit ke admin
-        if ($article->status !== 'draft') {
-            return redirect()->route('staff.articles')->with('error', 'Tidak dapat memperbarui artikel yang sudah dalam proses review Admin.');
+        $query = Article::query();
+        if (!$isAdmin) {
+            $query->where('user_id', auth()->id());
+        }
+        $article = $query->findOrFail($id);
+
+        if (!$isAdmin && !in_array($article->status, ['draft', 'revision'])) {
+            return redirect()->route($this->getRedirectRoute())
+                ->with('error', 'Tidak dapat memperbarui artikel yang sudah dalam proses review Admin atau sudah dipublikasikan.');
         }
 
         $request->validate([
             'title'       => 'required|string|max:255',
-            'category'    => 'required|string',
+            'category'    => 'required',
             'content'     => 'required|string|min:300',
             'thumbnail'   => 'file|mimes:jpg,jpeg,png,webp|max:10240',
         ]);
+
+        // Resolve ID untuk proses Update
+        $categoryId = $request->category;
+        if (!empty($categoryId) && !is_numeric($categoryId)) {
+            $category = Category::firstOrCreate(['name' => $categoryId], ['slug' => Str::slug($categoryId)]);
+            $categoryId = $category->id;
+        }
+
+        $subcategoryId = $request->subcategory;
+        if (!empty($subcategoryId) && !is_numeric($subcategoryId)) {
+            $subcategory = Subcategory::firstOrCreate(['name' => $subcategoryId, 'category_id' => $categoryId], ['slug' => Str::slug($subcategoryId)]);
+            $subcategoryId = $subcategory->id;
+        }
+
+        $opdId = $request->opd_unit;
+        if (!empty($opdId) && !is_numeric($opdId)) {
+            $opd = Opd::firstOrCreate(['name' => $opdId], ['slug' => Str::slug($opdId)]);
+            $opdId = $opd->id;
+        }
 
         $data = [
             'title' => $request->title,
             'slug' => $this->generateUniqueSlugForUpdate($request->title, $id),
             'content' => $request->content,
-            'category_id' => $request->category,
-            'subcategory_id' => $request->subcategory,
-            'opd_id' => $request->opd_unit,
+            'category_id' => $categoryId,
+            'subcategory_id' => $subcategoryId,
+            'opd_id' => $opdId,
             'tags_json' => $request->tags ? json_encode(explode(',', $request->tags)) : null,
             'visibility' => $request->visibility ?? 'public',
             'keywords' => $request->meta_keywords,
             'meta_description' => $request->meta_description,
             'estimated_read_time' => $request->estimated_read_time,
             'language' => $request->language ?? 'id',
-            'version' => $request->version ?: '1.0',
+            'version' => $request->version ?? '1.0',
             'doc_code' => $request->doc_code,
             'valid_from' => $request->valid_from,
             'valid_until' => $request->valid_until,
@@ -165,26 +277,41 @@ class StaffEditorController extends Controller
 
         return redirect()->back()->with('success', 'Artikel berhasil diperbarui!');
     }
-
     /**
-     * 📌 PERBAIKAN: Kirim Notifikasi menggunakan Model Notification Custom.
-     * Artikel berubah status menjadi 'pending'. Staff tidak bisa mengedit lagi.
+     * ✅ Kirim artikel ke admin untuk approval (status jadi 'pending').
+     * Berlaku sama untuk staff maupun admin yang menulis draft sendiri.
      */
     public function submitApproval($id)
     {
-        $article = Article::where('user_id', auth()->id())->where('status', 'draft')->findOrFail($id);
+        $isAdmin = $this->isAdminContext();
+
+        $query = Article::query();
+        if (!$isAdmin) {
+            $query->where('user_id', auth()->id());
+        }
+        $article = $query->where('status', 'draft')->findOrFail($id);
+
         $article->update(['status' => 'pending']);
 
-        // ✨ KIRIM NOTIFIKASI KE ADMIN
-        Notification::create([
-            'user_id'    => null, // Null = untuk semua Admin
-            'article_id' => $article->id,
-            'type'       => 'Approval',
-            'title'      => '📝 Draft Baru Dikirim untuk Review',
-            'message'    => 'Staff ' . auth()->user()->name . ' telah mengirimkan draft berjudul "' . $article->title . '" untuk diperiksa dan disetujui.',
-            'url'        => route('admin.pending-approval'), // Tautan ke halaman Pending Approval
-            'is_read'    => false,
-        ]);
+        $admins = User::whereHas('role', function ($q) {
+            $q->where('name', 'admin');
+        })->get();
+
+        foreach ($admins as $admin) {
+            if (class_exists(Notification::class)) {
+                Notification::create([
+                    'user_id'    => $admin->id,
+                    'article_id' => $article->id,
+                    'type'       => 'Approval',
+                    'title'      => '📝 Draft Baru Dikirim untuk Review',
+                    'message'    => auth()->user()->name . ' telah mengirimkan draft berjudul "' . $article->title . '" untuk diperiksa dan disetujui.',
+                    'url'        => route('admin.pending-approval'),
+                    'is_read'    => false,
+                ]);
+            } elseif (class_exists('\App\Notifications\ArticleSubmittedNotification')) {
+                $admin->notify(new \App\Notifications\ArticleSubmittedNotification($article, auth()->user()));
+            }
+        }
 
         UserActivity::create([
             'user_id'    => auth()->id(),
@@ -195,11 +322,12 @@ class StaffEditorController extends Controller
             'user_agent' => request()->userAgent(),
         ]);
 
-        // 🔄 Redirect kembali ke list artikel atau dashboard setelah submit
-        return redirect()->route('staff.articles')->with('success', 'Artikel berhasil dikirim ke Admin untuk review! Menunggu persetujuan.');
+        return redirect()->route($this->getRedirectRoute())
+            ->with('success', 'Artikel berhasil dikirim ke Admin untuk review! Menunggu persetujuan.');
     }
 
-    // ✅ FIX: field yang dikirim CKEditor namanya "upload", bukan "file".
+    // ========== UPLOAD METHODS ==========
+
     public function uploadImage(Request $request)
     {
         $request->validate([
@@ -217,7 +345,7 @@ class StaffEditorController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Upload Gambar CKEditor Gagal: ' . $e->getMessage());
+            Log::error('Upload Gambar CKEditor Gagal: ' . $e->getMessage());
             return response()->json(['error' => 'Gagal mengupload: ' . $e->getMessage()], 500);
         }
     }
@@ -235,6 +363,8 @@ class StaffEditorController extends Controller
         }
     }
 
+    // ========== AI ASSISTANT & METADATA ==========
+
     public function aiAssistant(Request $request)
     {
         $request->validate([
@@ -245,7 +375,7 @@ class StaffEditorController extends Controller
         $apiKey = env('GEMINI_API_KEY');
 
         if (!$apiKey) {
-            \Log::error('AI Assistant Gagal: GEMINI_API_KEY kosong');
+            Log::error('AI Assistant Gagal: GEMINI_API_KEY kosong');
             return response()->json(['result' => 'Error: GEMINI_API_KEY belum diatur di file .env'], 400);
         }
 
@@ -265,7 +395,7 @@ class StaffEditorController extends Controller
         $prompt = "Tugas: {$request->action}\n{$instruction}\n\nKonten Artikel:\n{$request->content}";
 
         try {
-            \Log::info('AI Request ke Google Gemini dimulai. Action: ' . $request->action);
+            Log::info('AI Request ke Google Gemini dimulai. Action: ' . $request->action);
 
             $response = Http::timeout(30)
                 ->post($url, [
@@ -286,7 +416,7 @@ class StaffEditorController extends Controller
                 ]);
 
             if (!$response->successful()) {
-                \Log::error('Google Gemini Response Error: ' . $response->body());
+                Log::error('Google Gemini Response Error: ' . $response->body());
                 $status = $response->status();
                 $body = $response->body();
 
@@ -304,11 +434,11 @@ class StaffEditorController extends Controller
 
             $result = $data['candidates'][0]['content']['parts'][0]['text'] ?? 'AI tidak memberikan respons.';
 
-            \Log::info('AI Request sukses.');
+            Log::info('AI Request sukses.');
             return response()->json(['result' => trim($result), 'action' => $request->action]);
 
         } catch (\Exception $e) {
-            \Log::error('AI Assistant Exception: ' . $e->getMessage());
+            Log::error('AI Assistant Exception: ' . $e->getMessage());
             return response()->json([
                 'result' => 'Kesalahan Koneksi ke Google Gemini: ' . $e->getMessage()
             ], 500);
@@ -377,7 +507,7 @@ PROMPT;
             ]);
 
             if (!$response->successful()) {
-                \Log::error('Gemini Autofill Error: ' . $response->body());
+                Log::error('Gemini Autofill Error: ' . $response->body());
                 return response()->json(['error' => 'Gagal menghubungi AI (status ' . $response->status() . ')'], $response->status());
             }
 
@@ -386,7 +516,7 @@ PROMPT;
             $finishReason = $data['candidates'][0]['finishReason'] ?? null;
 
             if (!$text) {
-                \Log::error('Gemini Autofill: tidak ada teks hasil. finishReason=' . $finishReason . ' | raw=' . json_encode($data));
+                Log::error('Gemini Autofill: tidak ada teks hasil. finishReason=' . $finishReason . ' | raw=' . json_encode($data));
                 return response()->json(['error' => 'AI tidak memberikan hasil (finish reason: ' . ($finishReason ?? 'unknown') . ').'], 500);
             }
 
@@ -398,7 +528,7 @@ PROMPT;
             }
 
             if (json_last_error() !== JSON_ERROR_NONE || !is_array($parsed)) {
-                \Log::error('Gagal parse JSON dari Gemini Autofill. Raw text: ' . $text);
+                Log::error('Gagal parse JSON dari Gemini Autofill. Raw text: ' . $text);
                 return response()->json(['error' => 'Gagal memproses hasil AI. Coba lagi.'], 500);
             }
 
@@ -418,10 +548,12 @@ PROMPT;
             return response()->json(['success' => true, 'data' => $parsed]);
 
         } catch (\Exception $e) {
-            \Log::error('AI Autofill Exception: ' . $e->getMessage());
+            Log::error('AI Autofill Exception: ' . $e->getMessage());
             return response()->json(['error' => 'Kesalahan koneksi ke AI: ' . $e->getMessage()], 500);
         }
     }
+
+    // ========== PRIVATE HELPERS ==========
 
     private function handleThumbnail(Request $request, Article $article, $isUpdate = false)
     {

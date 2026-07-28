@@ -14,6 +14,7 @@ use App\Models\Notification;  // Tambahkan model Notification
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
+
 class DocumentController extends Controller
 {
     /**
@@ -48,7 +49,7 @@ class DocumentController extends Controller
                     ->get();
 
         // 5. Ambil Artikel Terkait
-        $relatedArticles = Article::where('category', $article->category)
+        $relatedArticles = Article::where('category_id', $article->category_id)
                     ->where('id', '!=', $article->id)
                     ->where('status', 'published')
                     ->limit(5)
@@ -84,43 +85,38 @@ class DocumentController extends Controller
     /**
      * Toggle Like.
      */
-    public function toggleLike(Request $request, $id)
+    public function toggleLike($id)
     {
-        $article = Article::findOrFail($id);
-        $user = auth()->user();
+        $article = \App\Models\Article::findOrFail($id);
+        $userId = auth()->id();
 
-        $like = Like::where('user_id', $user->id)->where('article_id', $article->id)->first();
+        // Cek apakah user sudah like artikel ini sebelumnya
+        $like = \App\Models\Like::where('user_id', $userId)->where('article_id', $id)->first();
 
         if ($like) {
+            // Jika sudah like, maka hapus (Unlike)
             $like->delete();
-            $article->decrement('likes_count');
-            $liked = false;
-            // ✨ CATAT AKTIVITAS: Unlike
-            UserActivity::create([
-                'user_id'    => $user->id,
-                'type'       => 'Unlike Article',
-                'description'=> 'Membatalkan suka pada artikel: ' . $article->title,
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-            ]);
+            $isLiked = false;
         } else {
-            Like::create(['user_id' => $user->id, 'article_id' => $article->id]);
-            $article->increment('likes_count');
-            $liked = true;
-            // ✨ CATAT AKTIVITAS: Like
-            UserActivity::create([
-                'user_id'    => $user->id,
-                'type'       => 'Like Article',
-                'description'=> 'Menyukai artikel: ' . $article->title,
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
+            // Jika belum, tambahkan data Like
+            \App\Models\Like::create([
+                'user_id' => $userId,
+                'article_id' => $id
             ]);
+            $isLiked = true;
         }
 
+        // Hitung total like terbaru
+        $likeCount = \App\Models\Like::where('article_id', $id)->count();
+        
+        // (Opsional) Update kolom likes_count di tabel articles jika Anda menggunakannya
+        // $article->update(['likes_count' => $likeCount]);
+
+        // ✅ BALASAN HARUS JSON SEPERTI INI AGAR JAVASCRIPT BEKERJA
         return response()->json([
             'success' => true,
-            'liked' => $liked,
-            'count' => $article->likes_count
+            'liked'   => $isLiked,
+            'count'   => $likeCount
         ]);
     }
 
@@ -129,37 +125,28 @@ class DocumentController extends Controller
      */
     public function rate(Request $request, $id)
     {
-        $request->validate(['rating' => 'required|integer|min:1|max:5']);
-        $article = Article::findOrFail($id);
-        $user = auth()->user();
+        // Validasi input rating dari JavaScript
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5'
+        ]);
+        
+        $userId = auth()->id();
 
-        $rating = Rating::updateOrCreate(
-            ['user_id' => $user->id, 'article_id' => $article->id],
+        // UpdateOrCreate: Simpan atau update nilai rating dari user ini
+        \App\Models\Rating::updateOrCreate(
+            ['user_id' => $userId, 'article_id' => $id],
             ['rating' => $request->rating]
         );
 
-        // Update rating rata-rata di tabel articles
-        $avgRating = Rating::where('article_id', $article->id)->avg('rating');
-        $countRating = Rating::where('article_id', $article->id)->count();
-
-        $article->update([
-            'rating_avg' => $avgRating,
-            'rating_count' => $countRating
-        ]);
-
-        // ✨ CATAT AKTIVITAS: Rating
-        UserActivity::create([
-            'user_id'    => $user->id,
-            'type'       => 'Rate Article',
-            'description'=> 'Memberi rating ' . $request->rating . ' bintang pada artikel: ' . $article->title,
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-        ]);
+        // Hitung rata-rata rating terbaru dari tabel ratings
+        $avgRating = \App\Models\Rating::where('article_id', $id)->avg('rating');
+        
+        // KITA MENGHAPUS BAGIAN $article->save() DI SINI
+        // KARENA KOLOM rating_avg BELUM DIBUAT DI DATABASE ANDA
 
         return response()->json([
             'success' => true,
-            'avg' => number_format($avgRating, 1),
-            'count' => $countRating
+            'avg'     => number_format($avgRating, 1) 
         ]);
     }
 
@@ -209,64 +196,33 @@ class DocumentController extends Controller
      */
     public function submitFeedback(Request $request, $id)
     {
-        $article = Article::findOrFail($id);
-        $user = auth()->user();
-
-        // 1. Cegah spam: cek apakah user sudah pernah memberi feedback untuk artikel ini
-        $exists = Feedback::where('user_id', $user->id)
-            ->where('article_id', $id)
-            ->exists();
-
-        if ($exists) {
-            return response()->json([
-                'status' => 'already_submitted',
-                'message' => 'Anda sudah memberikan feedback untuk artikel ini.'
-            ]);
-        }
-
-        // 2. Validasi input
+        // Validasi input dari modal
         $request->validate([
             'rating'  => 'required|integer|min:1|max:5',
-            'comment' => 'nullable|string|max:1000',
+            'comment' => 'nullable|string'
         ]);
 
-        // 3. Simpan feedback
-        $feedback = Feedback::create([
-            'article_id'   => $article->id,
-            'user_id'      => $user->id,
-            'feedback_type'=> 'Rating',   // Bisa disesuaikan
-            'status'       => 'Open',
-            'message'      => $request->comment ?? '', // Jika ingin simpan di message juga
-            'rating'       => $request->rating,
-            'comment'      => $request->comment,
-        ]);
+        $userId = auth()->id();
 
-        // 4. Catat aktivitas user (opsional)
-        UserActivity::create([
-            'user_id'    => $user->id,
-            'article_id' => $article->id,
-            'type'       => 'Feedback',
-            'description'=> 'Memberikan rating ' . $request->rating . ' bintang pada artikel: ' . $article->title,
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-        ]);
+        // (Opsional) Cek apakah user sudah pernah memberi feedback agar tidak dobel
+        // Pastikan Anda sudah membuat Model Feedback beserta migration-nya.
+        $exists = \App\Models\Feedback::where('user_id', $userId)
+                                      ->where('article_id', $id)
+                                      ->exists();
 
-        // 5. Jika rating ≤ 3, kirim notifikasi ke Admin
-        if ($request->rating <= 3) {
-            Notification::create([
-                'user_id'    => null, // Null = semua Admin
-                'article_id' => $article->id,
-                'type'       => 'Feedback',
-                'title'      => '👎 Feedback Negatif Diterima',
-                'message'    => 'Pengguna ' . $user->name . ' memberikan rating ' . $request->rating . ' bintang pada artikel "' . $article->title . '".',
-                'url'        => route('admin.feedback'), // Pastikan route ini ada
-                'is_read'    => false,
-            ]);
+        if ($exists) {
+            return response()->json(['status' => 'already_submitted']);
         }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Terima kasih atas feedback Anda!'
+        // Simpan feedback ke database
+        \App\Models\Feedback::create([
+            'user_id'    => $userId,
+            'article_id' => $id,
+            'rating'     => $request->rating,
+            'comment'    => $request->comment
         ]);
+
+        // Balas dengan status JSON sukses agar modal tertutup otomatis
+        return response()->json(['status' => 'success']);
     }
 }

@@ -6,11 +6,13 @@ use App\Models\Article;
 use App\Models\Bookmark;
 use App\Models\UserActivity;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use App\Notifications\UserNotification;
+use Carbon\Carbon;
 
 class UserProfileController extends Controller
 {
@@ -34,21 +36,18 @@ class UserProfileController extends Controller
             $activityQuery->whereDate('created_at', $request->date);
         }
         
-        // Paginate & pertahankan Query String agar saat pindah halaman filter tetap berlaku
         $activities = $activityQuery->orderBy('created_at', 'desc')
             ->paginate(10)
             ->appends($request->except('page'));
 
-        // 2. Query Bookmark (FILTER KATEGORI DIPINDAHKAN KE JAVASCRIPT)
-        // Kita hanya ambil semua data bookmark user. Filter kategori dilakukan 100% oleh JS di frontend.
+        // 2. Query Bookmark
+        // Filter kategori dilakukan 100% oleh JS di frontend.
         $bookmarks = Bookmark::where('user_id', $user->id)->with('article')
             ->orderBy('created_at', 'desc')
             ->paginate(9);
-            // Catatan: `->appends()` dihapus karena JS menangani filter tanpa memerlukan parameter URL,
-            // sehingga pagination tidak akan pernah kehilangan data.
 
-        // 3. Query Notifikasi (Paling baru di atas)
-        $notifications = $user->notifications()
+        // 3. Query Notifikasi (Dikembalikan menggunakan \App\Models\Notification agar tidak error)
+        $notifications = \App\Models\Notification::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -65,7 +64,6 @@ class UserProfileController extends Controller
         // 5. Data Chart (7 Hari Terakhir)
         $chartData = $this->getChartData($user->id);
 
-        // Return ke view user-profil (sesuai file blade kamu)
         return view('user-profil', compact('user', 'activities', 'bookmarks', 'notifications', 'stats', 'chartData'));
     }
 
@@ -75,7 +73,6 @@ class UserProfileController extends Controller
     private function getChartData($userId)
     {
         $days = [];
-        // 7 hari ke belakang (dari hari ini)
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
             $count = UserActivity::where('user_id', $userId)
@@ -84,20 +81,22 @@ class UserProfileController extends Controller
             $days[] = $count;
         }
         return [
-            // Label bisa disesuaikan format tanggalnya menjadi 'Senin, Selasa' dll.
             'labels' => ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'],
             'data' => $days
         ];
     }
 
-    // --- Profile Update (Informasi Akun) ---
+    // ============================================================
+    // PROFILE UPDATE
+    // ============================================================
+
     public function updateProfile(Request $request)
     {
         $user = Auth::user();
         $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'phone' => 'nullable|string|max:15',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email,' . $user->id,
+            'phone'    => 'nullable|string|max:15',
             'instansi' => 'nullable|string|max:255',
             'bidang'   => 'nullable|string|max:255',
             'jabatan'  => 'nullable|string|max:255',
@@ -108,7 +107,6 @@ class UserProfileController extends Controller
         return redirect()->route('user.profil')->with('success', 'Profil berhasil diperbarui.');
     }
 
-    // --- Ganti Password ---
     public function updatePassword(Request $request)
     {
         $request->validate([
@@ -123,7 +121,10 @@ class UserProfileController extends Controller
         return redirect()->route('user.profil')->with('success', 'Password berhasil diubah.');
     }
 
-    // --- History Actions ---
+    // ============================================================
+    // HISTORY ACTIONS
+    // ============================================================
+
     public function deleteHistory($id)
     {
         $activity = UserActivity::where('user_id', Auth::id())->findOrFail($id);
@@ -137,8 +138,10 @@ class UserProfileController extends Controller
         return redirect()->route('user.profil')->with('success', 'Semua riwayat aktivitas telah dihapus.');
     }
 
-    // --- Bookmark Actions (Controller hanya handle Hapus) ---
-    // Catatan: Fungsi toggleBookmark bisa digunakan untuk API jika nanti mau bikin tombol bookmark di halaman artikel.
+    // ============================================================
+    // BOOKMARK ACTIONS
+    // ============================================================
+
     public function toggleBookmark(Request $request)
     {
         $articleId = $request->article_id;
@@ -161,30 +164,137 @@ class UserProfileController extends Controller
         return redirect()->route('user.profil')->with('success', 'Bookmark berhasil dihapus.');
     }
 
-    // --- Notification Actions ---
+    // ============================================================
+    // NOTIFICATION ACTIONS
+    // ============================================================
+
     public function markNotificationAsRead($id)
     {
-        $notification = Auth::user()->notifications()->findOrFail($id);
-        $notification->markAsRead();
+        // Menggunakan model Notification langsung agar tidak error relasi
+        $notification = \App\Models\Notification::where('user_id', Auth::id())->findOrFail($id);
+        
+        if (isset($notification->is_read)) {
+             $notification->update(['is_read' => true]);
+        } elseif (method_exists($notification, 'markAsRead')) {
+             $notification->markAsRead();
+        }
+        
         return redirect()->route('user.profil')->with('success', 'Notifikasi ditandai telah dibaca.');
     }
 
     public function markAllNotificationsAsRead()
     {
-        Auth::user()->unreadNotifications->markAsRead();
+        // Update langsung via model untuk menghindari error relasi
+        \App\Models\Notification::where('user_id', Auth::id())->update(['is_read' => true]);
+        
         return redirect()->route('user.profil')->with('success', 'Semua notifikasi telah dibaca.');
     }
 
     public function deleteNotification($id)
     {
-        $notification = Auth::user()->notifications()->findOrFail($id);
+        // Menggunakan model Notification langsung agar tidak error relasi
+        $notification = \App\Models\Notification::where('user_id', Auth::id())->findOrFail($id);
         $notification->delete();
+        
         return redirect()->route('user.profil')->with('success', 'Notifikasi berhasil dihapus.');
     }
 
     public function clearNotifications()
     {
-        Auth::user()->notifications()->delete();
+        // Menggunakan model Notification langsung agar tidak error relasi
+        \App\Models\Notification::where('user_id', Auth::id())->delete();
         return redirect()->route('user.profil')->with('success', 'Semua notifikasi telah dihapus.');
+    }
+
+    // ============================================================
+    // FITUR KEAMANAN (Login History, Active Devices, Logout All)
+    // ============================================================
+
+    public function loginHistory(Request $request)
+    {
+        $activities = UserActivity::where('user_id', auth()->id())
+                    ->where('type', 'Login')
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(10);
+
+        return response()->json([
+            'html' => view('user.modals.login-history', compact('activities'))->render()
+        ]);
+    }
+
+    public function activeDevices(Request $request)
+    {
+        $sessions = collect();
+
+        if (config('session.driver') === 'database') {
+            $currentSessionId = $request->session()->getId();
+
+            $sessions = DB::table('sessions')
+                        ->where('user_id', auth()->id())
+                        ->where('id', '!=', $currentSessionId)
+                        ->orderBy('last_activity', 'desc')
+                        ->get()
+                        ->map(function ($session) {
+                            $session->last_activity = Carbon::createFromTimestamp($session->last_activity);
+                            $session->device = $this->getDeviceInfo($session->user_agent);
+                            $session->ip_address = $session->ip_address ?? '-';
+                            return $session;
+                        });
+        }
+
+        return response()->json([
+            'html' => view('user.modals.active-devices', compact('sessions'))->render()
+        ]);
+    }
+
+    public function logoutAllDevices(Request $request)
+    {
+        if (config('session.driver') === 'database') {
+            $currentSessionId = $request->session()->getId();
+
+            DB::table('sessions')
+                ->where('user_id', auth()->id())
+                ->where('id', '!=', $currentSessionId)
+                ->delete();
+        }
+
+        auth()->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('success', 'Anda telah logout dari semua perangkat.');
+    }
+
+    // ============================================================
+    // HELPER METHODS
+    // ============================================================
+
+    private function getDeviceInfo($userAgent)
+    {
+        $userAgent = $userAgent ?? '';
+
+        $device = 'Unknown';
+        if (strpos($userAgent, 'Mobile') !== false) {
+            $device = 'Mobile';
+        } elseif (strpos($userAgent, 'Tablet') !== false) {
+            $device = 'Tablet';
+        } else {
+            $device = 'Desktop';
+        }
+
+        $os = 'Unknown';
+        if (strpos($userAgent, 'Windows') !== false) {
+            $os = 'Windows';
+        } elseif (strpos($userAgent, 'Mac') !== false) {
+            $os = 'Mac';
+        } elseif (strpos($userAgent, 'Linux') !== false) {
+            $os = 'Linux';
+        } elseif (strpos($userAgent, 'Android') !== false) {
+            $os = 'Android';
+        } elseif (strpos($userAgent, 'iOS') !== false) {
+            $os = 'iOS';
+        }
+
+        return $device . ' - ' . $os;
     }
 }

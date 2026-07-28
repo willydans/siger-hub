@@ -588,7 +588,13 @@
         currentForm = target;
     }
 
-    window.addEventListener('load', initIndicator);
+    window.addEventListener('load', () => {
+    initIndicator();
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('form') === 'register') {
+        switchForm('register');
+    }
+});
     window.addEventListener('resize', initIndicator);
 
     function animCounter(elId, target, suffix, duration) {

@@ -38,6 +38,7 @@
         #sidebar-overlay { transition: opacity 0.3s ease-in-out; }
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast-item { background: #0F172A; color: white; padding: 12px 24px; border-radius: 12px; font-size: 14px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); transform: translateX(120%); animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; border-left: 4px solid #EAB308; display: flex; align-items: center; gap: 10px; }
+        .toast-item.error { border-left-color: #DC2626; }
         .toast-item.out { animation: slideOutRight 0.3s ease-in forwards; }
         @keyframes slideInRight { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
@@ -58,10 +59,12 @@
             </div>
         </div>
         <div class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-            <a href="{{ route('home.public') }}" class="flex items-center justify-center gap-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 hover:text-blue-300 border border-blue-500/30 px-3 py-2.5 rounded-lg text-xs font-bold transition-colors mb-6 shadow-sm hover:scale-[1.02] duration-200">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                Lihat Portal Publik
-            </a>
+           <a href="{{ route('portal') }}" target="_blank" 
+   class="flex items-center justify-center gap-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 hover:text-blue-300 border border-blue-500/30 px-3 py-2.5 rounded-lg text-xs font-bold transition-colors mb-6 shadow-sm hover:scale-[1.02] duration-200"
+   title="Buka portal publik di tab baru">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+    Portal Publik
+</a>
             <p class="px-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Konten</p>
             <a href="{{ route('staff.dashboard') }}" class="flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800/50 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg> Analitik Dashboard</a>
             <a href="{{ route('staff.articles') }}" class="flex items-center gap-3 bg-gray-800/50 text-white px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border border-gray-700"><svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Artikel Saya</a>
@@ -83,7 +86,17 @@
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-gray-50 p-6 md:p-8 relative w-full">
-        @if(session('success')) <script>document.addEventListener('DOMContentLoaded', function() { showToast('{{ session('success') }}'); });</script> @endif
+        @if(session('success'))
+            <script>document.addEventListener('DOMContentLoaded', function() { showToast('{{ session('success') }}'); });</script>
+        @endif
+        {{-- ✅ FIX: sebelumnya cuma session('success') yang ditampilkan. Redirect dengan
+             session('error') (mis. dari StaffEditorController@edit ketika artikel tidak
+             ditemukan/bukan milik user) sebelumnya SENYAP TOTAL — user cuma lihat halaman
+             ini kebuka lagi tanpa tahu kenapa. Sekarang error juga ditampilkan sebagai toast
+             merah supaya jelas apa yang sebenarnya terjadi. --}}
+        @if(session('error'))
+            <script>document.addEventListener('DOMContentLoaded', function() { showToast('{{ session('error') }}', 'error'); });</script>
+        @endif
 
         <div class="flex justify-between items-center mb-6 md:hidden">
             <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-900 p-2 -ml-2 rounded-lg hover:bg-gray-100">
@@ -198,7 +211,6 @@
                                 </td>
                                 <td class="px-4 py-4 text-center text-gray-600">{{ number_format($article->views) }}</td>
                                 <td class="px-4 py-4 text-center text-yellow-400 font-medium">
-                                    {{-- ✅ PERBAIKAN: Gunakan rating_avg dan rating_count --}}
                                     {{ $article->rating_avg ? number_format($article->rating_avg, 1) : 0 }}
                                     @if(isset($article->rating_count) && $article->rating_count > 0)
                                         <span class="block text-[10px] text-gray-400">({{ $article->rating_count }} Rating)</span>
@@ -213,31 +225,57 @@
                                         
                                         <div class="dropdown-menu hidden w-48 scale-95 opacity-0 bg-white border border-gray-200 rounded-lg shadow-xl origin-top-right z-50">
                                             <div class="py-1">
-                                                <a href="{{ route('staff.articles.show', $article->id) }}" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View</a>
+                                                <!-- View -->
+                                                <a href="{{ route('staff.articles.show', $article->id) }}" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View
+                                                </a>
                                                 
-                                                <button onclick="openEditModal({{ $article->id }}, @js($article->title), '{{ $article->category }}', '{{ $article->visibility }}')" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit</button>
+                                                <!-- ✅ PERBAIKAN: Edit sekarang mengarah ke EDITOR LENGKAP -->
+                                                <a href="{{ route('staff.editor.edit', $article->id) }}" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit
+                                                </a>
                                                 
-                                                <button type="button" onclick="confirmDuplicate({{ $article->id }}, @js($article->title))" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg> Duplicate</button>
+                                                <!-- Duplicate -->
+                                                <button type="button" onclick="confirmDuplicate({{ $article->id }}, @js($article->title))" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg> Duplicate
+                                                </button>
 
-                                                <a href="{{ route('staff.articles.preview', $article->id) }}" target="_blank" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Preview</a>
+                                                <!-- Preview -->
+                                                <a href="{{ route('staff.articles.preview', $article->id) }}" target="_blank" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Preview
+                                                </a>
                                                 
-                                                <a href="{{ route('staff.articles.download-pdf', $article->id) }}" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Download PDF</a>
+                                                <!-- Download PDF -->
+                                                <a href="{{ route('staff.articles.download-pdf', $article->id) }}" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Download PDF
+                                                </a>
                                                 
-                                                <button onclick="openDeleteModal({{ $article->id }}, @js($article->title))" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Delete</button>
+                                                <!-- Delete -->
+                                                <button onclick="openDeleteModal({{ $article->id }}, @js($article->title))" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Delete
+                                                </button>
 
+                                                <!-- Archive / Unarchive -->
                                                 @if($article->status === 'archived')
                                                     <form action="{{ route('staff.articles.unarchive', $article->id) }}" method="POST">
                                                         @csrf
-                                                        <button type="submit" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Kembalikan ke Draft</button>
+                                                        <button type="submit" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Kembalikan ke Draft
+                                                        </button>
                                                     </form>
                                                 @else
                                                     <form action="{{ route('staff.articles.archive', $article->id) }}" method="POST">
                                                         @csrf
-                                                        <button type="submit" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg> Archive</button>
+                                                        <button type="submit" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg> Archive
+                                                        </button>
                                                     </form>
                                                 @endif
                                                 
-                                                <a href="{{ route('staff.articles.history', $article->id) }}" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> History Version</a>
+                                                <!-- History -->
+                                                <a href="{{ route('staff.articles.history', $article->id) }}" class="dropdown-item flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> History Version
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
@@ -254,38 +292,7 @@
         </form>
     </main>
 
-    <!-- MODAL EDIT CEPAT -->
-    <div id="editModal" class="fixed inset-0 z-50 hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center transition-opacity opacity-0">
-        <form id="quickEditForm" method="POST" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300">
-            <div id="editModalContent">
-                @csrf @method('POST')
-                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                    <h3 class="font-bold text-gray-900 text-lg">Edit Cepat Artikel</h3>
-                    <button type="button" onclick="closeEditModal()" class="text-gray-400 hover:text-gray-700 focus:outline-none"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-                </div>
-                <div class="p-6 space-y-4">
-                    <input type="hidden" id="edit-id" name="id" value="">
-                    <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Judul Dokumen</label><input type="text" id="edit-title" name="title" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:border-blue-500 outline-none focus:ring-1 focus:ring-blue-500 transition"></div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Kategori</label><select id="edit-category" name="category" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:border-blue-500 outline-none transition"><option value="Keamanan">Keamanan</option><option value="Infrastruktur">Infrastruktur</option><option value="Tutorial Aplikasi">Tutorial Aplikasi</option><option value="SOP Umum">SOP Umum</option><option value="Web Dev">Web Dev</option></select></div>
-                        <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Visibilitas</label><select id="edit-visibility" name="visibility" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:border-blue-500 outline-none transition"><option value="publik">Publik (Semua)</option><option value="terbatas">Publik Terbatas</option><option value="privat">Privat (Internal)</option></select></div>
-                    </div>
-                    <div class="pt-2">
-                        <a href="#" id="open-full-editor-link" target="_blank" class="text-xs text-blue-600 hover:underline flex items-center gap-1 font-medium">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                            Buka di Editor Lengkap
-                        </a>
-                    </div>
-                </div>
-                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
-                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none">Batal</button>
-                    <button type="submit" class="px-5 py-2 text-sm font-bold bg-gold text-darkbg hover:bg-goldhover rounded-lg transition-colors focus:outline-none shadow-md">Simpan Perubahan</button>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <!-- MODAL HAPUS -->
+    <!-- MODAL HAPUS (Tidak berubah) -->
     <div id="deleteModal" class="fixed inset-0 z-50 hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center transition-opacity opacity-0">
         <div id="deleteModalContent" class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 text-center">
             <form id="deleteForm" method="POST">
@@ -305,16 +312,17 @@
     </div>
 
     <script>
-        function showToast(message) {
+        function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.className = 'toast-item';
-            toast.innerHTML = `<span class="text-gold text-lg leading-none">✦</span><span>${message}</span>`;
+            toast.className = type === 'error' ? 'toast-item error' : 'toast-item';
+            const icon = type === 'error' ? '✖' : '✦';
+            toast.innerHTML = `<span class="text-lg leading-none" style="color: ${type === 'error' ? '#DC2626' : '#EAB308'}">${icon}</span><span>${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => {
                 toast.classList.add('out');
                 setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
-            }, 3000);
+            }, type === 'error' ? 5000 : 3000);
         }
 
         function toggleSidebar() {
@@ -397,26 +405,7 @@
             document.querySelectorAll('.row-checkbox').forEach(checkbox => checkbox.checked = checkAll.checked);
         }
 
-        const editModal = document.getElementById('editModal');
-        const editModalContent = document.getElementById('editModalContent');
-        const quickEditForm = document.getElementById('quickEditForm');
-        function openEditModal(id, title, category, visibility) {
-            closeDropdownPortal();
-            document.getElementById('edit-id').value = id;
-            document.getElementById('edit-title').value = title;
-            document.getElementById('edit-category').value = category;
-            document.getElementById('edit-visibility').value = visibility;
-            quickEditForm.action = `/staff/articles/quick-update/${id}`;
-            document.getElementById('open-full-editor-link').href = `/staff/editor/${id}`;
-            editModal.classList.remove('hidden');
-            setTimeout(() => { editModal.classList.remove('opacity-0'); editModalContent.classList.remove('scale-95'); }, 10);
-        }
-        function closeEditModal() {
-            editModal.classList.add('opacity-0');
-            editModalContent.classList.add('scale-95');
-            setTimeout(() => { editModal.classList.add('hidden'); }, 300);
-        }
-
+        // ========== DELETE MODAL ==========
         const deleteModal = document.getElementById('deleteModal');
         const deleteModalContent = document.getElementById('deleteModalContent');
         const deleteForm = document.getElementById('deleteForm');
@@ -433,6 +422,7 @@
             setTimeout(() => { deleteModal.classList.add('hidden'); }, 300);
         }
 
+        // ========== DUPLICATE ==========
         function confirmDuplicate(id, title) {
             Swal.fire({
                 title: 'Duplikasi Artikel?',

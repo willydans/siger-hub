@@ -12,12 +12,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use Spatie\Activitylog\Traits\CausesActivity;
+//use Spatie\Activitylog\Traits\CausesActivity;
 use App\Notifications\VerifyEmailNotification;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles, CausesActivity;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     protected $fillable = [
         'name',
@@ -141,5 +141,30 @@ class User extends Authenticatable implements MustVerifyEmail
             return asset('storage/' . $this->avatar);
         }
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=0D8ABC&color=fff';
+    }
+    public function markAllNotificationsAsRead()
+    {
+        return \App\Models\Notification::where('user_id', $this->id)
+            ->where('is_read', 0)
+            ->update(['is_read' => 1]); // Mengubah nilai is_read menjadi 1 (sudah dibaca)
+    }
+
+    /**
+     * Hapus semua notifikasi milik user ini
+     */
+    public function deleteAllNotifications()
+    {
+        return \App\Models\Notification::where('user_id', $this->id)->delete();
+    }
+
+    /**
+     * Hitung jumlah notifikasi yang belum dibaca
+     * (Bisa dipanggil di Blade menggunakan: Auth::user()->unread_notifications_count)
+     */
+    public function getUnreadNotificationsCountAttribute()
+    {
+        return \App\Models\Notification::where('user_id', $this->id)
+            ->where('is_read', 0)
+            ->count();
     }
 }
